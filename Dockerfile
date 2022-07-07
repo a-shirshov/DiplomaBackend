@@ -1,12 +1,11 @@
-FROM golang:1.16-alpine as builder
+FROM golang:1.16-alpine as main_server_build
+RUN apk add --no-cache make 
 WORKDIR /app
 COPY go.mod .
 COPY go.sum .
 RUN go mod download
 COPY . .
-RUN go build -o /main cmd/base/main.go
-
-FROM alpine:3
-COPY --from=builder main /bin/main
+RUN make main_server
 EXPOSE 8080
-ENTRYPOINT ["/bin/main"]
+WORKDIR /app/bin/api
+CMD ["./main_server"]
