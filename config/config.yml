@@ -1,2 +1,11 @@
-base:
+server:
   port: "8080"
+
+postgres:
+  port: 5432
+  user: "a_shirshov"
+  database: "Diploma"
+
+redis:
+  addr: "localhost:6380"
+  db_id: 0
