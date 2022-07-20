@@ -8,5 +8,5 @@ postgres:
   database: "Diploma"
 
 redis:
-  addr: "localhost:6380"
+  addr: "redis:6379"
   db_id: 0

@@ -2,7 +2,6 @@ version: "3.5"
 services:
   server:
     build: "./"
-    env_file: .env
     restart: unless-stopped
     command: "./server"
     ports:
