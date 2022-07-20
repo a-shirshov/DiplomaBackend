@@ -3,6 +3,7 @@ server:
 
 postgres:
   port: 5432
+  host: "45.141.102.243"
   user: "a_shirshov"
   database: "Diploma"
 

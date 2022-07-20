@@ -10,6 +10,7 @@ func InitPostgresDB() (*pgx.ConnPool, error) {
 		User:                 viper.GetString("postgres.user"),
 		Database:             viper.GetString("postgres.database"),
 		Password:             viper.GetString("POSTGRES_PASSWORD"),
+		Host: 				  viper.GetString("postgres.host"),
 		Port: 						uint16(viper.GetInt("postgres.port")),	
 		PreferSimpleProtocol: false,
 	}
