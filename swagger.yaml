@@ -1,0 +1,262 @@
+consumes:
+- application/json
+definitions:
+  Event:
+    properties:
+      about:
+        description: long info about event
+        example: very interesting ...
+        maxLength: 500
+        type: string
+        x-go-name: About
+      category:
+        description: category of event (still in dev)
+        example: theatre
+        maxLength: 50
+        type: string
+        x-go-name: Category
+      description:
+        description: short info about event
+        maxLength: 80
+        type: string
+        x-go-name: Description
+      id:
+        description: the id of event
+        format: int64
+        minimum: 1
+        type: integer
+        x-go-name: ID
+      name:
+        description: the name of event
+        maxLength: 80
+        type: string
+        x-go-name: Name
+      specialInfo:
+        description: important info about event
+        example: For people older than 18
+        maxLength: 150
+        type: string
+        x-go-name: SpecialInfo
+      tags:
+        description: tags of event
+        items:
+          maxLength: 30
+          type: string
+        maxItems: 5
+        type: array
+        x-go-name: Tags
+    required:
+    - name
+    - description
+    - about
+    - category
+    type: object
+    x-go-package: _/home/artyom/DiplomaBackend/internal/models
+  Tokens:
+    properties:
+      access_token:
+        description: access token for user
+        example: b53bcc38-efce-46d9-b7b2-fbeb175b91ab
+        maxLength: 50
+        type: string
+        x-go-name: AccessToken
+      refresh_token:
+        description: refresh token for user
+        example: d0a93fb4-26fe-4980-836a-b0d481f0aa68
+        maxLength: 50
+        type: string
+        x-go-name: RefreshToken
+    type: object
+    x-go-package: _/home/artyom/DiplomaBackend/internal/models
+  refreshToken:
+    description: Refresh token
+    properties:
+      refresh_token:
+        example: 'd0a93fb4-26fe-4980-836a-b0d481f0aa68 '
+        type: string
+        x-go-name: Refresh_token
+    type: object
+    x-go-package: _/home/artyom/DiplomaBackend/internal/models
+  userProfileResponse:
+    properties:
+      about:
+        description: About user
+        example: about user
+        maxLength: 100
+        type: string
+        x-go-name: About
+      email:
+        description: Email of the user
+        example: artyom@mail.ru
+        maxLength: 50
+        type: string
+        x-go-name: Email
+      imgurl:
+        description: ImgUrl for avatar
+        example: about user
+        maxLength: 100
+        type: string
+        x-go-name: ImgUrl
+      name:
+        description: Name of the user
+        example: Artyom
+        maxLength: 50
+        type: string
+        x-go-name: Name
+      surname:
+        description: Surname of the user
+        example: Shirshov
+        maxLength: 50
+        type: string
+        x-go-name: Surname
+    type: object
+    x-go-package: _/home/artyom/DiplomaBackend/internal/models
+  userSignUp:
+    properties:
+      Email:
+        description: Email of the user
+        example: artyom@mail.ru
+        maxLength: 50
+        type: string
+      Name:
+        description: Name of the user
+        example: Artyom
+        maxLength: 50
+        type: string
+      Password:
+        description: Password of the user
+        example: "12345678"
+        maxLength: 30
+        type: string
+      Surname:
+        description: Surname of the user
+        example: Shirshov
+        maxLength: 50
+        type: string
+    type: object
+    x-go-package: _/home/artyom/DiplomaBackend/internal/models
+host: 45.141.102.243
+info:
+  description: Documentation for Diploma API
+  title: Diploma API
+  version: 1.0.0
+paths:
+  /api/events/{page}:
+    get:
+      description: Returns a list of events of selected page
+      operationId: ListEvents
+      parameters:
+      - description: The page of events from the database
+        format: int64
+        in: path
+        name: page
+        required: true
+        type: integer
+        x-go-name: Page
+      responses:
+        "200":
+          $ref: '#/responses/eventsResponse'
+      tags:
+      - Events
+  /api/user/{id}/profile:
+    get:
+      description: Returns user profile
+      operationId: UserProfile
+      responses:
+        "200":
+          $ref: '#/responses/userResponse'
+      tags:
+      - Users
+  /api/user/create:
+    post:
+      description: Creates a user in the database
+      operationId: SignUpUser
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/userSignUp'
+      responses:
+        "201":
+          $ref: '#/responses/userResponse'
+        "400":
+          $ref: '#/responses/badRequest'
+        "500":
+          $ref: '#/responses/serverError'
+      tags:
+      - Users
+  /api/user/login:
+    get:
+      description: Returns tokens for authorized user
+      operationId: SignInUser
+      responses:
+        "200":
+          $ref: '#/responses/tokensResponse'
+      tags:
+      - Users
+  /api/user/logout:
+    get:
+      description: Returns tokens for authorized user
+      operationId: LogoutUser
+      responses:
+        "200":
+          $ref: '#/responses/noContent'
+      tags:
+      - Users
+  /api/user/refresh:
+    post:
+      description: Refresh access token
+      operationId: RefreshToken
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/refreshToken'
+      responses:
+        "200":
+          $ref: '#/responses/tokensResponse'
+        "500":
+          $ref: '#/responses/serverError'
+      tags:
+      - Users
+  /api/user/update:
+    post:
+      description: Update User
+      operationId: UpdateUser
+      parameters:
+      - description: Updated user
+        in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/userProfileResponse'
+      responses:
+        "200":
+          $ref: '#/responses/userResponse'
+      tags:
+      - Users
+produces:
+- application/json
+responses:
+  badRequest:
+    description: Error message about Bad Request
+  eventsResponse:
+    description: A list of events returns in the response
+    schema:
+      items:
+        $ref: '#/definitions/Event'
+      type: array
+  noContent:
+    description: Empty Response
+  serverError:
+    description: Error message about Server Error
+  tokensResponse:
+    description: ""
+    schema:
+      $ref: '#/definitions/Tokens'
+  userResponse:
+    description: User profile from the database
+    schema:
+      $ref: '#/definitions/userProfileResponse'
+schemes:
+- http
+swagger: "2.0"

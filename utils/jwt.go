@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -40,13 +39,7 @@ func TokenValid(r *http.Request) error {
   }
 
 func ExtractToken(r *http.Request) string {
-	bearToken := r.Header.Get("Authorization")
-	//normally Authorization the_token_xxx
-	strArr := strings.Split(bearToken, " ")
-	if len(strArr) == 2 {
-	   return strArr[1]
-	}
-	return ""
+	return r.Header.Get("Authorization")
 }
 
 func VerifyToken(r *http.Request) (*jwt.Token, error) {

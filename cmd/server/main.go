@@ -1,21 +1,47 @@
+// Package classification Diploma API
+//
+// Documentation for Diploma API
+//
+//	Schemes: http
+//  Host: 45.141.102.243
+//  Version: 1.0.0
+//
+//  Security:
+//  - access_token:
+//
+//  SecurityDefinitions:
+//  access_token:
+//    type: apiKey
+//    name: Authorization
+//    in: header
+//
+//    Consumes:
+//    - application/json
+//
+//    Produces:
+//    - application/json
+//
+// swagger:meta
 package main
 
 import (
 	"Diploma/internal/router"
+	"net/http"
+
 	userDelivery "Diploma/internal/server/delivery"
 	userRepo "Diploma/internal/server/repository"
 	userUsecase "Diploma/internal/server/usecase"
 
 	eventDelivery "Diploma/internal/event/delivery"
-	eventUsecase "Diploma/internal/event/usecase"
 	eventRepo "Diploma/internal/event/repository"
+	eventUsecase "Diploma/internal/event/usecase"
 
 	"Diploma/utils"
 	"log"
 	"os"
 
-
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
+	docMiddleware "github.com/go-openapi/runtime/middleware"
 	"github.com/spf13/viper"
 )
 
@@ -66,10 +92,18 @@ func main() {
 	baseRouter := gin.Default()
 	routerAPI := baseRouter.Group("/api")
 
+	opts := docMiddleware.RedocOpts{
+		SpecURL: "swagger.yaml",
+	}
+	docsHandler := docMiddleware.Redoc(opts, nil)
+	 
+	baseRouter.GET("/docs", gin.WrapH(docsHandler))
+	baseRouter.GET("/swagger.yaml", gin.WrapH(http.FileServer(http.Dir("../../"))))
+
 	userRouter := routerAPI.Group("/user")
 	router.UserEndpoints(userRouter, userD)
 
-	eventRouter := routerAPI.Group("/event")
+	eventRouter := routerAPI.Group("/events")
 	router.EventEndpoints(eventRouter, eventD)
 
 	port := viper.GetString("server.port")

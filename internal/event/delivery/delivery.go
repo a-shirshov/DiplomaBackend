@@ -18,6 +18,13 @@ func NewEventDelivery(eventU event.Usecase) (*EventDelivery) {
 	}
 }
 
+// swagger:route GET /api/events/{page} Events ListEvents
+// Returns a list of events of selected page
+// responses:
+// 200: eventsResponse
+
+// GetEvents returns the events from database by the amount of elementsPerPage
+// with selected page
 func (eD *EventDelivery) GetEvents(c *gin.Context) {
 	pageParam := c.Param("page")
 
