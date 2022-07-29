@@ -15,7 +15,7 @@
         "contact": {},
         "version": "1.0.0"
     },
-    "host": "localhost:8080",
+    "host": "http://45.141.102.243:8080",
     "basePath": "/api",
     "paths": {
         "/auth/login": {
