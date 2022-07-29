@@ -39,7 +39,7 @@ import (
 // @description 	For Authorization:
 // @description 	Put Access token in ApiKey with Bearer. Example: "Bearer access_token"
 
-// @host      http://45.141.102.243:8080
+// @host      45.141.102.243:8080
 // @BasePath  /api
 
 // @accept json
