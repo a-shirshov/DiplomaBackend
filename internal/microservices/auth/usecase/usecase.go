@@ -1,45 +1,41 @@
 package Usecase
 
 import (
+	"Diploma/internal/microservices/auth"
 	"Diploma/internal/models"
-	"Diploma/internal/server"
 	"Diploma/utils"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/spf13/viper"
 )
 
-type userUsecase struct {
-	userRepo server.Repository
-	sessionRepo server.SessionRepository
+type authUsecase struct {
+	authRepo auth.Repository
+	sessionRepo auth.SessionRepository
 }
 
-func NewUserUsecase(userRepo server.Repository, sessionRepo server.SessionRepository) *userUsecase {
-	return &userUsecase{
-		userRepo: userRepo,
+func NewAuthUsecase(userRepo auth.Repository, sessionRepo auth.SessionRepository) *authUsecase {
+	return &authUsecase{
+		authRepo: userRepo,
 		sessionRepo: sessionRepo,
 	}
 }
 
-
-func (uU *userUsecase) CreateUser(user *models.User) (*models.User, error) {
+func (uU *authUsecase) CreateUser(user *models.User) (*models.User, error) {
 	hash, err := utils.GenerateHashFromPassword(user.Password)
 	if err != nil {
 		return nil, err
 	}
 	user.Password = hash
-	return uU.userRepo.CreateUser(user)
+	return uU.authRepo.CreateUser(user)
 }
 
-func (uU *userUsecase) GetUser(userId int) (*models.User, error) {
-	return uU.userRepo.GetUser(userId)
-}
-
-func (uU *userUsecase) SignIn(user *models.User) (*models.User, *utils.TokenDetails, error) {
-	resultUser, err := uU.userRepo.GetUserByEmail(user.Email)
+func (uU *authUsecase) SignIn(user *models.User) (*models.User, *utils.TokenDetails, error) {
+	resultUser, err := uU.authRepo.GetUserByEmail(user.Email)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -56,6 +52,7 @@ func (uU *userUsecase) SignIn(user *models.User) (*models.User, *utils.TokenDeta
 		return nil, nil, err
 	}
 
+
 	err = uU.sessionRepo.SaveTokens(uId, td)
 	if err != nil {
 		return nil, nil, err
@@ -64,19 +61,21 @@ func (uU *userUsecase) SignIn(user *models.User) (*models.User, *utils.TokenDeta
 	return resultUser, td, nil
 }
 
-func (uU *userUsecase) Logout(au *utils.AccessDetails) error {
-	return uU.sessionRepo.DeleteAuth(au.AccessUuid)
+func (aU *authUsecase) Logout(au *utils.AccessDetails) error {
+	return aU.sessionRepo.DeleteAuth(au.AccessUuid)
 }
 
-func (uU *userUsecase) Refresh(refreshToken string) (*models.Tokens, error) {
+func (aU *authUsecase) Refresh(refreshToken string) (*models.Tokens, error) {
 	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error){
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(viper.GetString("REFRESH_SECRET")), nil
+		log.Printf("Returned refresh")
+		return []byte(viper.GetString("REFRESH_TOKEN")), nil
 	})
 
 	if err != nil {
+		log.Println(err.Error())
 		return nil, errors.New("Refresh token expired")
 	}
 
@@ -96,7 +95,7 @@ func (uU *userUsecase) Refresh(refreshToken string) (*models.Tokens, error) {
 			return nil, err
 		}
 
-		err = uU.sessionRepo.DeleteAuth(refreshUuid)
+		err = aU.sessionRepo.DeleteAuth(refreshUuid)
 		if err != nil  { //if any goes wrong
 			return nil, errors.New("unauthorized")
 		}
@@ -106,7 +105,7 @@ func (uU *userUsecase) Refresh(refreshToken string) (*models.Tokens, error) {
 		   return nil, err
 		}
 
-		err = uU.sessionRepo.SaveTokens(int(userId), ts)
+		err = aU.sessionRepo.SaveTokens(int(userId), ts)
 		if err != nil {
 			return nil, err
 		}
@@ -120,16 +119,4 @@ func (uU *userUsecase) Refresh(refreshToken string) (*models.Tokens, error) {
 	} else {
 		return nil, err
 	}
-}
-
-func (uU *userUsecase) UpdateUser(au *utils.AccessDetails, user *models.User) (*models.User, error) {
-	userId, err := uU.sessionRepo.FetchAuth(au.AccessUuid)
-	if err != nil {
-		return nil, err
-	}
-	resultUser, err := uU.userRepo.UpdateUser(userId, user)
-	if err != nil {
-		return nil, err
-	}
-	return resultUser, nil
 }

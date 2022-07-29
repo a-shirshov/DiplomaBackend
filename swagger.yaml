@@ -111,6 +111,20 @@ definitions:
         x-go-name: Surname
     type: object
     x-go-package: _/home/artyom/DiplomaBackend/internal/models
+  userSignIn:
+    properties:
+      Email:
+        description: Email of the user
+        example: artyom@mail.ru
+        maxLength: 50
+        type: string
+      Password:
+        description: Password of the user
+        example: "12345678"
+        maxLength: 30
+        type: string
+    type: object
+    x-go-package: _/home/artyom/DiplomaBackend/internal/models
   userSignUp:
     properties:
       Email:
@@ -183,12 +197,20 @@ paths:
           $ref: '#/responses/badRequest'
         "500":
           $ref: '#/responses/serverError'
+      security:
+      - access_token:
+        - '[]'
       tags:
       - Users
   /api/user/login:
-    get:
+    post:
       description: Returns tokens for authorized user
       operationId: SignInUser
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/userSignIn'
       responses:
         "200":
           $ref: '#/responses/tokensResponse'
@@ -259,4 +281,11 @@ responses:
       $ref: '#/definitions/userProfileResponse'
 schemes:
 - http
+security:
+- access_token: []
+securityDefinitions:
+  access_token:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

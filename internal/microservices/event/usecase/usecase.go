@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"Diploma/internal/event"
+	"Diploma/internal/microservices/event"
 	"Diploma/internal/models"
 )
 
@@ -17,4 +17,8 @@ func NewEventUsecase(eventR event.Repository) (*EventUsecase) {
 
 func (eU *EventUsecase) GetEvents(page int) ([]*models.Event, error) {
 	return eU.eventRepo.GetEvents(page)
+}
+
+func (eU *EventUsecase) GetEvent(id int) (*models.Event, error) {
+	return eU.eventRepo.GetEvent(id)
 }

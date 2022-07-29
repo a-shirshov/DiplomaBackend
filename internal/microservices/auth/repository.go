@@ -1,4 +1,4 @@
-package server
+package auth
 
 import (
 	"Diploma/internal/models"
@@ -7,9 +7,7 @@ import (
 
 type Repository interface {
 	CreateUser(*models.User) (*models.User, error)
-	GetUser(int) (*models.User, error)
 	GetUserByEmail(string) (*models.User, error)
-	UpdateUser(userId int, user *models.User) (*models.User, error)
 }
 
 type SessionRepository interface {

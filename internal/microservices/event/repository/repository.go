@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"Diploma/internal/errors"
 	"Diploma/internal/models"
+	"log"
 
 	"github.com/jackc/pgx"
 )
@@ -24,7 +26,7 @@ func (eR *EventRepository) GetEvents(page int) ([]*models.Event, error) {
 	rows, err := eR.db.Query("GetEventsQuery", elementsPerPage, page)
 	if err != nil {
 		rows.Close()
-		return nil, err
+		return nil, errors.ErrPostgres
 	}
 	var events []*models.Event
 
@@ -42,10 +44,29 @@ func (eR *EventRepository) GetEvents(page int) ([]*models.Event, error) {
 			&event.SpecialInfo,
 		)
 		if err != nil {
-			return nil, err
+			return nil, errors.ErrPostgres
 		}
 
 		events = append(events, event)
 	}
 	return events, nil
+}
+
+func (eR *EventRepository) GetEvent(id int) (*models.Event, error) {
+	event := &models.Event{}
+	err := eR.db.QueryRow("GetEventQuery", id).Scan(
+		&event.ID, 
+		&event.Name, 
+		&event.Description, 
+		&event.About, 
+		&event.Category, 
+		&event.Tags, 
+		&event.SpecialInfo,
+	)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, errors.ErrPostgres
+	}
+
+	return event, nil
 }

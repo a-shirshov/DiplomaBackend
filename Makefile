@@ -1,7 +1,7 @@
 .PHONY: server
 server:
-	go build -o bin/api/server -v ./cmd/server
+	go build -tags=jsoniter -o bin/api/server -v ./cmd/server 
 
 .PHONY: swagger
 swagger:
-	GO111MODULE=off swagger generate spec -o ./swagger.yaml --scan-models
+	swag init -g ./cmd/server/main.go
