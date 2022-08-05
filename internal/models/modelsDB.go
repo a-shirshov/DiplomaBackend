@@ -12,3 +12,12 @@ type UserDB struct {
 	About sql.NullString 
 	ImgUrl sql.NullString 
 }
+
+type PlaceDB struct {
+	ID int 
+	Name string 
+	Description string 
+	Category string
+	About sql.NullString 
+	ImgUrl sql.NullString 
+}

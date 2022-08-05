@@ -287,6 +287,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/places": {
+            "get": {
+                "description": "GetPlaces by selected page",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Places"
+                ],
+                "summary": "PlacesList",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page of events",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Place"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorMessageBadRequest"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorMessageInternalServer"
+                        }
+                    }
+                }
+            }
+        },
         "/users/{id}": {
             "get": {
                 "description": "Find a user by id",
@@ -433,12 +479,19 @@ const docTemplate = `{
         },
         "models.Event": {
             "type": "object",
+            "required": [
+                "about",
+                "category",
+                "description",
+                "name"
+            ],
             "properties": {
                 "about": {
                     "type": "string"
                 },
                 "category": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 20
                 },
                 "description": {
                     "type": "string"
@@ -470,6 +523,36 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "12345678"
+                }
+            }
+        },
+        "models.Place": {
+            "type": "object",
+            "required": [
+                "about",
+                "category",
+                "description",
+                "name"
+            ],
+            "properties": {
+                "about": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "img_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -530,9 +613,6 @@ const docTemplate = `{
         },
         "models.Tokens": {
             "type": "object",
-            "required": [
-                "refresh_token"
-            ],
             "properties": {
                 "access_token": {
                     "type": "string",

@@ -1,28 +1,54 @@
 package middleware
 
 import (
-	"github.com/gin-gonic/gin"
+	"Diploma/internal/microservices/auth"
+	"Diploma/internal/models"
 	"Diploma/utils"
-	"net/http"
 	"log"
+	"net/http"
+	"github.com/gin-gonic/gin"
 )
 
-var allowedOrigins = []string{"http://45.141.102.243:8080", "http://127.0.0.1:8080"}
+var allowedOrigins = []string{"", "http://45.141.102.243:8080", "http://127.0.0.1:8080"}
 
+type Middlewares struct {
+	auth auth.SessionRepository
+}
 
-func TokenAuthMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-	   err := utils.TokenValid(c.Request)
-	   if err != nil {
-		  c.JSON(http.StatusUnauthorized, err.Error())
-		  c.Abort()
-		  return
-	   }
-	   c.Next()
+func NewMiddleware(auth auth.SessionRepository) *Middlewares {
+	return &Middlewares{
+		auth: auth,
 	}
 }
 
-func CORSMiddleware() gin.HandlerFunc {
+func (m *Middlewares) TokenAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+	   	au, err := utils.ExtractTokenMetadata(c.Request)
+	   	if err != nil {
+		  c.JSON(http.StatusUnauthorized, err.Error())
+		  c.Abort()
+		  return
+	   	}
+
+		userId, err := m.auth.FetchAuth(au.AccessUuid)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, err.Error())
+			c.Abort()
+			return
+		}
+
+		if userId != au.UserId {
+			c.JSON(http.StatusUnauthorized, err.Error())
+			c.Abort()
+			return
+		}
+
+		c.Set("access_details", *au)
+		c.Next()
+	}
+}
+
+func (m *Middlewares) CORSMiddleware() gin.HandlerFunc {
     return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
 		isAllowed := false
@@ -50,4 +76,44 @@ func CORSMiddleware() gin.HandlerFunc {
 
         c.Next()
     }
+}
+
+func (m *Middlewares) MiddlewareValidateUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var inputUser *models.User
+		err := c.ShouldBindJSON(&inputUser)
+		if err != nil {
+			c.JSON(http.StatusUnprocessableEntity, "wrong json")
+			return
+		}
+
+		err = utils.Validate(inputUser)
+		if err != nil {
+			c.JSON(http.StatusUnprocessableEntity, err.Error())
+			return
+		}
+
+		c.Set("user", inputUser)
+		c.Next()
+	}
+}
+
+func (m *Middlewares) MiddlewareValidateLoginUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var inputUser *models.LoginUser
+		err := c.ShouldBindJSON(&inputUser)
+		if err != nil {
+			c.JSON(http.StatusUnprocessableEntity, "wrong json")
+			return
+		}
+
+		err = utils.Validate(inputUser)
+		if err != nil {
+			c.JSON(http.StatusUnprocessableEntity, err.Error())
+			return
+		}
+
+		c.Set("login_user", inputUser)
+		c.Next()
+	}
 }

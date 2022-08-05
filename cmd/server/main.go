@@ -20,6 +20,10 @@ import (
 	authRepo "Diploma/internal/microservices/auth/repository"
 	authUsecase "Diploma/internal/microservices/auth/usecase"
 
+	placeDelivery "Diploma/internal/microservices/place/delivery"
+	placeRepo "Diploma/internal/microservices/place/repository"
+	placeUsecase "Diploma/internal/microservices/place/usecase"
+
 	"Diploma/utils"
 	"log"
 	"os"
@@ -71,6 +75,7 @@ func main() {
 
 	postgresDB, err := utils.InitPostgresDB()
 	if err != nil {
+		log.Print("InitPG")
 		log.Println(err)
 		os.Exit(1)
 	}
@@ -91,31 +96,39 @@ func main() {
 	sessionR := authRepo.NewSessionRepository(redisDB)
 	eventR := eventRepo.NewEventRepository(postgresDB)
 	authR := authRepo.NewAuthRepository(postgresDB)
+	placeR := placeRepo.NewPlaceRepository(postgresDB)
 
-	userU := userUsecase.NewUserUsecase(userR, sessionR)
+	userU := userUsecase.NewUserUsecase(userR)
 	eventU := eventUsecase.NewEventUsecase(eventR)
 	authU := authUsecase.NewAuthUsecase(authR, sessionR)
+	placeU := placeUsecase.NewPlaceUsecase(placeR)
 
 	userD := userDelivery.NewUserDelivery(userU)
 	eventD := eventDelivery.NewEventDelivery(eventU)
 	authD := authDelivery.NewAuthDelivery(authU)
+	placeD := placeDelivery.NewPlaceDelivery(placeU)
+
+	mws := middleware.NewMiddleware(sessionR)
 
 	baseRouter := gin.New()
 	baseRouter.Use(gin.Logger())
 	baseRouter.Use(gin.Recovery())
-	baseRouter.Use(middleware.CORSMiddleware())
+	baseRouter.Use(mws.CORSMiddleware())
 	baseRouter.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	routerAPI := baseRouter.Group("/api")
 
 	authRouter := routerAPI.Group("/auth")
-	router.AuthEndpoints(authRouter,authD)
+	router.AuthEndpoints(authRouter, mws, authD)
 
 	userRouter := routerAPI.Group("/users")
-	router.UserEndpoints(userRouter, userD)
+	router.UserEndpoints(userRouter, mws, userD)
 
 	eventRouter := routerAPI.Group("/events")
 	router.EventEndpoints(eventRouter, eventD)
+
+	placeRouter := routerAPI.Group("/places")
+	router.PlaceEndpoints(placeRouter, placeD)
 
 	port := viper.GetString("server.port")
 	

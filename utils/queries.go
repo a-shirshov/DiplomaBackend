@@ -14,6 +14,12 @@ const (
 	GetUserQuery = `select id, name, surname, email, about, imgUrl from "user" where id = $1`
 	GetUserByEmailQuery = `select * from "user" where email = $1`
 	UpdateUserQuery = `update "user" set name = $1, surname = $2, about = $3 where id = $4 returning id, name, surname, email, about, imgUrl`
+
+	GetPlacesQuery = `select id, name, description, about, category, imgUrl from (
+		select ROW_NUMBER() OVER() as RowNum, * from "place") as placesPaged 
+		where RowNum Between 1 + $1 * ($2-1) and $1 * $2`
+	GetPlaceQuery = `select * from place where id = $1`
+
 	GetEventsQuery = `select id, name, description, about, category, tags, specialInfo from (
 		select ROW_NUMBER() OVER (ORDER BY creationDate) as RowNum, * from "event") as eventsPaged 
 		where RowNum Between 1 + $1 * ($2-1) and $1 * $2`
@@ -44,5 +50,13 @@ var queries = []Query {
 	{
 		Name: "GetEventQuery",
 		Query: GetEventQuery,
+	},
+	{
+		Name: "GetPlacesQuery",
+		Query: GetPlacesQuery,
+	},
+	{
+		Name: "GetPlaceQuery",
+		Query: GetPlaceQuery,
 	},
 }

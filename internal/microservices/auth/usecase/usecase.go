@@ -34,7 +34,7 @@ func (uU *authUsecase) CreateUser(user *models.User) (*models.User, error) {
 	return uU.authRepo.CreateUser(user)
 }
 
-func (uU *authUsecase) SignIn(user *models.User) (*models.User, *utils.TokenDetails, error) {
+func (uU *authUsecase) SignIn(user *models.LoginUser) (*models.User, *utils.TokenDetails, error) {
 	resultUser, err := uU.authRepo.GetUserByEmail(user.Email)
 	if err != nil {
 		return nil, nil, err

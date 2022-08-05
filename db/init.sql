@@ -1,4 +1,6 @@
 DROP TABLE IF EXISTS "user";
+DROP TABLE IF EXISTS "event";
+DROP TABLE IF EXISTS "place";
 
 CREATE TABLE "user" (
     id serial not null UNIQUE,
@@ -19,11 +21,13 @@ CREATE TABLE "event" (
     tags text[],
     specialInfo text,
     creationDate DATE not null DEFAULT now()
-)
+);
 
-select id, name, description, about, category, tags, specialInfo, creationDate 
-from (
-    select ROW_NUMBER() OVER (ORDER BY creationDate) as RowNum, * 
-    from "event"
-) as eventsPaged 
-where RowNum Between 1+(2) *(1-1) and (2)*1;
+CREATE TABLE "place" (
+    id serial not null UNIQUE,
+    name text not null,
+    description text not null,
+    about text not null,
+	category text not null,
+	imgUrl text
+);

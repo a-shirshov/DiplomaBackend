@@ -4,6 +4,7 @@ import (
 	"Diploma/internal/microservices/user"
 	"Diploma/internal/models"
 	"Diploma/utils"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -62,24 +63,32 @@ func (uD *UserDelivery) GetUser(c *gin.Context) {
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /users/{id} [post]
 func (uD *UserDelivery) UpdateUser(c *gin.Context) {
-
-	au, err := utils.ExtractTokenMetadata(c.Request)
+	au, err := utils.GetAUFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, "unauthorized")
+		log.Print("here1")
+		c.JSON(http.StatusInternalServerError,  err.Error())
 		return
 	}
 
-	var inputUser *models.User
-	err = c.ShouldBindJSON(&inputUser)
+	inputUser := c.MustGet("user").(models.User)
+
+	userIdStr := c.Param("id")
+	userId, err := strconv.Atoi(userIdStr)
 	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, "wrong json")
+		c.JSON(http.StatusNotFound,  err.Error())
 		return
 	}
 
-	newUser, err := uD.userUsecase.UpdateUser(au, inputUser)
+	if userId != au.UserId {
+		c.JSON(http.StatusForbidden,  err.Error())
+		return
+	}
+
+	newUser, err := uD.userUsecase.UpdateUser(au.UserId, &inputUser)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	c.JSON(http.StatusOK,newUser)
 }

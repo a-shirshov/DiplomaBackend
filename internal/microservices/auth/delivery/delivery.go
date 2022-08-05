@@ -32,12 +32,7 @@ func NewAuthDelivery(authUsecase auth.Usecase) *AuthDelivery {
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /auth/signup [post]
 func (uD *AuthDelivery) SignUp(c *gin.Context) {
-	var user models.User 
-	err := c.ShouldBindJSON(&user)
-	if err != nil {
-		c.String(http.StatusBadRequest, err.Error())
-		return
-	}
+	user := c.MustGet("user").(models.User)
 
 	resultUser, err := uD.authUsecase.CreateUser(&user)
 	if err != nil {
@@ -59,19 +54,13 @@ func (uD *AuthDelivery) SignUp(c *gin.Context) {
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /auth/login [post]
 func (uD *AuthDelivery) SignIn(c *gin.Context) {
-	var user *models.User
-	err := c.ShouldBindJSON(&user)
-	if err != nil {
-		c.String(http.StatusBadRequest, "user json problem")
-		return
-	}
+	user := c.MustGet("login_user").(models.LoginUser)
 
-	resultUser, tokenDetails, err := uD.authUsecase.SignIn(user)
+	resultUser, tokenDetails, err := uD.authUsecase.SignIn(&user)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-
 
 	tokens := &models.Tokens{
 		AccessToken: tokenDetails.AccessToken,
@@ -97,12 +86,11 @@ func (uD *AuthDelivery) SignIn(c *gin.Context) {
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /auth/logout [get]
 func (uD *AuthDelivery) Logout(c *gin.Context) {
-	au, err := utils.ExtractTokenMetadata(c.Request)
+	au, err := utils.GetAUFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, err.Error())
-		return
+		c.JSON(http.StatusInternalServerError, err.Error())
 	}
-
+	
 	err = uD.authUsecase.Logout(au)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
@@ -138,3 +126,4 @@ func (uD *AuthDelivery) Refresh(c *gin.Context) {
 	
 	c.JSON(http.StatusOK, tokens)
 }
+
