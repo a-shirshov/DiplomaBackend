@@ -47,7 +47,7 @@ func(pD *PlaceDelivery) GetPlaces(c *gin.Context) {
 }
 
 func(pd *PlaceDelivery) GetPlace(c *gin.Context) {
-	idStr := c.Param("id")
+	idStr := c.Param("place_id")
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {

@@ -26,16 +26,20 @@ func NewEventDelivery(eventU event.Usecase) (*EventDelivery) {
 // @Success 200 {object} []models.Event
 // @Failure 400 {object} models.ErrorMessageBadRequest
 // @Failure 500 {object} models.ErrorMessageInternalServer
-// @Router /events [get]
+// @Router places/{id}/events [get]
 func (eD *EventDelivery) GetEvents(c *gin.Context) {
+	idParam := c.Param("place_id")
+	placeId, err := strconv.Atoi(idParam)
+	if err != nil {
+		c.String(http.StatusBadRequest, "bad request")
+	}
 	pageParam := c.DefaultQuery("page", "1")
-
 	page, err := strconv.Atoi(pageParam)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request")
 	}
 
-	resultEvents, err := eD.eventUsecase.GetEvents(page)
+	resultEvents, err := eD.eventUsecase.GetEvents(placeId, page)
 	if err != nil {
 		c.String(http.StatusBadRequest, "no events for you")
 	}
@@ -53,8 +57,7 @@ func (eD *EventDelivery) GetEvents(c *gin.Context) {
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /events/{id} [get]
 func (eD *EventDelivery) GetEvent(c *gin.Context) {
-	eventIdString := c.Param("id")
-
+	eventIdString := c.Param("event_id")
 	eventId, err := strconv.Atoi(eventIdString)
 	if err != nil {
 		c.String(http.StatusBadRequest, err.Error())

@@ -114,6 +114,7 @@ func main() {
 	baseRouter.Use(gin.Logger())
 	baseRouter.Use(gin.Recovery())
 	baseRouter.Use(mws.CORSMiddleware())
+	baseRouter.MaxMultipartMemory = 8 << 20
 	baseRouter.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	routerAPI := baseRouter.Group("/api")
@@ -125,10 +126,10 @@ func main() {
 	router.UserEndpoints(userRouter, mws, userD)
 
 	eventRouter := routerAPI.Group("/events")
-	router.EventEndpoints(eventRouter, eventD)
+	router.EventEndpoints(eventRouter,eventD)
 
 	placeRouter := routerAPI.Group("/places")
-	router.PlaceEndpoints(placeRouter, placeD)
+	router.PlaceEndpoints(placeRouter, placeD, eventD)
 
 	port := viper.GetString("server.port")
 	

@@ -41,13 +41,21 @@ func (uR *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 
 func (uR *UserRepository) UpdateUser(userId int, user *models.User) (*models.User, error) {
 	userDB := &models.UserDB{}
-	err := uR.db.QueryRow("UpdateUserQuery", &user.Name, &user.Surname, &user.About, &userId).Scan(
-		&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.About, &userDB.ImgUrl,
-	)
+	var err error
+	if user.ImgUrl == "" {
+		err = uR.db.QueryRow("UpdateUserWithoutImgUrlQuery", &user.Name, &user.Surname, &user.About, &userId).Scan(
+			&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.About, &userDB.ImgUrl,
+		)
+	} else {
+		err = uR.db.QueryRow("UpdateUserQuery", &user.Name, &user.Surname, &user.About, &user.ImgUrl, &userId).Scan(
+			&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.About, &userDB.ImgUrl,
+		)
+	}
+	
 	if err != nil {
+		log.Print(err)
 		return nil, errors.ErrPostgres
 	}
 
-	resultUser := models.ToUserModel(userDB)
-	return resultUser, nil
+	return models.ToUserModel(userDB), nil
 }

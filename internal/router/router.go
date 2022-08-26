@@ -18,16 +18,16 @@ func AuthEndpoints(r *gin.RouterGroup, mws *middleware.Middlewares, aD *authD.Au
 }
 
 func UserEndpoints(r *gin.RouterGroup, mws *middleware.Middlewares, uD *userD.UserDelivery) {
-	r.POST("/:id", mws.TokenAuthMiddleware(), mws.MiddlewareValidateUser(), uD.UpdateUser)
+	r.POST("/:id", mws.TokenAuthMiddleware(), mws.MiddlewareValidateUserFormData(), uD.UpdateUser)
 	r.GET("/:id", uD.GetUser)
 }
 
 func EventEndpoints(r *gin.RouterGroup, eD *eventD.EventDelivery) {
-	r.GET("/", eD.GetEvents)
-	r.GET("/:id", eD.GetEvent)
+	r.GET("/:event_id", eD.GetEvent)
 }
 
-func PlaceEndpoints(r *gin.RouterGroup, pD *placeD.PlaceDelivery) {
+func PlaceEndpoints(r *gin.RouterGroup, pD *placeD.PlaceDelivery, eD *eventD.EventDelivery) {
 	r.GET("/", pD.GetPlaces)
-	r.GET("/:id", pD.GetPlace)
+	r.GET("/:place_id", pD.GetPlace)
+	r.GET("/:place_id/events", eD.GetEvents)
 }

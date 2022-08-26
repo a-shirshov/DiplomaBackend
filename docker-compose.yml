@@ -1,11 +1,14 @@
 version: "3.5"
 services:
   server:
+    container_name: server
     build: "./"
     restart: unless-stopped
     command: "./server"
     ports:
       - "8080:8080"
+    volumes:
+      - server-storage:/home/ubuntu/static/images
     depends_on:
       - redis
 
@@ -14,3 +17,15 @@ services:
     image: redis:latest
     ports:
       - "6380:6379"
+  
+  nginx:
+    build: "./config/nginx"
+    ports:
+      - "80:80"
+    volumes:
+      - server-storage:/home/ubuntu/static/images
+    depends_on:
+      - "server"
+
+volumes:
+  server-storage:

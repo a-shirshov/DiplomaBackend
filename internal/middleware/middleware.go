@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"github.com/gin-gonic/gin"
+	"github.com/goccy/go-json"
 )
 
 var allowedOrigins = []string{"", "http://45.141.102.243:8080", "http://127.0.0.1:8080"}
@@ -93,7 +94,7 @@ func (m *Middlewares) MiddlewareValidateUser() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("user", inputUser)
+		c.Set("user", *inputUser)
 		c.Next()
 	}
 }
@@ -113,7 +114,24 @@ func (m *Middlewares) MiddlewareValidateLoginUser() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("login_user", inputUser)
+		c.Set("login_user", *inputUser)
+		c.Next()
+	}
+}
+
+func (m *Middlewares) MiddlewareValidateUserFormData() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		inputUser := c.Request.FormValue("json")
+		user := new(models.User)
+		json.Unmarshal([]byte(inputUser), &user)
+
+		err := utils.Validate(user)
+		if err != nil {
+			c.JSON(http.StatusUnprocessableEntity, err.Error())
+			return
+		}
+
+		c.Set("user", *user)
 		c.Next()
 	}
 }

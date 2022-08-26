@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"Diploma/internal/errors"
 	"Diploma/internal/microservices/user"
 	"Diploma/internal/models"
 	"Diploma/utils"
@@ -70,7 +71,7 @@ func (uD *UserDelivery) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	inputUser := c.MustGet("user").(models.User)
+	user := c.MustGet("user").(models.User)
 
 	userIdStr := c.Param("id")
 	userId, err := strconv.Atoi(userIdStr)
@@ -84,7 +85,15 @@ func (uD *UserDelivery) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	newUser, err := uD.userUsecase.UpdateUser(au.UserId, &inputUser)
+	imgUrl, err := utils.SaveImageFromRequest(c,"image")
+	if err == errors.ErrWrongExtension {
+		c.JSON(http.StatusBadRequest,err.Error())
+	}
+	if err == nil {
+		user.ImgUrl = imgUrl
+	}
+
+	newUser, err := uD.userUsecase.UpdateUser(au.UserId, &user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return

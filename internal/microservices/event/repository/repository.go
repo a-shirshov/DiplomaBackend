@@ -22,8 +22,8 @@ func NewEventRepository(db *pgx.ConnPool) *EventRepository {
 	}
 }
 
-func (eR *EventRepository) GetEvents(page int) ([]*models.Event, error) {
-	rows, err := eR.db.Query("GetEventsQuery", elementsPerPage, page)
+func (eR *EventRepository) GetEvents(placeId, page int) ([]*models.Event, error) {
+	rows, err := eR.db.Query("GetEventsQuery", placeId, elementsPerPage, page)
 	if err != nil {
 		rows.Close()
 		return nil, errors.ErrPostgres
@@ -52,9 +52,9 @@ func (eR *EventRepository) GetEvents(page int) ([]*models.Event, error) {
 	return events, nil
 }
 
-func (eR *EventRepository) GetEvent(id int) (*models.Event, error) {
+func (eR *EventRepository) GetEvent(eventId int) (*models.Event, error) {
 	event := &models.Event{}
-	err := eR.db.QueryRow("GetEventQuery", id).Scan(
+	err := eR.db.QueryRow("GetEventQuery", eventId).Scan(
 		&event.ID, 
 		&event.Name, 
 		&event.Description, 

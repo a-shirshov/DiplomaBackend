@@ -1,12 +1,3 @@
-insert into "event" (name, description, about, category, tags, specialInfo) values ('Тусовка у бара', 'Очень круто', 'Просто невероятная тусовка','Тусовка', '{тусовка,девочки}', 'Только для лиц старше 18 лет');
-insert into "event" (name, description, about, category, tags, specialInfo) values ('Вечеринка дома', 'Веселье дома', 'Будет пицца и коктейли','Тусовка', '{вечеринка,пицца, алкоголь}', 'Для друзей');
-insert into "event" (name, description, about, category, tags, specialInfo) values ('Кодинг', 'Прогеры и не только', 'Будут пицца и офферы','Мероприятие', '{программирование, пицца}', 'Без Python');
-insert into "event" (name, description, about, category, tags, specialInfo) values ('Тусовка у бара', 'Очень круто', 'Просто невероятная тусовка','Тусовка', '{тусовка,девочки}', 'Только для лиц старше 18 лет');
-insert into "event" (name, description, about, category, tags, specialInfo) values ('Тусовка у бара', 'Очень круто', 'Просто невероятная тусовка','Тусовка', '{тусовка,девочки}', 'Только для лиц старше 18 лет');
-insert into "event" (name, description, about, category, tags, specialInfo) values ('Тусовка у бара', 'Очень круто', 'Просто невероятная тусовка','Тусовка', '{тусовка,девочки}', 'Только для лиц старше 18 лет');
-insert into "event" (name, description, about, category, tags, specialInfo) values ('Тусовка у бара', 'Очень круто', 'Просто невероятная тусовка','Тусовка', '{тусовка,девочки}', 'Только для лиц старше 18 лет');
-insert into "event" (name, description, about, category, tags, specialInfo) values ('Тусовка у бара', 'Очень круто', 'Просто невероятная тусовка','Тусовка', '{тусовка,девочки}', 'Только для лиц старше 18 лет');
-insert into "event" (name, description, about, category, tags, specialInfo) values ('Тусовка у бара', 'Очень круто', 'Просто невероятная тусовка','Тусовка', '{тусовка,девочки}', 'Только для лиц старше 18 лет');
-insert into "event" (name, description, about, category, tags, specialInfo) values ('Тусовка у бара', 'Очень круто', 'Просто невероятная тусовка','Тусовка', '{тусовка,девочки}', 'Только для лиц старше 18 лет');
-insert into "event" (name, description, about, category, tags, specialInfo) values ('Тусовка у бара', 'Очень круто', 'Просто невероятная тусовка','Тусовка', '{тусовка,девочки}', 'Только для лиц старше 18 лет');
-insert into "event" (name, description, about, category, tags, specialInfo) values ('Тусовка у бара', 'Очень круто', 'Просто невероятная тусовка','Тусовка', '{тусовка,девочки}', 'Только для лиц старше 18 лет');
+insert into "event" (place_id, name, description, about, category, tags, specialInfo) values (1, 'Тусовка у бара', 'Очень круто', 'Просто невероятная тусовка','Тусовка', '{тусовка,девочки}', 'Только для лиц старше 18 лет');
+insert into "event" (place_id, name, description, about, category, tags, specialInfo) values (2, 'Вечеринка дома', 'Веселье дома', 'Будет пицца и коктейли','Тусовка', '{вечеринка,пицца, алкоголь}', 'Для друзей');
+insert into "event" (place_id, name, description, about, category, tags, specialInfo) values (1, 'Кодинг', 'Прогеры и не только', 'Будут пицца и офферы','Мероприятие', '{программирование, пицца}', 'Без Python');
