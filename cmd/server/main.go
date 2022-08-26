@@ -60,7 +60,7 @@ func main() {
 	l := log.New(os.Stdout, "Diploma-API", log.LstdFlags)
 
 	viper.AddConfigPath("../../config")
-	viper.SetConfigName("config")
+	viper.SetConfigName("release-config")
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Print("Config isn't found 1")
