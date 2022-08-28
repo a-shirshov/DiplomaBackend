@@ -15,7 +15,7 @@ func NewEventUsecase(eventR event.Repository) (*EventUsecase) {
 	}
 }
 
-func (eU *EventUsecase) GetEvents(placeId, page int) (*[]*models.Event, error) {
+func (eU *EventUsecase) GetEvents(placeId, page int) ([]*models.Event, error) {
 	return eU.eventRepo.GetEvents(placeId, page)
 }
 
