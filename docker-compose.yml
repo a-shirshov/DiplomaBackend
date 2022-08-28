@@ -42,7 +42,7 @@ services:
       - certbot-var:/var/lib/letsencrypt
     depends_on:
       - nginx
-    command: certonly --webroot --webroot-path=/var/www/html --email artyomsh01@yandex.ru --agree-tos --no-eff-email --staging -d bmstusa.online -d www.bmstusa.online
+    command: certonly --webroot --webroot-path=/var/www/html --email artyomsh01@yandex.ru --agree-tos --no-eff-email --force-renewal -d bmstusa.online -d www.bmstusa.online
 
 volumes:
   server-storage:
