@@ -10,8 +10,6 @@ services:
       - "8080:8080"
     volumes:
       - server-storage:/home/ubuntu/static/images
-    networks:
-      - app-network
     depends_on:
       - redis
 
@@ -32,8 +30,6 @@ services:
       - ./config/nginx:/etc/nginx/conf.d
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
-    networks:
-      - app-network
     depends_on:
       - "server"
   
@@ -53,7 +49,3 @@ volumes:
   certbot-etc:
   certbot-var:
   web-root:
-
-networks:
-  app-network:
-    driver: bridge 
