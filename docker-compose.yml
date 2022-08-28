@@ -30,6 +30,7 @@ services:
       - ./config/nginx:/etc/nginx/conf.d
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
+      - dhparam:/etc/ssl/certs
     depends_on:
       - "server"
   
@@ -49,3 +50,9 @@ volumes:
   certbot-etc:
   certbot-var:
   web-root:
+  dhparam:
+    driver: local
+    driver_opts:
+      type: none
+      device: /root/DiplomaBackend/dhparam/
+      o: bind
