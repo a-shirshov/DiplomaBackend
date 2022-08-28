@@ -54,10 +54,11 @@ func (uD *UserDelivery) GetUser(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Tags Users
 // @Description Update user profile
-// @Accept json
+// @Accept mpfd
 // @Produce json
 // @Param id path int true "User id"
-// @Param newUserInformation body models.UserProfile true "Updated user information"
+// @Param json formData models.UpdateUserMpfd true "Updated user information"
+// @Param image formData file false "avatar image"
 // @Success 200 {object} models.UserProfile
 // @Failure 401 {object} models.ErrorMessageUnauthorized
 // @Failure 422 {object} models.ErrorMessageUnprocessableEntity

@@ -22,7 +22,7 @@ func NewPlaceRepository(db *pgx.ConnPool) *PlaceRepository {
 	}
 }
 
-func (pR *PlaceRepository) GetPlaces(page int) ([]*models.Place, error) {
+func (pR *PlaceRepository) GetPlaces(page int) (*[]*models.Place, error) {
 	rows, err := pR.db.Query("GetPlacesQuery", elementsPerPage, page)
 	if err != nil {
 		log.Print(err)
@@ -50,7 +50,7 @@ func (pR *PlaceRepository) GetPlaces(page int) ([]*models.Place, error) {
 		place := models.ToPlaceModel(placeDB)
 		places = append(places, place)
 	}
-	return places, nil
+	return &places, nil
 }
 
 func (pR *PlaceRepository) GetPlace(id int) (*models.Place, error) {

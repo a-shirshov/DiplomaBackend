@@ -1,5 +1,9 @@
 package models
 
+import (
+	"mime/multipart"
+)
+
 type RegistrationUserRequest struct {
 	Name string `json:"name" example:"Artyom" binding:"required"`
 	Surname string `json:"surname" example:"Shirshov" binding:"required"`
@@ -49,4 +53,13 @@ type ErrorMessageUnprocessableEntity struct {
 type UserWithTokensResponse struct {
 	User UserProfile
 	Tokens Tokens
+}
+
+type ImageFormRequest struct {
+	Image *multipart.FileHeader `form:"image" swaggerignore:"true"`
+}
+
+type UpdateUserMpfd struct {
+	Json string 
+	ImageFormRequest
 }

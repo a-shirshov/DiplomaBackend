@@ -1,6 +1,6 @@
 server:
   port: "8080"
-  name: "http://45.141.102.243"
+  name: "http://bmstusa.online"
 
 postgres:
   port: 5432

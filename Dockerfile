@@ -13,4 +13,4 @@ COPY . .
 RUN make server
 EXPOSE 8080
 WORKDIR /app/bin/api
-CMD ["./server"]
+ENTRYPOINT ["./server", ""]

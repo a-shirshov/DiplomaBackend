@@ -3,6 +3,7 @@ package main
 import (
 	"Diploma/internal/middleware"
 	"Diploma/internal/router"
+	"flag"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -43,10 +44,11 @@ import (
 // @description 	For Authorization:
 // @description 	Put Access token in ApiKey with Bearer. Example: "Bearer access_token"
 
-// @host      45.141.102.243:8080
+// @host      localhost:8080
 // @BasePath  /api
 
 // @accept json
+// @accept mpfd 
 // @produce json
 
 // @schemes http
@@ -59,8 +61,17 @@ func main() {
 
 	l := log.New(os.Stdout, "Diploma-API", log.LstdFlags)
 
+	mode := flag.Bool("release", false, "release mode on")
+	flag.Parse()
+
 	viper.AddConfigPath("../../config")
-	viper.SetConfigName("release-config")
+	if (*mode) {
+		viper.SetConfigName("release-config")
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		viper.SetConfigName("debug-config")
+	}
+
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Print("Config isn't found 1")

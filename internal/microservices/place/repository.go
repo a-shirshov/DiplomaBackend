@@ -5,7 +5,7 @@ import (
 )
 
 type Repository interface {
-	GetPlaces(page int) ([]*models.Place, error)
+	GetPlaces(page int) (*[]*models.Place, error)
 	GetPlace(id int) (*models.Place, error)
 }
 

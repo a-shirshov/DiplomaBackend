@@ -1,6 +1,7 @@
 {
     "consumes": [
-        "application/json"
+        "application/json",
+        "multipart/form-data"
     ],
     "produces": [
         "application/json"
@@ -15,7 +16,7 @@
         "contact": {},
         "version": "1.0.0"
     },
-    "host": "45.141.102.243:8080",
+    "host": "localhost:8080",
     "basePath": "/api",
     "paths": {
         "/auth/login": {
@@ -193,52 +194,6 @@
                 }
             }
         },
-        "/events": {
-            "get": {
-                "description": "GetEvents by selected page",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Events"
-                ],
-                "summary": "EventsList",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page of events",
-                        "name": "page",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Event"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorMessageBadRequest"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorMessageInternalServer"
-                        }
-                    }
-                }
-            }
-        },
         "/events/{id}": {
             "get": {
                 "description": "Get Event by id",
@@ -329,6 +284,52 @@
                 }
             }
         },
+        "/places/{id}/events": {
+            "get": {
+                "description": "GetEvents by selected page",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Events"
+                ],
+                "summary": "EventsList",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page of events",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Event"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorMessageBadRequest"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorMessageInternalServer"
+                        }
+                    }
+                }
+            }
+        },
         "/users/{id}": {
             "get": {
                 "description": "Find a user by id",
@@ -380,7 +381,7 @@
                 ],
                 "description": "Update user profile",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -398,13 +399,15 @@
                         "required": true
                     },
                     {
-                        "description": "Updated user information",
-                        "name": "newUserInformation",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.UserProfile"
-                        }
+                        "type": "string",
+                        "name": "json",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "avatar image",
+                        "name": "image",
+                        "in": "formData"
                     }
                 ],
                 "responses": {

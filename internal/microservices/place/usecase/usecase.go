@@ -15,7 +15,7 @@ func NewPlaceUsecase(placeR place.Repository) *PlaceUsecase {
 	}
 }
 
-func (pU *PlaceUsecase) GetPlaces(page int) ([]*models.Place, error) {
+func (pU *PlaceUsecase) GetPlaces(page int) (*[]*models.Place, error) {
 	return pU.placeRepo.GetPlaces(page)
 }
 

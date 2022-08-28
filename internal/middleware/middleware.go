@@ -6,11 +6,12 @@ import (
 	"Diploma/utils"
 	"log"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 )
 
-var allowedOrigins = []string{"", "http://45.141.102.243:8080", "http://127.0.0.1:8080"}
+var allowedOrigins = []string{"", "http://45.141.102.243:8080", "http://127.0.0.1:8080", "http://bmstusa.online", "http://localhost"}
 
 type Middlewares struct {
 	auth auth.SessionRepository

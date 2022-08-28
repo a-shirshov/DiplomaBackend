@@ -1,6 +1,7 @@
 basePath: /api
 consumes:
 - application/json
+- multipart/form-data
 definitions:
   models.ErrorMessageBadRequest:
     properties:
@@ -155,7 +156,7 @@ definitions:
       user:
         $ref: '#/definitions/models.UserProfile'
     type: object
-host: 45.141.102.243:8080
+host: localhost:8080
 info:
   contact: {}
   description: |-
@@ -278,36 +279,6 @@ paths:
       summary: Registration
       tags:
       - Auth
-  /events:
-    get:
-      consumes:
-      - application/json
-      description: GetEvents by selected page
-      parameters:
-      - description: Page of events
-        in: query
-        name: page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/models.Event'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.ErrorMessageBadRequest'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.ErrorMessageInternalServer'
-      summary: EventsList
-      tags:
-      - Events
   /events/{id}:
     get:
       consumes:
@@ -367,6 +338,36 @@ paths:
       summary: PlacesList
       tags:
       - Places
+  /places/{id}/events:
+    get:
+      consumes:
+      - application/json
+      description: GetEvents by selected page
+      parameters:
+      - description: Page of events
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Event'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorMessageBadRequest'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorMessageInternalServer'
+      summary: EventsList
+      tags:
+      - Events
   /users/{id}:
     get:
       consumes:
@@ -398,7 +399,7 @@ paths:
       - Users
     post:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Update user profile
       parameters:
       - description: User id
@@ -406,12 +407,13 @@ paths:
         name: id
         required: true
         type: integer
-      - description: Updated user information
-        in: body
-        name: newUserInformation
-        required: true
-        schema:
-          $ref: '#/definitions/models.UserProfile'
+      - in: formData
+        name: json
+        type: string
+      - description: avatar image
+        in: formData
+        name: image
+        type: file
       produces:
       - application/json
       responses:

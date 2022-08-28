@@ -7,7 +7,8 @@ import "github.com/swaggo/swag"
 const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
     "consumes": [
-        "application/json"
+        "application/json",
+        "multipart/form-data"
     ],
     "produces": [
         "application/json"
@@ -197,52 +198,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/events": {
-            "get": {
-                "description": "GetEvents by selected page",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Events"
-                ],
-                "summary": "EventsList",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page of events",
-                        "name": "page",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Event"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorMessageBadRequest"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorMessageInternalServer"
-                        }
-                    }
-                }
-            }
-        },
         "/events/{id}": {
             "get": {
                 "description": "Get Event by id",
@@ -333,6 +288,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/places/{id}/events": {
+            "get": {
+                "description": "GetEvents by selected page",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Events"
+                ],
+                "summary": "EventsList",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page of events",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Event"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorMessageBadRequest"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorMessageInternalServer"
+                        }
+                    }
+                }
+            }
+        },
         "/users/{id}": {
             "get": {
                 "description": "Find a user by id",
@@ -384,7 +385,7 @@ const docTemplate = `{
                 ],
                 "description": "Update user profile",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -402,13 +403,15 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Updated user information",
-                        "name": "newUserInformation",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.UserProfile"
-                        }
+                        "type": "string",
+                        "name": "json",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "avatar image",
+                        "name": "image",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -675,7 +678,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0.0",
-	Host:             "45.141.102.243:8080",
+	Host:             "localhost:8080",
 	BasePath:         "/api",
 	Schemes:          []string{"http"},
 	Title:            "Diploma API",
