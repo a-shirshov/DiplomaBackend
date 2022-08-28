@@ -2,6 +2,7 @@ version: "3.5"
 services:
   server:
     container_name: server
+    image: server
     build: "./"
     restart: unless-stopped
     command: "./server"
@@ -9,6 +10,8 @@ services:
       - "8080:8080"
     volumes:
       - server-storage:/home/ubuntu/static/images
+    networks:
+      - app-network
     depends_on:
       - redis
 
@@ -19,13 +22,38 @@ services:
       - "6380:6379"
   
   nginx:
-    build: "./config/nginx"
+    image: nginx
     ports:
       - "80:80"
+    restart: unless-stopped
     volumes:
       - server-storage:/home/ubuntu/static/images
+      - web-root:/var/www/html
+      - ./config/nginx:/etc/nginx/conf.d
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    networks:
+      - app-network
     depends_on:
       - "server"
+  
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - web-root:/var/www/html
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    depends_on:
+      - nginx
+    command: certonly --webroot --webroot-path=/var/www/html --email artyomsh01@yandex.ru --agree-tos --no-eff-email --staging -d bmstusa.online -d www.bmstusa.online
 
 volumes:
   server-storage:
+  certbot-etc:
+  certbot-var:
+  web-root:
+
+networks:
+  app-network:
+    driver: bridge 
