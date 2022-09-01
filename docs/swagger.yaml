@@ -278,36 +278,6 @@ paths:
       summary: Registration
       tags:
       - Auth
-  /events:
-    get:
-      consumes:
-      - application/json
-      description: GetEvents by selected page
-      parameters:
-      - description: Page of events
-        in: query
-        name: page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/models.Event'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.ErrorMessageBadRequest'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.ErrorMessageInternalServer'
-      summary: EventsList
-      tags:
-      - Events
   /events/{id}:
     get:
       consumes:
@@ -367,6 +337,41 @@ paths:
       summary: PlacesList
       tags:
       - Places
+  /places/{id}/events:
+    get:
+      consumes:
+      - application/json
+      description: GetEvents by selected page
+      parameters:
+      - description: Page of events
+        in: query
+        name: page
+        type: integer
+      - description: Place id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Event'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorMessageBadRequest'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorMessageInternalServer'
+      summary: EventsList
+      tags:
+      - Events
   /users/{id}:
     get:
       consumes:

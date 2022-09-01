@@ -21,12 +21,13 @@ func NewEventDelivery(eventU event.Usecase) (*EventDelivery) {
 // @Tags Events
 // @Description GetEvents by selected page
 // @Param page query int false "Page of events"
+// @Param id path int true "Place id"
 // @Accept json
 // @Produce json
 // @Success 200 {object} []models.Event
 // @Failure 400 {object} models.ErrorMessageBadRequest
 // @Failure 500 {object} models.ErrorMessageInternalServer
-// @Router places/{id}/events [get]
+// @Router /places/{id}/events [get]
 func (eD *EventDelivery) GetEvents(c *gin.Context) {
 	idParam := c.Param("place_id")
 	placeId, err := strconv.Atoi(idParam)

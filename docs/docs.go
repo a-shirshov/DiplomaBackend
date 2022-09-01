@@ -197,52 +197,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/events": {
-            "get": {
-                "description": "GetEvents by selected page",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Events"
-                ],
-                "summary": "EventsList",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page of events",
-                        "name": "page",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Event"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorMessageBadRequest"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorMessageInternalServer"
-                        }
-                    }
-                }
-            }
-        },
         "/events/{id}": {
             "get": {
                 "description": "Get Event by id",
@@ -315,6 +269,59 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/models.Place"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorMessageBadRequest"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorMessageInternalServer"
+                        }
+                    }
+                }
+            }
+        },
+        "/places/{id}/events": {
+            "get": {
+                "description": "GetEvents by selected page",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Events"
+                ],
+                "summary": "EventsList",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page of events",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Place id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Event"
                             }
                         }
                     },
