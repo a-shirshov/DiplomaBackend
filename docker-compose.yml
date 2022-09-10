@@ -12,6 +12,24 @@ services:
       - server-storage:/home/ubuntu/static/images
     depends_on:
       - redis
+      - postgres
+  
+  postgres:
+    image: postgres:10.5
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes:
+      - /diplomaVolumes/postgres-data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
 
   redis:
     restart: always

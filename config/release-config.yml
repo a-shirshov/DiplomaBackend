@@ -1,12 +1,12 @@
 server:
   port: "8080"
-  name: "http://45.141.102.243"
+  name: https://bmstusa.online
 
 postgres:
   port: 5432
-  host: "45.141.102.243"
-  user: "a_shirshov"
-  database: "Diploma"
+  host: "postgres"
+  #user: "a_shirshov"
+  #database: "Diploma"
 
 redis:
   addr: "redis:6379"

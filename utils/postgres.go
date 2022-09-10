@@ -7,8 +7,8 @@ import (
 
 func InitPostgresDB() (*pgx.ConnPool, error) {
 	config := pgx.ConnConfig{
-		User:                 viper.GetString("postgres.user"),
-		Database:             viper.GetString("postgres.database"),
+		User:                 viper.GetString("POSTGRES_USER"),
+		Database:             viper.GetString("POSTGRES_DATABASE"),
 		Password:             viper.GetString("POSTGRES_PASSWORD"),
 		Host: 				  viper.GetString("postgres.host"),
 		Port: 				  uint16(viper.GetInt("postgres.port")),	

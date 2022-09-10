@@ -1,8 +1,4 @@
-DROP TABLE IF EXISTS "user";
-DROP TABLE IF EXISTS "event";
-DROP TABLE IF EXISTS "place";
-
-CREATE TABLE "user" (
+CREATE TABLE IF NOT EXISTS "user"  (
     id serial not null UNIQUE,
     name text not null,
     surname text not null,
@@ -12,7 +8,7 @@ CREATE TABLE "user" (
     imgUrl text
 );
 
-CREATE TABLE "place" (
+CREATE TABLE IF NOT EXISTS "place" (
     id serial not null UNIQUE,
     name text not null,
     description text not null,
@@ -21,7 +17,7 @@ CREATE TABLE "place" (
 	imgUrl text
 );
 
-CREATE TABLE "event" (
+CREATE TABLE IF NOT EXISTS "event" (
     id serial not null UNIQUE,
     place_id int REFERENCES "place"(id) on delete cascade not null,
     name text not null,

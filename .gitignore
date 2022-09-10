@@ -1,2 +1,3 @@
 .env
 dhparam
+postgres-data
