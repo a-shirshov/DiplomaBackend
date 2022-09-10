@@ -73,5 +73,5 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /root/DiplomaBackend/dhparam/
+      device: /home/artyom/DiplomaBackend/dhparam/
       o: bind
