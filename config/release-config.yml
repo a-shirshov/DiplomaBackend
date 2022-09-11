@@ -1,6 +1,6 @@
 server:
   port: "8080"
-  name: https://bmstusa.online
+  name: https://diplomatest.site
 
 postgres:
   port: 5432
