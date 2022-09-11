@@ -62,7 +62,7 @@ services:
       - certbot-var:/var/lib/letsencrypt
     depends_on:
       - nginx
-    command: certonly --webroot --webroot-path=/var/www/html --email artyomsh01@yandex.ru --agree-tos --no-eff-email --staging -d diplomatest.site -d www.diplomatest.site
+    command: certonly --webroot --webroot-path=/var/www/html --email artyomsh01@yandex.ru --agree-tos --no-eff-email --force-renewal -d diplomatest.site -d www.diplomatest.site
 
 volumes:
   server-storage:
