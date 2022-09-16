@@ -29,7 +29,7 @@ func (pR *PlaceRepository) GetPlaces(page int) ([]*models.Place, error) {
 		rows.Close()
 		return nil, errors.ErrPostgres
 	}
-	var places []*models.Place
+	places := []*models.Place{}
 
 	defer rows.Close()
 
