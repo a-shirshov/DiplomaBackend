@@ -73,15 +73,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	postgresDB, err := utils.InitPostgresDB()
+	postgresDB, err := utils.InitPostgres()
 	if err != nil {
 		log.Print("InitPG")
-		log.Println(err)
-		os.Exit(1)
-	}
-
-	err = utils.Prepare(postgresDB)
-	if err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}

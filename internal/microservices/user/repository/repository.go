@@ -1,18 +1,19 @@
 package repository
 
 import (
-	"Diploma/internal/models"
 	"Diploma/internal/errors"
+	"Diploma/internal/models"
+	"Diploma/utils"
 	"log"
 
-	"github.com/jackc/pgx"
+	"github.com/jmoiron/sqlx"
 )
 
 type UserRepository struct {
-	db *pgx.ConnPool
+	db *sqlx.DB
 }
 
-func NewUserRepository(db *pgx.ConnPool) *UserRepository {
+func NewUserRepository(db *sqlx.DB) *UserRepository {
 	return &UserRepository{
 		db: db,
 	}
@@ -20,7 +21,7 @@ func NewUserRepository(db *pgx.ConnPool) *UserRepository {
 
 func (uR *UserRepository) GetUser(Id int) (*models.User, error) {
 	userDB := &models.UserDB{}
-	err := uR.db.QueryRow("GetUserQuery",Id).Scan(&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.About, &userDB.ImgUrl)
+	err := uR.db.QueryRow(utils.GetUserQuery, Id).Scan(&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.About, &userDB.ImgUrl)
 	if err != nil {
 		return nil, errors.ErrPostgres
 	}
@@ -30,7 +31,7 @@ func (uR *UserRepository) GetUser(Id int) (*models.User, error) {
 
 func (uR *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 	userDB := &models.UserDB{}
-	err := uR.db.QueryRow("GetUserByEmailQuery",email).Scan(&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.Password, &userDB.About, &userDB.ImgUrl)
+	err := uR.db.QueryRow(utils.GetUserByEmailQuery, email).Scan(&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.Password, &userDB.About, &userDB.ImgUrl)
 	if err != nil {
 		log.Print(err.Error())
 		return nil, errors.ErrPostgres
@@ -43,11 +44,11 @@ func (uR *UserRepository) UpdateUser(userId int, user *models.User) (*models.Use
 	userDB := &models.UserDB{}
 	var err error
 	if user.ImgUrl == "" {
-		err = uR.db.QueryRow("UpdateUserWithoutImgUrlQuery", &user.Name, &user.Surname, &user.About, &userId).Scan(
+		err = uR.db.QueryRow(utils.UpdateUserWithoutImgUrlQuery, &user.Name, &user.Surname, &user.About, &userId).Scan(
 			&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.About, &userDB.ImgUrl,
 		)
 	} else {
-		err = uR.db.QueryRow("UpdateUserQuery", &user.Name, &user.Surname, &user.About, &user.ImgUrl, &userId).Scan(
+		err = uR.db.QueryRow(utils.UpdateUserQuery, &user.Name, &user.Surname, &user.About, &user.ImgUrl, &userId).Scan(
 			&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.About, &userDB.ImgUrl,
 		)
 	}

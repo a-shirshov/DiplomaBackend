@@ -23,12 +23,12 @@ func (sR *SessionRepository) SaveTokens(userId int, td *utils.TokenDetails) erro
 	rt := time.Unix(td.RtExpires, 0)
 	now := time.Now()
 
-	errAccess := sR.redis.Set(td.AccessUuid, userId, at.Sub(now)).Err()
+	errAccess := sR.redis.Set(td.AccessUuid, strconv.Itoa(userId), at.Sub(now)).Err()
 	if errAccess != nil {
 		return errAccess
 	}
 
-	errRefresh := sR.redis.Set(td.RefreshUuid, userId, rt.Sub(now)).Err()
+	errRefresh := sR.redis.Set(td.RefreshUuid, strconv.Itoa(userId), rt.Sub(now)).Err()
 	if errRefresh != nil {
 		return errRefresh
 	}
@@ -36,8 +36,8 @@ func (sR *SessionRepository) SaveTokens(userId int, td *utils.TokenDetails) erro
 	return nil
 }
 
-func (sR *SessionRepository) FetchAuth(accessToken string) (int, error) {
-	userid, err := sR.redis.Get(accessToken).Result()
+func (sR *SessionRepository) FetchAuth(accessUuid string) (int, error) {
+	userid, err := sR.redis.Get(accessUuid).Result()
 	if err != nil {
 	   return 0, err
 	}

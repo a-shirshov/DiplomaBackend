@@ -1,34 +1,54 @@
 package utils
 
 import (
-	"github.com/jackc/pgx"
+	"fmt"
+	"log"
+
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/jmoiron/sqlx"
 	"github.com/spf13/viper"
 )
 
-func InitPostgresDB() (*pgx.ConnPool, error) {
-	config := pgx.ConnConfig{
-		User:                 viper.GetString("POSTGRES_USER"),
-		Database:             viper.GetString("POSTGRES_DB"),
-		Password:             viper.GetString("POSTGRES_PASSWORD"),
-		Host: 				  viper.GetString("postgres.host"),
-		Port: 				  uint16(viper.GetInt("postgres.port")),	
-		PreferSimpleProtocol: false,
-	}
-	connPoolConfig := pgx.ConnPoolConfig{
-		ConnConfig:     config,
-		MaxConnections: 100,
-		AfterConnect:   nil,
-		AcquireTimeout: 0,
-	}
-	return pgx.NewConnPool(connPoolConfig)
+func buildConnectionString(user,password, host, port, database string) string {
+	connectionString := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", user, password, host, port, database)
+	return connectionString
 }
 
-func Prepare(db *pgx.ConnPool) error {
-	for _, query := range queries {
-		_, err := db.Prepare(query.Name, query.Query)
-		if err != nil {
-			return err
-		}
+func InitPostgres() (*sqlx.DB, error) {
+	user := viper.GetString("POSTGRES_USER")
+	database := viper.GetString("POSTGRES_DB")
+	password := viper.GetString("POSTGRES_PASSWORD")
+	host := viper.GetString("postgres.host")
+	port := fmt.Sprintf("%d",viper.GetInt("postgres.port"))
+
+	config, err := pgxpool.ParseConfig(buildConnectionString(user,password,host,port,database))
+	if err != nil {
+		log.Print(err)
+		return nil, err
 	}
-	return nil
+
+	nativeDB := stdlib.OpenDB(*config.ConnConfig)
+	nativeDB.SetMaxIdleConns(100)
+	nativeDB.SetMaxOpenConns(100)
+	
+	return sqlx.NewDb(nativeDB,"pgx"), nil
+	
 }
+
+// func Prepare(db *pgxpool.Pool) error {
+// 	tx, err := db.Begin(context.Background())
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	for _, query := range queries {
+// 		_, err := tx.Prepare(context.Background(), query.Name, query.Query)
+// 		if err != nil {
+// 			tx.Rollback(context.Background())
+// 			return err
+// 		}
+// 	}
+// 	tx.Commit(context.Background())
+// 	return nil
+// }

@@ -4,8 +4,9 @@ import (
 	"Diploma/internal/errors"
 	"Diploma/internal/models"
 	"log"
+	"Diploma/utils"
 
-	"github.com/jackc/pgx"
+	"github.com/jmoiron/sqlx"
 )
 
 const (
@@ -13,24 +14,23 @@ const (
 )
 
 type PlaceRepository struct {
-	db *pgx.ConnPool
+	db *sqlx.DB
 }
 
-func NewPlaceRepository(db *pgx.ConnPool) *PlaceRepository {
+func NewPlaceRepository(db *sqlx.DB) *PlaceRepository {
 	return &PlaceRepository{
 		db: db,
 	}
 }
 
 func (pR *PlaceRepository) GetPlaces(page int) ([]*models.Place, error) {
-	rows, err := pR.db.Query("GetPlacesQuery", elementsPerPage, page)
+	rows, err := pR.db.Query(utils.GetPlacesQuery, elementsPerPage, page)
 	if err != nil {
 		log.Print(err)
 		rows.Close()
 		return nil, errors.ErrPostgres
 	}
 	places := []*models.Place{}
-	log.Print("Places 1:", places)
 
 	defer rows.Close()
 
@@ -56,7 +56,7 @@ func (pR *PlaceRepository) GetPlaces(page int) ([]*models.Place, error) {
 
 func (pR *PlaceRepository) GetPlace(id int) (*models.Place, error) {
 	placeDB := &models.PlaceDB{}
-	err := pR.db.QueryRow("GetPlaceQuery",id).Scan(
+	err := pR.db.QueryRow(utils.GetPlaceQuery, id).Scan(
 		&placeDB.ID, 
 			&placeDB.Name, 
 			&placeDB.Description, 

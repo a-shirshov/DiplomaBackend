@@ -1,4 +1,4 @@
-package Usecase
+package usecase
 
 import (
 	"Diploma/internal/microservices/auth"
@@ -46,14 +46,13 @@ func (uU *authUsecase) SignIn(user *models.LoginUser) (*models.User, *utils.Toke
 	}
 
 	resultUser.Password = ""
-	uId := int(resultUser.ID)
-	td, err := utils.CreateToken(uId)
+	td, err := utils.CreateToken(resultUser.ID)
 	if err != nil {
 		return nil, nil, err
 	}
 
 
-	err = uU.sessionRepo.SaveTokens(uId, td)
+	err = uU.sessionRepo.SaveTokens(resultUser.ID, td)
 	if err != nil {
 		return nil, nil, err
 	}

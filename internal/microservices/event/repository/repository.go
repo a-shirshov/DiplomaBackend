@@ -3,9 +3,10 @@ package repository
 import (
 	"Diploma/internal/errors"
 	"Diploma/internal/models"
+	"Diploma/utils"
 	"log"
 
-	"github.com/jackc/pgx"
+	"github.com/jmoiron/sqlx"
 )
 
 const (
@@ -13,18 +14,19 @@ const (
 )
 
 type EventRepository struct {
-	db *pgx.ConnPool
+	db *sqlx.DB
 }
 
-func NewEventRepository(db *pgx.ConnPool) *EventRepository {
+func NewEventRepository(db *sqlx.DB) *EventRepository {
 	return &EventRepository{
 		db: db,
 	}
 }
 
 func (eR *EventRepository) GetEvents(placeId, page int) ([]*models.Event, error) {
-	rows, err := eR.db.Query("GetEventsQuery", placeId, elementsPerPage, page)
+	rows, err := eR.db.Query(utils.GetEventsQuery, placeId, elementsPerPage, page)
 	if err != nil {
+		log.Print(err)
 		rows.Close()
 		return nil, errors.ErrPostgres
 	}
@@ -35,12 +37,12 @@ func (eR *EventRepository) GetEvents(placeId, page int) ([]*models.Event, error)
 	for rows.Next() {
 		event := &models.Event{}
 		err := rows.Scan(
-			&event.ID, 
-			&event.Name, 
-			&event.Description, 
-			&event.About, 
-			&event.Category, 
-			&event.Tags, 
+			&event.ID,
+			&event.Name,
+			&event.Description,
+			&event.About,
+			&event.Category,
+			&event.Tags,
 			&event.SpecialInfo,
 		)
 		if err != nil {
@@ -54,13 +56,13 @@ func (eR *EventRepository) GetEvents(placeId, page int) ([]*models.Event, error)
 
 func (eR *EventRepository) GetEvent(eventId int) (*models.Event, error) {
 	event := &models.Event{}
-	err := eR.db.QueryRow("GetEventQuery", eventId).Scan(
-		&event.ID, 
-		&event.Name, 
-		&event.Description, 
-		&event.About, 
-		&event.Category, 
-		&event.Tags, 
+	err := eR.db.QueryRow(utils.GetEventQuery, eventId).Scan(
+		&event.ID,
+		&event.Name,
+		&event.Description,
+		&event.About,
+		&event.Category,
+		&event.Tags,
 		&event.SpecialInfo,
 	)
 	if err != nil {

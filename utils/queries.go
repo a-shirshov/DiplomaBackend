@@ -28,41 +28,41 @@ const (
 		where id = $1`
 )
 
-var queries = []Query {
-	{
-		Name: "CreateUserQuery",
-		Query: CreateUserQuery,
-	},
-	{
-		Name: "GetUserQuery",
-		Query: GetUserQuery,
-	},
-	{
-		Name: "GetUserByEmailQuery",
-		Query: GetUserByEmailQuery,
-	},
-	{
-		Name: "UpdateUserWithoutImgUrlQuery",
-		Query: UpdateUserWithoutImgUrlQuery,
-	},
-	{
-		Name: "UpdateUserQuery",
-		Query: UpdateUserQuery,
-	},
-	{
-		Name: "GetEventsQuery",
-		Query: GetEventsQuery,
-	},
-	{
-		Name: "GetEventQuery",
-		Query: GetEventQuery,
-	},
-	{
-		Name: "GetPlacesQuery",
-		Query: GetPlacesQuery,
-	},
-	{
-		Name: "GetPlaceQuery",
-		Query: GetPlaceQuery,
-	},
-}
+// var queries = []Query {
+// 	{
+// 		Name: "CreateUserQuery",
+// 		Query: CreateUserQuery,
+// 	},
+// 	{
+// 		Name: "GetUserQuery",
+// 		Query: GetUserQuery,
+// 	},
+// 	{
+// 		Name: "GetUserByEmailQuery",
+// 		Query: GetUserByEmailQuery,
+// 	},
+// 	{
+// 		Name: "UpdateUserWithoutImgUrlQuery",
+// 		Query: UpdateUserWithoutImgUrlQuery,
+// 	},
+// 	{
+// 		Name: "UpdateUserQuery",
+// 		Query: UpdateUserQuery,
+// 	},
+// 	{
+// 		Name: "GetEventsQuery",
+// 		Query: GetEventsQuery,
+// 	},
+// 	{
+// 		Name: "GetEventQuery",
+// 		Query: GetEventQuery,
+// 	},
+// 	{
+// 		Name: "GetPlacesQuery",
+// 		Query: GetPlacesQuery,
+// 	},
+// 	{
+// 		Name: "GetPlaceQuery",
+// 		Query: GetPlaceQuery,
+// 	},
+// }

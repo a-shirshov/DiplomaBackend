@@ -1,4 +1,4 @@
-package Usecase
+package usecase
 
 import (
 	"Diploma/internal/microservices/user"
@@ -20,10 +20,5 @@ func (uU *userUsecase) GetUser(userId int) (*models.User, error) {
 }
 
 func (uU *userUsecase) UpdateUser(userId int, user *models.User) (*models.User, error) {
-	resultUser, err := uU.userRepo.UpdateUser(userId, user)
-	if err != nil {
-		return nil, err
-	}
-
-	return resultUser, nil
+	return uU.userRepo.UpdateUser(userId, user)
 }

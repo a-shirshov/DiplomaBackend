@@ -9,7 +9,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - /home/root/autfinal/static/images:/home/ubuntu/static/images
+      - ./images:/home/ubuntu/static/images
     depends_on:
       - redis
       - postgres

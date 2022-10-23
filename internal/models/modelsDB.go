@@ -1,6 +1,8 @@
 package models
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 
 type UserDB struct {
@@ -20,4 +22,14 @@ type PlaceDB struct {
 	Category string
 	About sql.NullString 
 	ImgUrl sql.NullString 
+}
+
+type EventDB struct {
+	ID int
+	Name string
+	Description string 
+	About string
+	Category string
+	Tags []string
+	SpecialInfo string
 }

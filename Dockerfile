@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine as server_build
+FROM golang:1.17-alpine as server_build
 RUN apk add --no-cache \
     make \
     libwebp-dev \

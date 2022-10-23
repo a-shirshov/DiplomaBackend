@@ -1,3 +1,4 @@
+-- Active: 1658341218621@@45.141.102.243@5432@Diploma
 CREATE TABLE IF NOT EXISTS "user"  (
     id serial not null UNIQUE,
     name text not null,

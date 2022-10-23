@@ -12,6 +12,6 @@ type Repository interface {
 
 type SessionRepository interface {
 	SaveTokens(userId int, td *utils.TokenDetails) error
-	FetchAuth(accessToken string) (int, error)
+	FetchAuth(accessUuid string) (int, error)
 	DeleteAuth(accessUuid string) error
 }
