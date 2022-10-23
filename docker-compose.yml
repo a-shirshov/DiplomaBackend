@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     command: "./server"
     ports:
-      - "8080:8080"
+      - "8000:8000"
     volumes:
       - /home/root/autfinal/static/images:/home/ubuntu/static/images
     depends_on:
