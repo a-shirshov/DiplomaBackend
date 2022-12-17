@@ -5,6 +5,7 @@ import (
 	"Diploma/internal/models"
 	"Diploma/utils/query"
 	"log"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -23,6 +24,9 @@ func (uR *AuthRepository) CreateUser(user *models.User) (*models.User, error) {
 	err := uR.db.QueryRowx(query.CreateUserQuery, &user.Name, &user.Surname, &user.Email, &user.Password).Scan(&user.ID)
 	if err != nil {
 		log.Println(err)
+		if strings.Contains(err.Error(), "(SQLSTATE 23505)") {
+			return nil, errors.ErrUserExists
+		}
 		return nil, errors.ErrPostgres
 	}
 	user.Password = ""
