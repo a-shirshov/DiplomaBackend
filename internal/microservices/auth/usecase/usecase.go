@@ -25,13 +25,29 @@ func NewAuthUsecase(userRepo auth.Repository, sessionRepo auth.SessionRepository
 	}
 }
 
-func (uU *authUsecase) CreateUser(user *models.User) (*models.User, error) {
+func (uU *authUsecase) CreateUser(user *models.User) (*models.User, *utils.TokenDetails, error) {
 	hash, err := utils.GenerateHashFromPassword(user.Password)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	user.Password = hash
-	return uU.authRepo.CreateUser(user)
+	resultUser, err := uU.authRepo.CreateUser(user)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	td, err := utils.CreateToken(resultUser.ID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+
+	err = uU.sessionRepo.SaveTokens(resultUser.ID, td)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return resultUser, td, nil
 }
 
 func (uU *authUsecase) SignIn(user *models.LoginUser) (*models.User, *utils.TokenDetails, error) {

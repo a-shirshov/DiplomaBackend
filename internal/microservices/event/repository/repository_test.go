@@ -2,7 +2,7 @@ package repository
 
 import (
 	"Diploma/internal/models"
-	"Diploma/utils"
+	"Diploma/utils/query"
 	"testing"
 	"fmt"
 
@@ -94,7 +94,7 @@ func TestGetEventsByPlace(t *testing.T) {
 				test.outputEvents[1].Tags,
 				test.outputEvents[1].SpecialInfo)
 		
-		mock.ExpectQuery(utils.GetEventsQuery).
+		mock.ExpectQuery(query.GetEventsQuery).
 			WithArgs(test.placeId, elementsPerPage,test.page).
 			RowsWillBeClosed().WillReturnRows(rows)
 

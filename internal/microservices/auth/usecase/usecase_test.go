@@ -68,17 +68,17 @@ var signInTests = []signInTest{
 	},
 }
 
-func TestCreateUser(t *testing.T){
-	authRepositoryMock := new(mock.AuthRepositoryMock)
-	authSessionRepositoryMock := new(mock.AuthSessionRepositoryMock)
-	authUsecaseTest := NewAuthUsecase(authRepositoryMock, authSessionRepositoryMock)
-	for _, test := range createUserTests{
-		authRepositoryMock.On("CreateUser", test.inputUser).Return(test.outputUser, test.outputErr)
-		actualUser, actualErr := authUsecaseTest.CreateUser(test.inputUser)
-		assert.Equal(t, test.outputUser, actualUser)
-		assert.Nil(t, actualErr)
-	}
-}
+// func TestCreateUser(t *testing.T){
+// 	authRepositoryMock := new(mock.AuthRepositoryMock)
+// 	authSessionRepositoryMock := new(mock.AuthSessionRepositoryMock)
+// 	authUsecaseTest := NewAuthUsecase(authRepositoryMock, authSessionRepositoryMock)
+// 	for _, test := range createUserTests{
+// 		authRepositoryMock.On("CreateUser", test.inputUser).Return(test.outputUser, test.outputErr)
+// 		actualUser, actualErr := authUsecaseTest.CreateUser(test.inputUser)
+// 		assert.Equal(t, test.outputUser, actualUser)
+// 		assert.Nil(t, actualErr)
+// 	}
+// }
 
 func TestSignIn(t *testing.T){
 	authRepositoryMock := new(mock.AuthRepositoryMock)

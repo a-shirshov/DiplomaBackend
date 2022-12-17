@@ -3,7 +3,7 @@ package repository
 import (
 	"Diploma/internal/errors"
 	"Diploma/internal/models"
-	"Diploma/utils"
+	"Diploma/utils/query"
 	"log"
 
 	"github.com/jmoiron/sqlx"
@@ -24,7 +24,7 @@ func NewEventRepository(db *sqlx.DB) *EventRepository {
 }
 
 func (eR *EventRepository) GetEvents(placeId, page int) ([]*models.Event, error) {
-	rows, err := eR.db.Query(utils.GetEventsQuery, placeId, elementsPerPage, page)
+	rows, err := eR.db.Query(query.GetEventsQuery, placeId, elementsPerPage, page)
 	if err != nil {
 		log.Print(err)
 		rows.Close()
@@ -56,7 +56,7 @@ func (eR *EventRepository) GetEvents(placeId, page int) ([]*models.Event, error)
 
 func (eR *EventRepository) GetEvent(eventId int) (*models.Event, error) {
 	event := &models.Event{}
-	err := eR.db.QueryRow(utils.GetEventQuery, eventId).Scan(
+	err := eR.db.QueryRow(query.GetEventQuery, eventId).Scan(
 		&event.ID,
 		&event.Name,
 		&event.Description,

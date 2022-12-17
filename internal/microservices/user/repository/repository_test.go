@@ -2,7 +2,7 @@ package repository
 
 import (
 	"Diploma/internal/models"
-	"Diploma/utils"
+	"Diploma/utils/query"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -97,7 +97,7 @@ func TestGetUser(t *testing.T){
 				test.outputUser.Email,
 				test.outputUser.About,
 				test.outputUser.ImgUrl)
-		mock.ExpectQuery(utils.GetUserQuery).
+		mock.ExpectQuery(query.GetUserQuery).
 		WithArgs(test.userId).
 		RowsWillBeClosed().WillReturnRows(rows)
 
@@ -135,7 +135,7 @@ func TestGetUserByEmail(t *testing.T) {
 				test.outputUser.ImgUrl,
 			)
 		
-		mock.ExpectQuery(utils.GetUserByEmailQuery).
+		mock.ExpectQuery(query.GetUserByEmailQuery).
 			WithArgs(test.userEmail).
 			RowsWillBeClosed().WillReturnRows(rows)
 			
@@ -169,7 +169,7 @@ func TestUpdateUser(t *testing.T) {
 				test.outputUser.About,
 				test.outputUser.ImgUrl)
 		
-		mock.ExpectQuery(utils.UpdateUserQuery).
+		mock.ExpectQuery(query.UpdateUserQuery).
 			WithArgs(
 				test.inputUser.Name, 
 				test.inputUser.Surname, 

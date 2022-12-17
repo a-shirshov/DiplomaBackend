@@ -2,7 +2,7 @@ package repository
 
 import (
 	"Diploma/internal/models"
-	"Diploma/utils"
+	"Diploma/utils/query"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -67,7 +67,7 @@ func TestCreateUser(t *testing.T) {
 	repositoryTest := NewAuthRepository(sqlxDB)
 
 	for _, test := range createUserTests {
-		mock.ExpectExec(utils.CreateUserQuery).
+		mock.ExpectExec(query.CreateUserQuery).
 			WithArgs(
 				test.inputUser.Name,
 				test.inputUser.Surname,
@@ -108,7 +108,7 @@ func TestGetUserByEmail(t *testing.T) {
 				test.outputUser.About,
 				test.outputUser.ImgUrl)
 
-		mock.ExpectQuery(utils.GetUserByEmailQuery).
+		mock.ExpectQuery(query.GetUserByEmailQuery).
 			WithArgs(test.email).
 			RowsWillBeClosed().
 			WillReturnRows(rows)

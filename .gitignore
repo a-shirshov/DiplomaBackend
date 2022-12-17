@@ -1,3 +1,4 @@
 .env
 dhparam
 postgres-data
+.vscode

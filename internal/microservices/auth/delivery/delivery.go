@@ -34,13 +34,23 @@ func NewAuthDelivery(authUsecase auth.Usecase) *AuthDelivery {
 func (uD *AuthDelivery) SignUp(c *gin.Context) {
 	user := c.MustGet("user").(models.User)
 
-	resultUser, err := uD.authUsecase.CreateUser(&user)
+	resultUser, tokenDetails, err := uD.authUsecase.CreateUser(&user)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated,resultUser)
+	tokens := &models.Tokens{
+		AccessToken: tokenDetails.AccessToken,
+		RefreshToken: tokenDetails.RefreshToken,
+	}
+
+	userWithTokens := &models.UserWithTokens{
+		User: *resultUser,
+		Tokens: *tokens,
+	}
+
+	c.JSON(http.StatusOK, userWithTokens)
 }
 
 // @Summary Login
@@ -58,6 +68,7 @@ func (uD *AuthDelivery) SignIn(c *gin.Context) {
 
 	resultUser, tokenDetails, err := uD.authUsecase.SignIn(&user)
 	if err != nil {
+		log.Println(err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}

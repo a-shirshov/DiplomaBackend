@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     command: "./server"
     ports:
-      - "8080:8080"
+      - "8088:8000"
     volumes:
       - ./images:/home/ubuntu/static/images
     depends_on:
@@ -24,7 +24,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_DB=${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "5439:5432"
     logging:
       options:
         max-size: 10m

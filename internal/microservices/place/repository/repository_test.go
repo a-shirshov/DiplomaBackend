@@ -2,7 +2,7 @@ package repository
 
 import (
 	"Diploma/internal/models"
-	"Diploma/utils"
+	"Diploma/utils/query"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -87,7 +87,7 @@ func TestGetPlaces(t *testing.T) {
 				test.outputPlaces[1].Category,
 				test.outputPlaces[1].ImgUrl)
 
-		mock.ExpectQuery(utils.GetPlacesQuery).
+		mock.ExpectQuery(query.GetPlacesQuery).
 			WithArgs(elementsPerPage, test.page).
 			RowsWillBeClosed().WillReturnRows(rows)
 
@@ -124,7 +124,7 @@ func TestGetPlace(t *testing.T) {
 				test.outputPlace.Category,
 				test.outputPlace.ImgUrl)
 
-		mock.ExpectQuery(utils.GetPlaceQuery).
+		mock.ExpectQuery(query.GetPlaceQuery).
 			WithArgs(test.id).
 			WillReturnRows(rows)
 

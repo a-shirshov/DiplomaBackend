@@ -4,7 +4,7 @@ import (
 	"Diploma/internal/errors"
 	"Diploma/internal/models"
 	"log"
-	"Diploma/utils"
+	"Diploma/utils/query"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -24,7 +24,7 @@ func NewPlaceRepository(db *sqlx.DB) *PlaceRepository {
 }
 
 func (pR *PlaceRepository) GetPlaces(page int) ([]*models.Place, error) {
-	rows, err := pR.db.Query(utils.GetPlacesQuery, elementsPerPage, page)
+	rows, err := pR.db.Query(query.GetPlacesQuery, elementsPerPage, page)
 	if err != nil {
 		log.Print(err)
 		rows.Close()
@@ -56,7 +56,7 @@ func (pR *PlaceRepository) GetPlaces(page int) ([]*models.Place, error) {
 
 func (pR *PlaceRepository) GetPlace(id int) (*models.Place, error) {
 	placeDB := &models.PlaceDB{}
-	err := pR.db.QueryRow(utils.GetPlaceQuery, id).Scan(
+	err := pR.db.QueryRow(query.GetPlaceQuery, id).Scan(
 		&placeDB.ID, 
 			&placeDB.Name, 
 			&placeDB.Description, 
