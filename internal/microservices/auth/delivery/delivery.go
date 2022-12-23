@@ -76,8 +76,16 @@ func (uD *AuthDelivery) SignIn(c *gin.Context) {
 
 	resultUser, tokenDetails, err := uD.authUsecase.SignIn(&user)
 	if err != nil {
-		log.Println(err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
+		if err == customErrors.ErrWrongPassword || err == customErrors.ErrWrongEmail {
+			c.JSON(http.StatusForbidden, models.ErrorMessage{
+				Message: err.Error(),
+			})
+			
+		} else {
+			c.JSON(http.StatusInternalServerError, models.ErrorMessage{
+				Message: err.Error(),
+			})
+		}
 		return
 	}
 
