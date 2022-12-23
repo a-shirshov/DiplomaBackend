@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"Diploma/internal/errors"
+	"Diploma/internal/customErrors"
 	"Diploma/internal/models"
 	"Diploma/utils/query"
 	"log"
@@ -23,7 +23,7 @@ func (uR *UserRepository) GetUser(Id int) (*models.User, error) {
 	userDB := &models.UserDB{}
 	err := uR.db.QueryRow(query.GetUserQuery, Id).Scan(&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.About, &userDB.ImgUrl)
 	if err != nil {
-		return nil, errors.ErrPostgres
+		return nil, customErrors.ErrPostgres
 	}
 	resultUser := models.ToUserModel(userDB)
 	return resultUser, nil
@@ -34,7 +34,7 @@ func (uR *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 	err := uR.db.QueryRow(query.GetUserByEmailQuery, email).Scan(&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.Password, &userDB.About, &userDB.ImgUrl)
 	if err != nil {
 		log.Print(err.Error())
-		return nil, errors.ErrPostgres
+		return nil, customErrors.ErrPostgres
 	}
 	resultUser := models.ToUserModel(userDB)
 	return resultUser, nil
@@ -55,7 +55,7 @@ func (uR *UserRepository) UpdateUser(userId int, user *models.User) (*models.Use
 	
 	if err != nil {
 		log.Print(err)
-		return nil, errors.ErrPostgres
+		return nil, customErrors.ErrPostgres
 	}
 
 	return models.ToUserModel(userDB), nil

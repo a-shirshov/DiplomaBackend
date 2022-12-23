@@ -1,7 +1,8 @@
 package utils
 
 import (
-	"Diploma/internal/errors"
+	"Diploma/internal/customErrors"
+	"Diploma/internal/models"
 	"image"
 	"image/jpeg"
 	"image/png"
@@ -9,8 +10,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
+	"github.com/go-sanitize/sanitize"
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 
@@ -21,20 +23,47 @@ import (
 func GetAUFromContext(c *gin.Context) (*AccessDetails, error) {
 	ctxau, ok := c.Get("access_details")
 	if !ok {
-		return nil, errors.ErrNoTokenInContext
+		return nil, customErrors.ErrNoTokenInContext
 	}
 
 	au, ok := ctxau.(AccessDetails)
 	if !ok {
-		return nil, errors.ErrNoTokenInContext
+		return nil, customErrors.ErrNoTokenInContext
 	}
 	
 	return &au, nil
 }
 
-func Validate(object interface{}) error {
-	validator := validator.New()
-	return validator.Struct(object)
+func ValidateAndSanitize(object interface{}) error {
+	s, err := sanitize.New()
+	if err != nil {
+		return customErrors.ErrSanitizer
+	}
+
+	err = s.Sanitize(object)
+	if err != nil {
+		return customErrors.ErrSanitizing
+	}
+
+	valid, err := govalidator.ValidateStruct(object)
+	if err != nil || !valid {
+		return customErrors.ErrValidation
+	}
+	return err
+}
+
+func GetUserFromRequest(c *gin.Context) (*models.User, error) {
+	var inputUser *models.User
+	err := c.ShouldBindJSON(&inputUser)
+	if err != nil {
+		return nil, customErrors.ErrWrongJson
+	}
+
+	err = ValidateAndSanitize(inputUser)
+	if err != nil {
+		return  nil, err
+	}
+	return inputUser, nil
 }
 
 func SaveImageFromRequest(c *gin.Context, httpRequestKey string) (string, error) {
@@ -57,7 +86,7 @@ func SaveImageFromRequest(c *gin.Context, httpRequestKey string) (string, error)
 			filenameExtension = "webp"
 		case "ico","woff","swg","webp","webm","gif":
 		default:
-			return "", errors.ErrWrongExtension
+			return "", customErrors.ErrWrongExtension
 	}
 
 	options, err := encoder.NewLossyEncoderOptions(encoder.PresetDefault, 40)

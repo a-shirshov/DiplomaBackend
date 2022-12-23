@@ -1,14 +1,15 @@
 package utils
 
 import (
+	"Diploma/internal/customErrors"
 	"crypto/rand"
-    "crypto/subtle"
-    "encoding/base64"
-    "errors"
-    "fmt"
-    "strings"
+	"crypto/subtle"
+	"encoding/base64"
+	"errors"
+	"fmt"
+	"strings"
 
-    "golang.org/x/crypto/argon2"
+	"golang.org/x/crypto/argon2"
 )
 
 type params struct {
@@ -57,7 +58,7 @@ func VerifyPassword(password, encodedHash string) (match bool, err error) {
     // hash.
     p, salt, hash, err := decodeHash(encodedHash)
     if err != nil {
-        return false, err
+        return false, customErrors.ErrWrongPassword
     }
 
     // Derive the key from the other password using the same parameters.
@@ -69,7 +70,7 @@ func VerifyPassword(password, encodedHash string) (match bool, err error) {
     if subtle.ConstantTimeCompare(hash, otherHash) == 1 {
         return true, nil
     }
-    return false, nil
+    return false, customErrors.ErrWrongPassword
 }
 
 func decodeHash(encodedHash string) (p *params, salt, hash []byte, err error) {

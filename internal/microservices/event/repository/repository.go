@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"Diploma/internal/errors"
+	"Diploma/internal/customErrors"
 	"Diploma/internal/models"
 	"Diploma/utils/query"
 	"log"
@@ -28,7 +28,7 @@ func (eR *EventRepository) GetEvents(placeId, page int) ([]*models.Event, error)
 	if err != nil {
 		log.Print(err)
 		rows.Close()
-		return nil, errors.ErrPostgres
+		return nil, customErrors.ErrPostgres
 	}
 	var events []*models.Event
 
@@ -46,7 +46,7 @@ func (eR *EventRepository) GetEvents(placeId, page int) ([]*models.Event, error)
 			&event.SpecialInfo,
 		)
 		if err != nil {
-			return nil, errors.ErrPostgres
+			return nil, customErrors.ErrPostgres
 		}
 
 		events = append(events, event)
@@ -67,7 +67,7 @@ func (eR *EventRepository) GetEvent(eventId int) (*models.Event, error) {
 	)
 	if err != nil {
 		log.Println(err.Error())
-		return nil, errors.ErrPostgres
+		return nil, customErrors.ErrPostgres
 	}
 
 	return event, nil

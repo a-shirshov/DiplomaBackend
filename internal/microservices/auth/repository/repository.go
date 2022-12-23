@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"Diploma/internal/errors"
+	"Diploma/internal/customErrors"
 	"Diploma/internal/models"
 	"Diploma/utils/query"
 	"log"
@@ -25,9 +25,9 @@ func (uR *AuthRepository) CreateUser(user *models.User) (*models.User, error) {
 	if err != nil {
 		log.Println(err)
 		if strings.Contains(err.Error(), "(SQLSTATE 23505)") {
-			return nil, errors.ErrUserExists
+			return nil, customErrors.ErrUserExists
 		}
-		return nil, errors.ErrPostgres
+		return nil, customErrors.ErrPostgres
 	}
 	user.Password = ""
 	return user, nil
@@ -38,7 +38,7 @@ func (uR *AuthRepository) GetUserByEmail(email string) (*models.User, error) {
 	err := uR.db.QueryRow(query.GetUserByEmailQuery,email).Scan(&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.Password, &userDB.About, &userDB.ImgUrl)
 	if err != nil {
 		log.Print(err.Error())
-		return nil, errors.ErrPostgres
+		return nil, customErrors.ErrWrongEmail
 	}
 	resultUser := models.ToUserModel(userDB)
 	return resultUser, nil

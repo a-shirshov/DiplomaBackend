@@ -1,11 +1,10 @@
 package delivery
 
 import (
-	"Diploma/internal/errors"
+	"Diploma/internal/customErrors"
 	"Diploma/internal/microservices/user"
 	"Diploma/internal/models"
 	"Diploma/utils"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -66,8 +65,7 @@ func (uD *UserDelivery) GetUser(c *gin.Context) {
 func (uD *UserDelivery) UpdateUser(c *gin.Context) {
 	au, err := utils.GetAUFromContext(c)
 	if err != nil {
-		log.Print("here1")
-		c.JSON(http.StatusInternalServerError,  err.Error())
+		c.JSON(http.StatusUnauthorized,  err.Error())
 		return
 	}
 
@@ -76,18 +74,25 @@ func (uD *UserDelivery) UpdateUser(c *gin.Context) {
 	userIdStr := c.Param("id")
 	userId, err := strconv.Atoi(userIdStr)
 	if err != nil {
-		c.JSON(http.StatusNotFound,  err.Error())
+		c.JSON(http.StatusNotFound, models.ErrorMessage{
+			Message: customErrors.ErrUserNotFound.Error(),
+		})
 		return
 	}
 
 	if userId != au.UserId {
-		c.JSON(http.StatusForbidden,  err.Error())
+		c.JSON(http.StatusForbidden, models.ErrorMessage{
+			Message: customErrors.ErrUserNotFound.Error(),
+		})
 		return
 	}
 
 	imgUrl, err := utils.SaveImageFromRequest(c,"image")
-	if err == errors.ErrWrongExtension {
-		c.JSON(http.StatusBadRequest,err.Error())
+	if err == customErrors.ErrWrongExtension {
+		c.JSON(http.StatusBadRequest, models.ErrorMessage{
+			Message: customErrors.ErrWrongExtension.Error(),
+		})
+		return
 	}
 	if err == nil {
 		user.ImgUrl = imgUrl

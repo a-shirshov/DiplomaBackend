@@ -1,11 +1,13 @@
 package middleware
 
 import (
+	"Diploma/internal/customErrors"
 	"Diploma/internal/microservices/auth"
 	"Diploma/internal/models"
 	"Diploma/utils"
 	"log"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 )
@@ -84,13 +86,17 @@ func (m *Middlewares) MiddlewareValidateUser() gin.HandlerFunc {
 		var inputUser *models.User
 		err := c.ShouldBindJSON(&inputUser)
 		if err != nil {
-			c.JSON(http.StatusUnprocessableEntity, "wrong json")
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
+				Message: customErrors.ErrWrongJson.Error(),
+			})
 			return
 		}
 
-		err = utils.Validate(inputUser)
+		err = utils.ValidateAndSanitize(inputUser)
 		if err != nil {
-			c.JSON(http.StatusUnprocessableEntity, err.Error())
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
+				Message: err.Error(),
+			})
 			return
 		}
 
@@ -104,13 +110,17 @@ func (m *Middlewares) MiddlewareValidateLoginUser() gin.HandlerFunc {
 		var inputUser *models.LoginUser
 		err := c.ShouldBindJSON(&inputUser)
 		if err != nil {
-			c.JSON(http.StatusUnprocessableEntity, "wrong json")
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
+				Message: customErrors.ErrWrongJson.Error(),
+			})
 			return
 		}
 
-		err = utils.Validate(inputUser)
+		err = utils.ValidateAndSanitize(inputUser)
 		if err != nil {
-			c.JSON(http.StatusUnprocessableEntity, err.Error())
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
+				Message: err.Error(),
+			})
 			return
 		}
 
@@ -125,7 +135,7 @@ func (m *Middlewares) MiddlewareValidateUserFormData() gin.HandlerFunc {
 		user := new(models.User)
 		json.Unmarshal([]byte(inputUser), &user)
 
-		err := utils.Validate(user)
+		err := utils.ValidateAndSanitize(user)
 		if err != nil {
 			c.JSON(http.StatusUnprocessableEntity, err.Error())
 			return

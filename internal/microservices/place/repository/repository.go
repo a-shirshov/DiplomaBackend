@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"Diploma/internal/errors"
+	"Diploma/internal/customErrors"
 	"Diploma/internal/models"
-	"log"
 	"Diploma/utils/query"
+	"log"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -28,7 +28,7 @@ func (pR *PlaceRepository) GetPlaces(page int) ([]*models.Place, error) {
 	if err != nil {
 		log.Print(err)
 		rows.Close()
-		return nil, errors.ErrPostgres
+		return nil, customErrors.ErrPostgres
 	}
 	places := []*models.Place{}
 
@@ -45,7 +45,7 @@ func (pR *PlaceRepository) GetPlaces(page int) ([]*models.Place, error) {
 			&placeDB.ImgUrl,
 		)
 		if err != nil {
-			return nil, errors.ErrPostgres
+			return nil, customErrors.ErrPostgres
 		}
 
 		place := models.ToPlaceModel(placeDB)
@@ -65,7 +65,7 @@ func (pR *PlaceRepository) GetPlace(id int) (*models.Place, error) {
 			&placeDB.ImgUrl,
 	)
 	if err != nil {
-		return nil, errors.ErrPostgres
+		return nil, customErrors.ErrPostgres
 	}
 
 	place := models.ToPlaceModel(placeDB)

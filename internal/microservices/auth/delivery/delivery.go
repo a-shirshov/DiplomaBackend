@@ -1,7 +1,7 @@
 package delivery
 
 import (
-	"Diploma/internal/errors"
+	"Diploma/internal/customErrors"
 	"Diploma/internal/microservices/auth"
 	"Diploma/internal/models"
 	"Diploma/utils"
@@ -36,7 +36,15 @@ func (uD *AuthDelivery) SignUp(c *gin.Context) {
 
 	resultUser, tokenDetails, err := uD.authUsecase.CreateUser(&user)
 	if err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
+		if err == customErrors.ErrUserExists {
+			c.JSON(http.StatusConflict, models.ErrorMessage{
+				Message: customErrors.ErrUserExists.Error(),
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, models.ErrorMessage{
+				Message: customErrors.ErrWrongJson.Error(),
+			})
+		}
 		return
 	}
 
@@ -123,7 +131,7 @@ func (uD *AuthDelivery) Refresh(c *gin.Context) {
 	var inputTokens models.Tokens
 	if err := c.ShouldBindJSON(&inputTokens); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, models.ErrorMessage{
-			Message: errors.ErrWrongJson.Error(),
+			Message: customErrors.ErrWrongJson.Error(),
 		})
 		return 
 	}
