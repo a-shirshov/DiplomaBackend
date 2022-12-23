@@ -137,7 +137,9 @@ func (m *Middlewares) MiddlewareValidateUserFormData() gin.HandlerFunc {
 
 		err := utils.ValidateAndSanitize(user)
 		if err != nil {
-			c.JSON(http.StatusUnprocessableEntity, err.Error())
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
+				Message: err.Error(),
+			})
 			return
 		}
 
