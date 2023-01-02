@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"Diploma/utils"
+	"Diploma/internal/models"
 	"strconv"
 	"testing"
 	"time"
@@ -14,7 +14,7 @@ import (
 
 type saveTokensTest struct {
 	userId int
-	td *utils.TokenDetails
+	td *models.TokenDetails
 }
 
 type FetchAuthTest struct {
@@ -29,7 +29,7 @@ type DeleteAuthTest struct {
 
 var saveTokensTests = []saveTokensTest{
 	{
-		1, &utils.TokenDetails{
+		1, &models.TokenDetails{
 			AccessToken: "accessToken_1",
 			RefreshToken: "refreshToken_1",
 		},

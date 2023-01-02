@@ -33,22 +33,4 @@ func InitPostgres() (*sqlx.DB, error) {
 	nativeDB.SetMaxOpenConns(100)
 	
 	return sqlx.NewDb(nativeDB,"pgx"), nil
-	
 }
-
-// func Prepare(db *pgxpool.Pool) error {
-// 	tx, err := db.Begin(context.Background())
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	for _, query := range queries {
-// 		_, err := tx.Prepare(context.Background(), query.Name, query.Query)
-// 		if err != nil {
-// 			tx.Rollback(context.Background())
-// 			return err
-// 		}
-// 	}
-// 	tx.Commit(context.Background())
-// 	return nil
-// }

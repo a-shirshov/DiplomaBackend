@@ -1,6 +1,7 @@
-package utils
+package tokenManager
 
 import (
+	"Diploma/internal/models"
 	"errors"
 	"fmt"
 	"net/http"
@@ -13,34 +14,17 @@ import (
 	"github.com/spf13/viper"
 )
 
-type TokenDetails struct {
-	AccessToken  string
-	RefreshToken string
-	AccessUuid   string
-	RefreshUuid  string
-	AtExpires    int64
-	RtExpires    int64
+type tokenManager struct {
+
 }
 
-type AccessDetails struct {
-    AccessUuid string
-    UserId   int
+func NewTokenManager() *tokenManager{
+	return &tokenManager{
+
+	}
 }
 
-func TokenValid(r *http.Request) error {
-	token, err := VerifyToken(r)
-	if err != nil {
-	   return err
-	}
-	
-	if !token.Valid {
-	   return err
-	}
-	return nil
-  }
-
-
-func ExtractToken(r *http.Request) string {
+func extractToken(r *http.Request) string {
 	bearToken := r.Header.Get("Authorization")
 	//normally Authorization the_token_xxx
 	strArr := strings.Split(bearToken, " ")
@@ -50,8 +34,8 @@ func ExtractToken(r *http.Request) string {
 	return ""
 }
 
-func VerifyToken(r *http.Request) (*jwt.Token, error) {
-	tokenString := ExtractToken(r)
+func verifyToken(r *http.Request) (*jwt.Token, error) {
+	tokenString := extractToken(r)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 	   //Make sure that the token method conform to "SigningMethodHMAC"
 	   if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -65,8 +49,8 @@ func VerifyToken(r *http.Request) (*jwt.Token, error) {
 	return token, nil
   }
 
-func CreateToken(userId int) (*TokenDetails, error) {
-	td := &TokenDetails{}
+func(tM *tokenManager) CreateToken(userId int) (*models.TokenDetails, error) {
+	td := &models.TokenDetails{}
 	td.AtExpires = time.Now().Add(time.Minute * 15).Unix()
 	td.AccessUuid = uuid.NewV4().String()
 
@@ -97,8 +81,8 @@ func CreateToken(userId int) (*TokenDetails, error) {
 	return td, nil
 }
 
-func ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
-	token, err := VerifyToken(r)
+func(tM *tokenManager) ExtractTokenMetadata(r *http.Request) (*models.AccessDetails, error) {
+	token, err := verifyToken(r)
 	if err != nil {
 	   return nil, err
 	}
@@ -115,10 +99,10 @@ func ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
 		  return nil, err
 	   } 
 
-	   return &AccessDetails{
+	   return &models.AccessDetails{
 		  AccessUuid: accessUuid,
 		  UserId:   int(userId),
 	   }, nil
 	}
 	return nil, err
-  }
+}

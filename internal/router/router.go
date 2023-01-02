@@ -11,7 +11,7 @@ import (
 )
 
 func AuthEndpoints(r *gin.RouterGroup, mws *middleware.Middlewares, aD *authD.AuthDelivery) {
-	r.POST("/signup", mws.MiddlewareValidateUser(), aD.SignUp)
+	r.POST("/signup", mws.MiddlewareValidateUserFormData(), aD.SignUp)
 	r.POST("/login", mws.MiddlewareValidateLoginUser(), aD.SignIn)
 	r.GET("/logout", mws.TokenAuthMiddleware(), aD.Logout)
 	r.POST("/refresh", aD.Refresh)
@@ -24,10 +24,13 @@ func UserEndpoints(r *gin.RouterGroup, mws *middleware.Middlewares, uD *userD.Us
 
 func EventEndpoints(r *gin.RouterGroup, eD *eventD.EventDelivery) {
 	r.GET("/:event_id", eD.GetEvent)
+	r.GET("/", eD.GetEvents)
+	r.GET("/external", eD.GetExternalEvents)
+	r.GET("/external/close", eD.GetCloseExternalEvents)
+	r.GET("/external/today", eD.GetTodayEvents)
 }
 
 func PlaceEndpoints(r *gin.RouterGroup, pD *placeD.PlaceDelivery, eD *eventD.EventDelivery) {
 	r.GET("/", pD.GetPlaces)
 	r.GET("/:place_id", pD.GetPlace)
-	r.GET("/:place_id/events", eD.GetEvents)
 }

@@ -98,7 +98,8 @@ func (uD *UserDelivery) UpdateUser(c *gin.Context) {
 		user.ImgUrl = imgUrl
 	}
 
-	newUser, err := uD.userUsecase.UpdateUser(au.UserId, &user)
+	user.ID = au.UserId
+	newUser, err := uD.userUsecase.UpdateUser(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return

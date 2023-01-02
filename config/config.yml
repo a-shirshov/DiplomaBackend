@@ -5,12 +5,10 @@ server:
 postgres:
   port: 5432
   host: "postgres"
-  #user: "a_shirshov"
-  #database: "Diploma"
 
 redis:
   addr: "redis:6379"
   db_id: 0
 
 img_path:
-  "/home/ubuntu/static/images"
+  "/partypoint/static/images"

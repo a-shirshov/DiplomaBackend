@@ -2,12 +2,11 @@ package auth
 
 import (
 	"Diploma/internal/models"
-	"Diploma/utils"
 )
 
 type Usecase interface {
-	CreateUser(*models.User) (*models.User, *utils.TokenDetails, error)
-	SignIn(*models.LoginUser) (*models.User, *utils.TokenDetails, error)
-	Logout(*utils.AccessDetails) error
+	CreateUser(*models.User) (*models.User, *models.TokenDetails, error)
+	SignIn(*models.LoginUser) (*models.User, *models.TokenDetails, error)
+	Logout(*models.AccessDetails) error
 	Refresh(string) (*models.Tokens, error)
 }

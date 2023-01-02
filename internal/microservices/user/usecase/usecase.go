@@ -19,6 +19,6 @@ func (uU *userUsecase) GetUser(userId int) (*models.User, error) {
 	return uU.userRepo.GetUser(userId)
 }
 
-func (uU *userUsecase) UpdateUser(userId int, user *models.User) (*models.User, error) {
-	return uU.userRepo.UpdateUser(userId, user)
+func (uU *userUsecase) UpdateUser(user *models.User) (*models.User, error) {
+	return uU.userRepo.UpdateUser(user)
 }

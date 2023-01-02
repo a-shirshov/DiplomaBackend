@@ -2,7 +2,6 @@ package auth
 
 import (
 	"Diploma/internal/models"
-	"Diploma/utils"
 )
 
 type Repository interface {
@@ -11,7 +10,7 @@ type Repository interface {
 }
 
 type SessionRepository interface {
-	SaveTokens(userId int, td *utils.TokenDetails) error
+	SaveTokens(userId int, td *models.TokenDetails) error
 	FetchAuth(accessUuid string) (int, error)
 	DeleteAuth(accessUuid string) error
 }

@@ -15,10 +15,14 @@ func NewEventUsecase(eventR event.Repository) (*EventUsecase) {
 	}
 }
 
-func (eU *EventUsecase) GetEvents(placeId, page int) ([]*models.Event, error) {
-	return eU.eventRepo.GetEvents(placeId, page)
+func (eU *EventUsecase) GetEvents(page int) ([]*models.Event, error) {
+	return eU.eventRepo.GetEvents(page)
 }
 
 func (eU *EventUsecase) GetEvent(eventId int) (*models.Event, error) {
 	return eU.eventRepo.GetEvent(eventId)
+}
+
+func (eU *EventUsecase) GetEventsByToday(page int) ([]*models.Event, error) {
+	return eU.eventRepo.GetEvents(page)
 }

@@ -5,6 +5,7 @@ import (
 )
 
 type Usecase interface {
-	GetEvents(placeId, page int) ([]*models.Event, error)
+	GetEvents(page int) ([]*models.Event, error)
 	GetEvent(eventId int) (*models.Event, error)
+	GetEventsByToday(page int) ([]*models.Event, error)
 }

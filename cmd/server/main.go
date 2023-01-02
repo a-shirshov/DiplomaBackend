@@ -24,11 +24,14 @@ import (
 	placeRepo "Diploma/internal/microservices/place/repository"
 	placeUsecase "Diploma/internal/microservices/place/usecase"
 
+	log "Diploma/pkg/logger"
+	"Diploma/pkg/passwordHasher"
+	"Diploma/pkg/tokenManager"
 	"Diploma/utils"
-	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
@@ -55,36 +58,42 @@ import (
 // @in header
 // @name Authorization
 
-func main() {
+const logMessage = "cmd:server:main:"
 
-	l := log.New(os.Stdout, "Diploma-API", log.LstdFlags)
+func main() {
+	logLevel := logrus.DebugLevel
+	log.Init(logLevel)
+	log.Info(logMessage + "started")
 
 	viper.AddConfigPath("../../config")
-	viper.SetConfigName("release-config")
+	viper.SetConfigName("config")
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Print("Config isn't found 1")
+		log.Error(logMessage + "Config yaml is not found")
 		os.Exit(1)
 	}
+
 	viper.SetConfigFile("../../.env")
 	err = viper.MergeInConfig()
 	if err != nil {
-		log.Print("Config isn't found 2")
+		log.Error(logMessage + "Config env is not found")
 		os.Exit(1)
 	}
 
 	postgresDB, err := utils.InitPostgres()
 	if err != nil {
-		log.Print("InitPG")
-		log.Println(err)
+		log.Error(logMessage + "Coundn't connect to postgres")
 		os.Exit(1)
 	}
 
 	redisDB, err := utils.InitRedisDB()
 	if err != nil {
-		log.Println(err)
+		log.Error(logMessage + "Coudn't connect to redis")
 		os.Exit(1)	
 	}
+
+	passwordHasher := passwordHasher.NewPasswordHasher()
+	tokenManager := tokenManager.NewTokenManager()
 
 	userR := userRepo.NewUserRepository(postgresDB)
 	sessionR := authRepo.NewSessionRepository(redisDB)
@@ -94,7 +103,7 @@ func main() {
 
 	userU := userUsecase.NewUserUsecase(userR)
 	eventU := eventUsecase.NewEventUsecase(eventR)
-	authU := authUsecase.NewAuthUsecase(authR, sessionR)
+	authU := authUsecase.NewAuthUsecase(authR, sessionR, passwordHasher, tokenManager)
 	placeU := placeUsecase.NewPlaceUsecase(placeR)
 
 	userD := userDelivery.NewUserDelivery(userU)
@@ -102,7 +111,7 @@ func main() {
 	authD := authDelivery.NewAuthDelivery(authU)
 	placeD := placeDelivery.NewPlaceDelivery(placeU)
 
-	mws := middleware.NewMiddleware(sessionR)
+	mws := middleware.NewMiddleware(sessionR, tokenManager)
 
 	baseRouter := gin.New()
 	baseRouter.Use(gin.Logger())
@@ -129,7 +138,6 @@ func main() {
 	
 	server := &http.Server{
 		Addr: ":"+port,
-		ErrorLog: l,
 		Handler: baseRouter,
 		IdleTimeout: 10 * time.Minute,
 		ReadTimeout: 10 * time.Second,
@@ -139,7 +147,8 @@ func main() {
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			log.Fatal(err)
+			log.Error(logMessage + "Coundn't start server")
+			os.Exit(1)
 		}
 	}()
 	
@@ -147,8 +156,12 @@ func main() {
 	signal.Notify(sigChan, os.Interrupt)
 	signal.Notify(sigChan, syscall.SIGTERM)
 	sig := <- sigChan
-	log.Println("Graceful shutdown", sig)
+	log.Error("Graceful shutdown", sig)
 
 	timeoutContext, _ := context.WithTimeout(context.Background(), 30 * time.Second)
-	server.Shutdown(timeoutContext)
+	err = server.Shutdown(timeoutContext)
+	if err != nil {
+		log.Error(logMessage + "Graceful shutdown is not successful")
+		os.Exit(1)
+	}
 }

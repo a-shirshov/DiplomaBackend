@@ -3,7 +3,6 @@ package repository
 import (
 	"Diploma/internal/customErrors"
 	"Diploma/internal/models"
-	"Diploma/utils/query"
 	"log"
 
 	"github.com/jmoiron/sqlx"
@@ -11,6 +10,13 @@ import (
 
 const (
 	elementsPerPage = 2
+)
+
+const (
+	GetPlacesQuery = `select id, name, description, about, category, imgUrl from (
+		select ROW_NUMBER() OVER() as RowNum, * from "place") as placesPaged 
+		where RowNum Between 1 + $1 * ($2 - 1) and $1 * $2`
+	GetPlaceQuery = `select * from place where id = $1`
 )
 
 type PlaceRepository struct {
@@ -24,50 +30,21 @@ func NewPlaceRepository(db *sqlx.DB) *PlaceRepository {
 }
 
 func (pR *PlaceRepository) GetPlaces(page int) ([]*models.Place, error) {
-	rows, err := pR.db.Query(query.GetPlacesQuery, elementsPerPage, page)
-	if err != nil {
-		log.Print(err)
-		rows.Close()
-		return nil, customErrors.ErrPostgres
-	}
 	places := []*models.Place{}
-
-	defer rows.Close()
-
-	for rows.Next() {
-		placeDB := &models.PlaceDB{}
-		err := rows.Scan(
-			&placeDB.ID, 
-			&placeDB.Name, 
-			&placeDB.Description, 
-			&placeDB.About, 
-			&placeDB.Category, 
-			&placeDB.ImgUrl,
-		)
-		if err != nil {
-			return nil, customErrors.ErrPostgres
-		}
-
-		place := models.ToPlaceModel(placeDB)
-		places = append(places, place)
+	err := pR.db.Select(&places, GetPlacesQuery, elementsPerPage, &page)
+	if err != nil {
+		log.Println(err)
+		return places, customErrors.ErrPostgres
 	}
 	return places, nil
 }
 
 func (pR *PlaceRepository) GetPlace(id int) (*models.Place, error) {
-	placeDB := &models.PlaceDB{}
-	err := pR.db.QueryRow(query.GetPlaceQuery, id).Scan(
-		&placeDB.ID, 
-			&placeDB.Name, 
-			&placeDB.Description, 
-			&placeDB.About, 
-			&placeDB.Category, 
-			&placeDB.ImgUrl,
-	)
+	place := models.Place{}
+	err := pR.db.Get(&place, GetPlaceQuery, &id)
 	if err != nil {
-		return nil, customErrors.ErrPostgres
+		log.Println(err)
+		return &place, customErrors.ErrPostgres
 	}
-
-	place := models.ToPlaceModel(placeDB)
-	return place, nil
+	return &place, nil
 }

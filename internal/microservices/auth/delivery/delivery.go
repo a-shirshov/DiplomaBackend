@@ -34,6 +34,17 @@ func NewAuthDelivery(authUsecase auth.Usecase) *AuthDelivery {
 func (uD *AuthDelivery) SignUp(c *gin.Context) {
 	user := c.MustGet("user").(models.User)
 
+	imgUrl, err := utils.SaveImageFromRequest(c,"image")
+	if err == customErrors.ErrWrongExtension {
+		c.JSON(http.StatusBadRequest, models.ErrorMessage{
+			Message: customErrors.ErrWrongExtension.Error(),
+		})
+		return
+	}
+	if err == nil {
+		user.ImgUrl = imgUrl
+	}
+
 	resultUser, tokenDetails, err := uD.authUsecase.CreateUser(&user)
 	if err != nil {
 		if err == customErrors.ErrUserExists {
@@ -115,12 +126,13 @@ func (uD *AuthDelivery) SignIn(c *gin.Context) {
 func (uD *AuthDelivery) Logout(c *gin.Context) {
 	au, err := utils.GetAUFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		utils.SendErrorMessage(c, http.StatusUnauthorized, err.Error())
+		return
 	}
 	
 	err = uD.authUsecase.Logout(au)
 	if err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
+		utils.SendErrorMessage(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 }

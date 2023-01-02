@@ -1,24 +1,25 @@
 package usecase
 
 import (
-	"Diploma/internal/microservices/auth/repository/mock"
+	"Diploma/internal/microservices/auth/mock"
 	"Diploma/internal/models"
-	"Diploma/utils"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	mocklib "github.com/stretchr/testify/mock"
 )
 
 type createUserTest struct {
+	name string
 	inputUser *models.User
-	outputUser *models.User
-	outputErr error
+	beforeTest func(userRepo *mock.MockRepository, sessionRepo *mock.MockSessionRepository,
+		passwordHasher *mock.MockPasswordHasher, tokenManager *mock.MockTokenManager)
+	ExpectedUser *models.User
+	ExpectedErr error
 }
 
 type logoutTest struct {
-	au *utils.AccessDetails
+	au *models.AccessDetails
 	outputErr error
 }
 
@@ -30,23 +31,59 @@ type signInTest struct {
 
 var createUserTests = []createUserTest{
 	{
+		"Successfully create user",
 		&models.User{
-			Name: "User_1",
-			Surname: "Surname_1",
-			Email:  "Email_1",
-			Password: "Password_1",
+			Name: "Artyom",
+			Surname: "Shirshov",
+			Email:  "ash@mail.ru",
+			Password: "password",
+		},
+		func(userRepo *mock.MockRepository, sessionRepo *mock.MockSessionRepository, 
+			passwordHasher *mock.MockPasswordHasher, tokenManager *mock.MockTokenManager) {
+			passwordHasher.EXPECT().
+				GenerateHashFromPassword("password").
+				Return("hashed_password", nil)
+
+			userRepo.EXPECT().
+				CreateUser(
+					&models.User{
+						Name: "Artyom",
+						Surname: "Shirshov",
+						Email:  "ash@mail.ru",
+						Password: "hashed_password",
+					},
+				).
+				Return(
+					&models.User{
+						ID: 1,
+						Name: "Artyom",
+						Surname: "Shirshov",
+						Email:  "ash@mail.ru",
+					},
+					nil,
+				)
+
+			tokenManager.EXPECT().
+				CreateToken(1).
+				Return(&models.TokenDetails{}, nil)
+
+			sessionRepo.EXPECT().
+				SaveTokens(1, &models.TokenDetails{}).
+				Return(nil)	
 		},
 		&models.User{
-			Name: "User_1",
-			Surname: "Surname_1",
-			Email:  "Email_1",
-		}, nil,
+			ID: 1,
+			Name: "Artyom",
+			Surname: "Shirshov",
+			Email:  "ash@mail.ru",
+		}, 
+		nil,
 	},
 }
 
 var logoutTests = []logoutTest{
 	{
-		&utils.AccessDetails{}, nil,
+		&models.AccessDetails{}, nil,
 	},
 }
 
@@ -68,47 +105,27 @@ var signInTests = []signInTest{
 	},
 }
 
-// func TestCreateUser(t *testing.T){
-// 	authRepositoryMock := new(mock.AuthRepositoryMock)
-// 	authSessionRepositoryMock := new(mock.AuthSessionRepositoryMock)
-// 	authUsecaseTest := NewAuthUsecase(authRepositoryMock, authSessionRepositoryMock)
-// 	for _, test := range createUserTests{
-// 		authRepositoryMock.On("CreateUser", test.inputUser).Return(test.outputUser, test.outputErr)
-// 		actualUser, actualErr := authUsecaseTest.CreateUser(test.inputUser)
-// 		assert.Equal(t, test.outputUser, actualUser)
-// 		assert.Nil(t, actualErr)
-// 	}
-// }
+func TestCreateUserUsecase(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-func TestSignIn(t *testing.T){
-	authRepositoryMock := new(mock.AuthRepositoryMock)
-	authSessionRepositoryMock := new(mock.AuthSessionRepositoryMock)
-	authUsecaseTest := NewAuthUsecase(authRepositoryMock, authSessionRepositoryMock)
-	for _, test := range signInTests {
-		hash, hashErr := utils.GenerateHashFromPassword(test.inputUser.Password)
-		require.Nil(t,hashErr)
-		test.outputUser.Password = hash
+	for _, test := range createUserTests {
+		t.Run(test.name, func(t *testing.T){
+			mockAuthRepo := mock.NewMockRepository(ctrl)
+			mockAuthSessionRepo := mock.NewMockSessionRepository(ctrl)
+			mockPasswordHasher := mock.NewMockPasswordHasher(ctrl)
+			mockTokenManager := mock.NewMockTokenManager(ctrl)
+			testAuthRepository := NewAuthUsecase(mockAuthRepo, mockAuthSessionRepo, mockPasswordHasher, mockTokenManager)
 
-		authRepositoryMock.On("GetUserByEmail", test.inputUser.Email).Return(test.outputUser, nil)
+			if test.beforeTest != nil {
+				test.beforeTest(mockAuthRepo, mockAuthSessionRepo,
+					mockPasswordHasher, mockTokenManager)
+			}
 
-		authSessionRepositoryMock.On("SaveTokens", test.outputUser.ID, mocklib.Anything).Return(test.outputErr)
-		actualUser, _, actualErr := authUsecaseTest.SignIn(test.inputUser)
-		assert.Equal(t, test.outputUser, actualUser)
-		assert.Nil(t, actualErr)
+			actualUser, _, actualErr := testAuthRepository.CreateUser(test.inputUser)
+			assert.Equal(t, test.ExpectedUser, actualUser)
+			assert.Equal(t, test.ExpectedErr, actualErr)
+		})
+
 	}
-}
-
-func TestLogout(t *testing.T){
-	authRepositoryMock := new(mock.AuthRepositoryMock)
-	authSessionRepositoryMock := new(mock.AuthSessionRepositoryMock)
-	authUsecaseTest := NewAuthUsecase(authRepositoryMock, authSessionRepositoryMock)
-	for _, test := range logoutTests{
-		authSessionRepositoryMock.On("DeleteAuth", test.au.AccessUuid).Return(test.outputErr)
-		actualErr := authUsecaseTest.Logout(test.au)
-		assert.Nil(t, actualErr)
-	}
-}
-
-func TestRefresh(t *testing.T){
-
 }

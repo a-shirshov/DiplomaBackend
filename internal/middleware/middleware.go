@@ -4,6 +4,7 @@ import (
 	"Diploma/internal/customErrors"
 	"Diploma/internal/microservices/auth"
 	"Diploma/internal/models"
+	"Diploma/pkg"
 	"Diploma/utils"
 	"log"
 	"net/http"
@@ -16,17 +17,19 @@ var allowedOrigins = []string{"", "http://45.141.102.243:8080", "http://127.0.0.
 
 type Middlewares struct {
 	auth auth.SessionRepository
+	token pkg.TokenManager
 }
 
-func NewMiddleware(auth auth.SessionRepository) *Middlewares {
+func NewMiddleware(auth auth.SessionRepository, token pkg.TokenManager) *Middlewares {
 	return &Middlewares{
 		auth: auth,
+		token: token,
 	}
 }
 
 func (m *Middlewares) TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-	   	au, err := utils.ExtractTokenMetadata(c.Request)
+	   	au, err := m.token.ExtractTokenMetadata(c.Request)
 	   	if err != nil {
 		  c.JSON(http.StatusUnauthorized, err.Error())
 		  c.Abort()
@@ -133,9 +136,15 @@ func (m *Middlewares) MiddlewareValidateUserFormData() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		inputUser := c.Request.FormValue("json")
 		user := new(models.User)
-		json.Unmarshal([]byte(inputUser), &user)
+		err := json.Unmarshal([]byte(inputUser), &user)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
+				Message: err.Error(),
+			})
+			return
+		}
 
-		err := utils.ValidateAndSanitize(user)
+		err = utils.ValidateAndSanitize(user)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
 				Message: err.Error(),

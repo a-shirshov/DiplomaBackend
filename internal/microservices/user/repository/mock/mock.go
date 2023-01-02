@@ -20,7 +20,7 @@ func (m *UserRepositoryMock) GetUserByEmail(email string) (*models.User, error) 
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
-func (m *UserRepositoryMock) UpdateUser(userId int, user *models.User) (*models.User, error) {
-	args := m.Called(userId, user)
+func (m *UserRepositoryMock) UpdateUser(user *models.User) (*models.User, error) {
+	args := m.Called(user)
 	return args.Get(0).(*models.User), args.Error(1)
 }

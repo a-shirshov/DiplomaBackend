@@ -9,10 +9,12 @@ type User struct {
 	ID int `json:"id,omitempty"`
 	Name string `json:"name" validate:"required"`
 	Surname string `json:"surname" validate:"required"`
-	Email string `json:"email" validate:"required,email"`
+	Email string `json:"email,omitempty" validate:"required,email"`
 	Password string `json:"password,omitempty"`
-	About string `json:"about,omitempty" validate:"max=120"`
-	ImgUrl string `json:"imgUrl,omitempty"`
+	DateOfBirth string `json:"dateOfBirth" db:"date_of_birth"`
+	City string `json:"city" db:"city"`
+	About string `json:"about" validate:"max=120"`
+	ImgUrl string `json:"imgUrl" db:"img_url"`
 }
 
 type Event struct {
@@ -23,6 +25,7 @@ type Event struct {
 	Category string `json:"category,omitempty" validate:"required,max=20"`
 	Tags []string `json:"tags,omitempty"`
 	SpecialInfo string `json:"specialInfo,omitempty"`
+	ImgUrl string `json:"imgUrl,omitempty" db:"img_url"`
 }
 
 type Place struct {
@@ -31,12 +34,59 @@ type Place struct {
 	Description string `json:"description" validate:"required,max = 100"`
 	About string `json:"about,omitempty" validate:"required,max = 250"`
 	Category string `json:"category,omitempty" validate:"required,max=20"`
-	ImgUrl string `json:"img_url"`
+	ImgUrl string `json:"imgUrl,omitempty" db:"img_url"`
 }
 
 type Tokens struct {
 	AccessToken string `json:"access_token,omitempty" example:"22f37ea5-2d12-4309-afbe-17783b44e24f"`
 	RefreshToken string `json:"refresh_token" example:"4ffc5f18-99d8-47f6-8141-faf2c2f5a24e"`
+}
+
+type TokenDetails struct {
+	AccessToken  string
+	RefreshToken string
+	AccessUuid   string
+	RefreshUuid  string
+	AtExpires    int64
+	RtExpires    int64
+}
+
+type AccessDetails struct {
+    AccessUuid string
+    UserId   int
+}
+
+type KudaGoEvents struct {
+	Results []KudaGoResult `json:"results"`
+}
+
+type KudaGoResult struct {
+	ID int `json:"id"`
+	Dates []KudaGoDate `json:"dates"`
+	Title   string `json:"title"`
+	Images []KudaGoImage `json:"images"`
+}
+
+type KudaGoDate struct {
+	Start int `json:"start"`
+	End   int `json:"end"`
+}
+
+type KudaGoImage struct {
+	Image string `json:"image"`
+}
+
+type MyEvents struct {
+	Events []MyEvent
+}
+
+type MyEvent struct {
+	ID int `json:"id"`
+	KudaGoID int `json:"kudago_id"`
+	Title   string `json:"title"`
+	Start int `json:"start"`
+	End   int `json:"end"`
+	Image string `json:"image"`
 }
 
 type ErrorMessage struct {

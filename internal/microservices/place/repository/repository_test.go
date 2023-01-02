@@ -2,7 +2,7 @@ package repository
 
 import (
 	"Diploma/internal/models"
-	"Diploma/utils/query"
+	"log"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -68,7 +68,7 @@ func TestGetPlaces(t *testing.T) {
 	sqlxDB := sqlx.NewDb(db,"sqlmock")
 	repositoryTest := NewPlaceRepository(sqlxDB)
 
-	columns := []string{"id", "name", "description", "about", "category", "imgUrl"}
+	columns := []string{"id", "name", "description", "about", "category", "img_url"}
 
 	for _, test := range getPlacesTests {
 		rows := mock.NewRows(columns).
@@ -87,11 +87,12 @@ func TestGetPlaces(t *testing.T) {
 				test.outputPlaces[1].Category,
 				test.outputPlaces[1].ImgUrl)
 
-		mock.ExpectQuery(query.GetPlacesQuery).
+		mock.ExpectQuery(GetPlacesQuery).
 			WithArgs(elementsPerPage, test.page).
 			RowsWillBeClosed().WillReturnRows(rows)
 
 		out, dbErr := repositoryTest.GetPlaces(test.page)
+		log.Println(out)
 		assert.Equal(t, test.outputPlaces, out)
 		assert.Nil(t, dbErr)
 
@@ -112,7 +113,7 @@ func TestGetPlace(t *testing.T) {
 	sqlxDB := sqlx.NewDb(db,"sqlmock")
 	repositoryTest := NewPlaceRepository(sqlxDB)
 
-	columns := []string{"id", "name", "description", "about", "category", "imgUrl"}
+	columns := []string{"id", "name", "description", "about", "category", "img_url"}
 
 	for _, test := range getPlaceTests {
 		rows := mock.NewRows(columns).
@@ -124,8 +125,9 @@ func TestGetPlace(t *testing.T) {
 				test.outputPlace.Category,
 				test.outputPlace.ImgUrl)
 
-		mock.ExpectQuery(query.GetPlaceQuery).
+		mock.ExpectQuery(GetPlaceQuery).
 			WithArgs(test.id).
+			RowsWillBeClosed().
 			WillReturnRows(rows)
 
 		out, dbErr := repositoryTest.GetPlace(test.id)

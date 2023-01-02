@@ -3,11 +3,18 @@ package repository
 import (
 	"Diploma/internal/customErrors"
 	"Diploma/internal/models"
-	"Diploma/utils/query"
-	"log"
+	log "Diploma/pkg/logger"
+	"database/sql"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
+)
+
+const logMessage = "auth:repository:"
+
+const (
+	CreateUserQuery = `insert into "user" (name, surname, email, password, date_of_birth, city) values ($1, $2, $3, $4, $5, $6) returning id;`
+	GetUserByEmailQuery = `select id, name, surname, email, password, date_of_birth, city, about, img_url from "user" where email = $1;`
 )
 
 type AuthRepository struct {
@@ -21,25 +28,31 @@ func NewAuthRepository(db *sqlx.DB) *AuthRepository {
 }
 
 func (uR *AuthRepository) CreateUser(user *models.User) (*models.User, error) {
-	err := uR.db.QueryRowx(query.CreateUserQuery, &user.Name, &user.Surname, &user.Email, &user.Password).Scan(&user.ID)
+	message := logMessage + "CreateUser:"
+	log.Debug(message + "started")
+	err := uR.db.QueryRowx(CreateUserQuery, &user.Name, &user.Surname, &user.Email, &user.Password, &user.DateOfBirth, &user.City).Scan(&user.ID)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		if strings.Contains(err.Error(), "(SQLSTATE 23505)") {
-			return nil, customErrors.ErrUserExists
+			return &models.User{}, customErrors.ErrUserExists
 		}
-		return nil, customErrors.ErrPostgres
+		return &models.User{}, customErrors.ErrPostgres
 	}
 	user.Password = ""
 	return user, nil
 }
 
 func (uR *AuthRepository) GetUserByEmail(email string) (*models.User, error) {
-	userDB := &models.UserDB{}
-	err := uR.db.QueryRow(query.GetUserByEmailQuery,email).Scan(&userDB.ID, &userDB.Name, &userDB.Surname, &userDB.Email, &userDB.Password, &userDB.About, &userDB.ImgUrl)
+	message := logMessage + "GetUserByEmail:"
+	log.Debug(message + "started")
+	user := models.User{}
+	err := uR.db.Get(&user, GetUserByEmailQuery, email)
 	if err != nil {
-		log.Print(err.Error())
-		return nil, customErrors.ErrWrongEmail
+		if err == sql.ErrNoRows {
+			return &user, customErrors.ErrWrongEmail
+		}
+		log.Error(err)
+		return &user, customErrors.ErrPostgres
 	}
-	resultUser := models.ToUserModel(userDB)
-	return resultUser, nil
+	return &user, nil
 }

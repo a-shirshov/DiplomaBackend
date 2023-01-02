@@ -1,4 +1,4 @@
-package utils
+package passwordHasher
 
 import (
 	"Diploma/internal/customErrors"
@@ -12,6 +12,14 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
+type PasswordHasher struct {
+
+}
+
+func NewPasswordHasher() *PasswordHasher {
+	return &PasswordHasher{}
+}
+
 type params struct {
 	memory uint32
 	iterations uint32
@@ -20,17 +28,7 @@ type params struct {
 	keyLength uint32
 }
 
-func generateRandomBytes(n uint32) ([]byte, error) {
-    b := make([]byte, n)
-    _, err := rand.Read(b)
-    if err != nil {
-        return nil, err
-    }
-
-    return b, nil
-}
-
-func GenerateHashFromPassword(password string) (encodedHash string, err error) {
+func(ph *PasswordHasher) GenerateHashFromPassword(password string) (encodedHash string, err error) {
 	var p = &params{
 		memory: 64 * 1024, //64 mb
 		iterations: 3,
@@ -53,7 +51,17 @@ func GenerateHashFromPassword(password string) (encodedHash string, err error) {
 	return encodedHash, nil
 }
 
-func VerifyPassword(password, encodedHash string) (match bool, err error) {
+func generateRandomBytes(n uint32) ([]byte, error) {
+    b := make([]byte, n)
+    _, err := rand.Read(b)
+    if err != nil {
+        return nil, err
+    }
+
+    return b, nil
+}
+
+func(ph *PasswordHasher) VerifyPassword(password, encodedHash string) (match bool, err error) {
     // Extract the parameters, salt and derived key from the encoded password
     // hash.
     p, salt, hash, err := decodeHash(encodedHash)

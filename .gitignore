@@ -2,3 +2,5 @@
 dhparam
 postgres-data
 .vscode
+images
+cover*

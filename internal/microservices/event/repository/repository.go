@@ -3,7 +3,6 @@ package repository
 import (
 	"Diploma/internal/customErrors"
 	"Diploma/internal/models"
-	"Diploma/utils/query"
 	"log"
 
 	"github.com/jmoiron/sqlx"
@@ -11,6 +10,14 @@ import (
 
 const (
 	elementsPerPage = 2
+)
+
+const (
+	GetEventsQuery = `select id, name, description, about, category, tags, specialInfo from (
+		select ROW_NUMBER() OVER (ORDER BY creationDate) as RowNum, * from "event" where place_id = $1) as eventsPaged 
+		where RowNum Between 1 + $2 * ($3-1) and $2 * $3;`
+	GetEventQuery = `select id, name, description, about, category, tags, specialInfo from "event" 
+		where id = $1;`
 )
 
 type EventRepository struct {
@@ -23,52 +30,22 @@ func NewEventRepository(db *sqlx.DB) *EventRepository {
 	}
 }
 
-func (eR *EventRepository) GetEvents(placeId, page int) ([]*models.Event, error) {
-	rows, err := eR.db.Query(query.GetEventsQuery, placeId, elementsPerPage, page)
+func (eR *EventRepository) GetEvents(page int) ([]*models.Event, error) {
+	events := []*models.Event{}
+	err := eR.db.Select(&events,GetEventsQuery, elementsPerPage, page)
 	if err != nil {
-		log.Print(err)
-		rows.Close()
-		return nil, customErrors.ErrPostgres
-	}
-	var events []*models.Event
-
-	defer rows.Close()
-
-	for rows.Next() {
-		event := &models.Event{}
-		err := rows.Scan(
-			&event.ID,
-			&event.Name,
-			&event.Description,
-			&event.About,
-			&event.Category,
-			&event.Tags,
-			&event.SpecialInfo,
-		)
-		if err != nil {
-			return nil, customErrors.ErrPostgres
-		}
-
-		events = append(events, event)
+		log.Println(err)
+		return events, customErrors.ErrPostgres
 	}
 	return events, nil
 }
 
 func (eR *EventRepository) GetEvent(eventId int) (*models.Event, error) {
 	event := &models.Event{}
-	err := eR.db.QueryRow(query.GetEventQuery, eventId).Scan(
-		&event.ID,
-		&event.Name,
-		&event.Description,
-		&event.About,
-		&event.Category,
-		&event.Tags,
-		&event.SpecialInfo,
-	)
+	err := eR.db.Get(&event, GetEventQuery, eventId)
 	if err != nil {
-		log.Println(err.Error())
-		return nil, customErrors.ErrPostgres
+		log.Println(err)
+		return event, customErrors.ErrPostgres
 	}
-
 	return event, nil
 }

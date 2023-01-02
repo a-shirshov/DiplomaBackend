@@ -8,6 +8,7 @@ import (
 	"image/png"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
@@ -20,13 +21,13 @@ import (
 	"github.com/kolesa-team/go-webp/webp"
 )
 
-func GetAUFromContext(c *gin.Context) (*AccessDetails, error) {
+func GetAUFromContext(c *gin.Context) (*models.AccessDetails, error) {
 	ctxau, ok := c.Get("access_details")
 	if !ok {
 		return nil, customErrors.ErrNoTokenInContext
 	}
 
-	au, ok := ctxau.(AccessDetails)
+	au, ok := ctxau.(models.AccessDetails)
 	if !ok {
 		return nil, customErrors.ErrNoTokenInContext
 	}
@@ -50,20 +51,6 @@ func ValidateAndSanitize(object interface{}) error {
 		return customErrors.ErrValidation
 	}
 	return err
-}
-
-func GetUserFromRequest(c *gin.Context) (*models.User, error) {
-	var inputUser *models.User
-	err := c.ShouldBindJSON(&inputUser)
-	if err != nil {
-		return nil, customErrors.ErrWrongJson
-	}
-
-	err = ValidateAndSanitize(inputUser)
-	if err != nil {
-		return  nil, err
-	}
-	return inputUser, nil
 }
 
 func SaveImageFromRequest(c *gin.Context, httpRequestKey string) (string, error) {
@@ -124,4 +111,19 @@ func SaveImageFromRequest(c *gin.Context, httpRequestKey string) (string, error)
 		return "", err
 	}
 	return serverName + "/images/" + resultFileName, nil
+}
+
+func GetPageQueryParamFromRequest(c *gin.Context) (int, error) {
+	pageParam := c.DefaultQuery("page", "1")
+	page, err := strconv.Atoi(pageParam)
+	if err != nil {
+		return 0, err
+	}
+	return page, nil
+}
+
+func SendErrorMessage(c *gin.Context, statusCode int, errorMessage string) () {
+	c.JSON(statusCode, models.ErrorMessage{
+		Message: errorMessage,
+	})
 }

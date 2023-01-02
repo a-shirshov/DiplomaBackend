@@ -75,9 +75,19 @@ func TestGetEvents(t *testing.T) {
 	placeRepositoryMock := new(mock.EventRepositoryMock)
 	eventUsecaseTest := NewEventUsecase(placeRepositoryMock)
 	for _, test := range getEventsTests {
-		placeRepositoryMock.On("GetEvents", test.page, test.placeId).Return(test.outputEvents, test.outputErr)
-		actualEvents, actualErr := eventUsecaseTest.GetEvents(test.page, test.placeId)
+		placeRepositoryMock.On("GetEvents", test.page).Return(test.outputEvents, test.outputErr)
+		actualEvents, actualErr := eventUsecaseTest.GetEvents(test.page)
 		assert.Equal(t, test.outputEvents, actualEvents)
 		assert.Nil(t, actualErr)
 	}
 }
+
+// func TestGetEventsByToday(t *testing.T) {
+// 	placeRepositoryMock := new(mock.EventRepositoryMock)
+// 	eventUsecaseTest := NewEventUsecase(placeRepositoryMock)
+// 	for _, test := range getEventsByTodayTests {
+// 		placeRepositoryMock.On("GetEventsByToday", test.page).Return(test.outputEvents, test.outputErr)
+// 		actualEvents, actualErr := eventUsecaseTest.GetEventsByToday(test.page)
+// 		assert.Equal(t, te)
+// 	}
+// }

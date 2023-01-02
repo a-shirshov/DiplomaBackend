@@ -2,10 +2,15 @@ CREATE TABLE IF NOT EXISTS "user"  (
     id serial not null UNIQUE,
     name text not null,
     surname text not null,
-    email text UNIQUE,
+    email text not null UNIQUE,
     password text not null,
-    about text,
-    imgUrl text
+    city text not null default 'different',
+    date_of_birth date not null,
+    about text not null default '',
+    img_url text not null default '',
+    created_at timestamp default now() not null,
+    updated_at timestamp, 
+    deleted_at timestamp
 );
 
 CREATE TABLE IF NOT EXISTS "place" (
@@ -14,7 +19,10 @@ CREATE TABLE IF NOT EXISTS "place" (
     description text not null,
     about text not null,
 	category text not null,
-	imgUrl text
+	img_url text,
+    created_at timestamp default now() not null,
+    updated_at timestamp, 
+    deleted_at timestamp
 );
 
 CREATE TABLE IF NOT EXISTS "event" (
@@ -26,5 +34,8 @@ CREATE TABLE IF NOT EXISTS "event" (
     category text not null,
     tags text[],
     specialInfo text,
-    creationDate DATE not null DEFAULT now()
+    img_url text,
+    created_at timestamp default now() not null,
+    updated_at timestamp, 
+    deleted_at timestamp
 );

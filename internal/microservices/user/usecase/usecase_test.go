@@ -59,8 +59,8 @@ func TestUpdateUser(t *testing.T) {
 	userRepositoryMock := new(mock.UserRepositoryMock)
 	userUsecaseTest := NewUserUsecase(userRepositoryMock)
 	for _, test := range updateUserTests{
-		userRepositoryMock.On("UpdateUser", test.userId, test.inputUser).Return(test.outputUser, nil)
-		actualUser, actualErr := userUsecaseTest.UpdateUser(test.userId, test.inputUser)
+		userRepositoryMock.On("UpdateUser", test.inputUser).Return(test.outputUser, nil)
+		actualUser, actualErr := userUsecaseTest.UpdateUser(test.inputUser)
 		assert.Equal(t, test.outputUser, actualUser)
 		assert.Nil(t, actualErr)
 	}	

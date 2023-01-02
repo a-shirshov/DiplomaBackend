@@ -9,7 +9,7 @@ services:
     ports:
       - "8088:8000"
     volumes:
-      - ./images:/home/ubuntu/static/images
+      - ./images:/partypoint/static/images
     depends_on:
       - redis
       - postgres

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"Diploma/internal/models"
-	"Diploma/utils/query"
 	"testing"
 	"fmt"
 
@@ -27,16 +26,15 @@ func (s customConverter) ConvertValue(v interface{}) (driver.Value, error) {
 	}
 }
 
-type getEventsByPlaceTest struct {
-	placeId         int
+type getEventsTest struct {
 	page 			int
 	outputEvents 	[]*models.Event
 	outputErr    	error
 }
 
-var getEventsByPlaceTests = []getEventsByPlaceTest{
+var getEventsByPlaceTests = []getEventsTest{
 	{
-		1, 1, []*models.Event{
+		1, []*models.Event{
 			{
 				ID: 1,
 				Name: "Event_1",
@@ -94,11 +92,11 @@ func TestGetEventsByPlace(t *testing.T) {
 				test.outputEvents[1].Tags,
 				test.outputEvents[1].SpecialInfo)
 		
-		mock.ExpectQuery(query.GetEventsQuery).
-			WithArgs(test.placeId, elementsPerPage,test.page).
+		mock.ExpectQuery(GetEventsQuery).
+			WithArgs(elementsPerPage, test.page).
 			RowsWillBeClosed().WillReturnRows(rows)
 
-		out, dbErr := repositoryTest.GetEvents(test.placeId,test.page)
+		out, dbErr := repositoryTest.GetEvents(test.page)
 		assert.Equal(t, test.outputEvents, out)
 		assert.Nil(t, dbErr)
 

@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"Diploma/utils"
+	"Diploma/internal/models"
 	"strconv"
 	"time"
 
@@ -18,7 +18,7 @@ func NewSessionRepository (redis *redis.Client) (*SessionRepository) {
 	}
 }
 
-func (sR *SessionRepository) SaveTokens(userId int, td *utils.TokenDetails) error {
+func (sR *SessionRepository) SaveTokens(userId int, td *models.TokenDetails) error {
 	at := time.Unix(td.AtExpires, 0) 
 	rt := time.Unix(td.RtExpires, 0)
 	now := time.Now()

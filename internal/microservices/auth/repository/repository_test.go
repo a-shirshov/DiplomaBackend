@@ -1,8 +1,12 @@
 package repository
 
 import (
+	"Diploma/internal/customErrors"
 	"Diploma/internal/models"
-	"Diploma/utils/query"
+	"database/sql"
+	"errors"
+	"log"
+	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -11,110 +15,195 @@ import (
 )
 
 type createUserTest struct {
-	inputUser *models.User
-	outputUser *models.User
-	outputErr error
+	name	    string
+	inputUser   *models.User
+	beforeTest  func(sqlmock.Sqlmock)
+	expectedUser  *models.User
+	expectedError error
 }
 
 var createUserTests = []createUserTest{
 	{
+		"Successfully create user",
 		&models.User{
-			Name: "User_1",
-			Surname: "Surname_1",
-			Email: "Email_1",
-			Password: "password_1",
+			Name: "Artyom",
+			Surname: "Shirshov",
+			Email: "ash@mail.ru",
+			Password: "password",
+			DateOfBirth: "2001-08-06",
+			City: "msk",
+		},
+		func(mockSQL sqlmock.Sqlmock) {
+			columns := []string{"id"}
+			rows := mockSQL.NewRows(columns).AddRow(1)
+			mockSQL.ExpectQuery(regexp.QuoteMeta(CreateUserQuery)).
+				WithArgs("Artyom", "Shirshov", "ash@mail.ru", "password", "2001-08-06", "msk").
+				RowsWillBeClosed().
+				WillReturnRows(rows)
 		},
 		&models.User{
-			Name: "User_1",
-			Surname: "Surname_1",
-			Email: "Email_1",
-		}, nil,
+			ID: 1,
+			Name: "Artyom",
+			Surname: "Shirshov",
+			Email: "ash@mail.ru",
+			DateOfBirth: "2001-08-06",
+			City: "msk",
+		}, 
+		nil,
+	},
+	{
+		"User with this email exists",
+		&models.User{
+			Name: "Artyom",
+			Surname: "Shirshov",
+			Email: "ash@mail.ru",
+			Password: "password",
+			DateOfBirth: "2001-08-06",
+			City: "msk",
+		},
+		func(mockSQL sqlmock.Sqlmock) {
+			mockSQL.ExpectQuery(regexp.QuoteMeta(CreateUserQuery)).
+				WithArgs("Artyom", "Shirshov", "ash@mail.ru", "password", "2001-08-06", "msk").
+		        WillReturnError(errors.New(("(SQLSTATE 23505)")))
+		},
+		&models.User{}, 
+		customErrors.ErrUserExists,
+	},
+	{
+		"Database internal problem",
+		&models.User{
+			Name: "Artyom",
+			Surname: "Shirshov",
+			Email: "ash@mail.ru",
+			Password: "password",
+			DateOfBirth: "2001-08-06",
+			City: "msk",
+		},
+		func(mockSQL sqlmock.Sqlmock) {
+			mockSQL.ExpectQuery(regexp.QuoteMeta(CreateUserQuery)).
+				WithArgs("Artyom", "Shirshov", "ash@mail.ru", "password", "2001-08-06", "msk").
+				WillReturnError(errors.New("sql error"))
+		},
+		&models.User{},
+		customErrors.ErrPostgres,
 	},
 }
 
 type getUserByEmailTest struct {
-	email string
-	outputUser *models.User
-	outputErr error
+	name string
+	inputEmail string
+	beforeTest func(sqlmock.Sqlmock)
+	expectedUser *models.User
+	expectedError error
 }
 
 var getUserByEmailTests = []getUserByEmailTest{
 	{
-		"Email_1", &models.User{
+		"Successfully found user by email",
+		"ash@mail.ru",
+		func(mockSQL sqlmock.Sqlmock) {
+			columns := []string{"id", "name", "surname", "email", "password", "date_of_birth", "city", "about", "img_url"}
+			rows := mockSQL.NewRows(columns).
+				AddRow(1, "Artyom", "Shirshov", "ash@mail.ru", "password", "2001-08-06", "msk", "about", "img_url")
+
+			mockSQL.ExpectQuery(regexp.QuoteMeta(GetUserByEmailQuery)).
+				WithArgs("ash@mail.ru").
+		        RowsWillBeClosed().
+				WillReturnRows(rows)
+		},
+		&models.User{
 			ID: 1,
-			Name: "User_1",
-			Surname: "Surname_1",
-			Email:  "Email_1",
-			Password: "Password_1",
-			About: "About_1",
-			ImgUrl: "ImgUrl_1",
-		}, nil,
+			Name: "Artyom",
+			Surname: "Shirshov",
+			Email:  "ash@mail.ru",
+			Password: "password",
+			DateOfBirth: "2001-08-06",
+			City: "msk",
+			About: "about",
+			ImgUrl: "img_url",
+		}, 
+		nil,
+	},
+	{
+		"User not found by email",
+		"ash@mail.ru",
+		func(mockSQL sqlmock.Sqlmock) {
+			mockSQL.ExpectQuery(regexp.QuoteMeta(GetUserByEmailQuery)).
+				WithArgs("ash@mail.ru").
+				WillReturnError(sql.ErrNoRows)
+		},
+		&models.User{},
+		customErrors.ErrWrongEmail,
+	},
+	{
+		"Database internal problem",
+		"ash@mail.ru",
+		func(mockSQL sqlmock.Sqlmock) {
+			mockSQL.ExpectQuery(regexp.QuoteMeta(GetUserByEmailQuery)).
+				WithArgs("ash@mail.ru").
+				WillReturnError(errors.New("sql error"))
+		},
+		&models.User{},
+		customErrors.ErrPostgres,
 	},
 }
 
-type updateUserTest struct {
-	
-}
-
-func TestCreateUser(t *testing.T) {
-	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+func prepareTestEnvironment() (*AuthRepository, sqlmock.Sqlmock, error) {
+	db, mock, err := sqlmock.New()
 	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		return nil, nil, err
 	}
-	defer db.Close()
 
 	sqlxDB := sqlx.NewDb(db, "sqlmock")
 	repositoryTest := NewAuthRepository(sqlxDB)
 
-	for _, test := range createUserTests {
-		mock.ExpectExec(query.CreateUserQuery).
-			WithArgs(
-				test.inputUser.Name,
-				test.inputUser.Surname,
-				test.inputUser.Email,
-				test.inputUser.Password).
-				WillReturnResult(sqlmock.NewResult(1,1))
-		
-		out, dbErr := repositoryTest.CreateUser(test.inputUser)
-		assert.Equal(t, test.outputUser, out)
-		assert.Nil(t, dbErr)
+	return repositoryTest, mock, nil
+}
 
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Errorf("Not all expectations: %s", err)
-		}
+func TestCreateUser(t *testing.T) {
+	for _, test := range createUserTests {
+		t.Run(test.name, func(t *testing.T) {
+			repositoryTest, mock, err := prepareTestEnvironment()
+			if err != nil {
+				log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+			}
+			defer repositoryTest.db.Close()
+
+			if test.beforeTest != nil {
+				test.beforeTest(mock)
+			}
+
+			actualUser, actualErr := repositoryTest.CreateUser(test.inputUser)
+			assert.Equal(t, test.expectedUser, actualUser)
+			assert.Equal(t, test.expectedError, actualErr)
+
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Errorf("Not all expectations: %s", err)
+			}
+		})	
 	}
 }
 
 func TestGetUserByEmail(t *testing.T) {
-	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer db.Close()
-
-	sqlxDB := sqlx.NewDb(db, "sqlmock")
-	repositoryTest := NewAuthRepository(sqlxDB)
-	
-	columns := []string{"id", "name", "surname", "email", "password", "about", "imgurl"}
-
 	for _, test := range getUserByEmailTests {
-		rows := sqlmock.NewRows(columns).
-			AddRow(
-				test.outputUser.ID,
-				test.outputUser.Name,
-				test.outputUser.Surname,
-				test.outputUser.Email,
-				test.outputUser.Password,
-				test.outputUser.About,
-				test.outputUser.ImgUrl)
+		t.Run(test.name, func(t *testing.T) {
+			repositoryTest, mock, err := prepareTestEnvironment()
+			if err != nil {
+				log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+			}
+			defer repositoryTest.db.Close()
 
-		mock.ExpectQuery(query.GetUserByEmailQuery).
-			WithArgs(test.email).
-			RowsWillBeClosed().
-			WillReturnRows(rows)
+			if test.beforeTest != nil {
+				test.beforeTest(mock)
+			}
 
-		out, dbErr := repositoryTest.GetUserByEmail(test.email)
-		assert.Equal(t, test.outputUser, out)
-		assert.Nil(t, dbErr)
+			actualUser, actualErr := repositoryTest.GetUserByEmail(test.inputEmail)
+			assert.Equal(t, test.expectedUser, actualUser)
+			assert.Equal(t, test.expectedError, actualErr)
+
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Errorf("Not all expectations: %s", err)
+			}
+		})
 	}
 }

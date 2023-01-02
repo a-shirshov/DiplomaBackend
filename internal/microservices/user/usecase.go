@@ -6,5 +6,5 @@ import (
 
 type Usecase interface {
 	GetUser(int) (*models.User, error)
-	UpdateUser(int, *models.User) (*models.User, error)
+	UpdateUser(*models.User) (*models.User, error)
 }
