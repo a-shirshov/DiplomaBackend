@@ -13,7 +13,7 @@ import (
 const logMessage = "auth:repository:"
 
 const (
-	CreateUserQuery = `insert into "user" (name, surname, email, password, date_of_birth, city) values ($1, $2, $3, $4, $5, $6) returning id;`
+	CreateUserQuery = `insert into "user" (name, surname, email, password, date_of_birth, city, img_url) values ($1, $2, $3, $4, $5, $6, $7) returning id;`
 	GetUserByEmailQuery = `select id, name, surname, email, password, date_of_birth, city, about, img_url from "user" where email = $1;`
 )
 
@@ -30,7 +30,7 @@ func NewAuthRepository(db *sqlx.DB) *AuthRepository {
 func (uR *AuthRepository) CreateUser(user *models.User) (*models.User, error) {
 	message := logMessage + "CreateUser:"
 	log.Debug(message + "started")
-	err := uR.db.QueryRowx(CreateUserQuery, &user.Name, &user.Surname, &user.Email, &user.Password, &user.DateOfBirth, &user.City).Scan(&user.ID)
+	err := uR.db.QueryRowx(CreateUserQuery, &user.Name, &user.Surname, &user.Email, &user.Password, &user.DateOfBirth, &user.City, &user.ImgUrl).Scan(&user.ID)
 	if err != nil {
 		log.Error(err)
 		if strings.Contains(err.Error(), "(SQLSTATE 23505)") {

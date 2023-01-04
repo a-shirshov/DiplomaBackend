@@ -32,12 +32,13 @@ var createUserTests = []createUserTest{
 			Password: "password",
 			DateOfBirth: "2001-08-06",
 			City: "msk",
+			ImgUrl: "user_face.png",
 		},
 		func(mockSQL sqlmock.Sqlmock) {
 			columns := []string{"id"}
 			rows := mockSQL.NewRows(columns).AddRow(1)
 			mockSQL.ExpectQuery(regexp.QuoteMeta(CreateUserQuery)).
-				WithArgs("Artyom", "Shirshov", "ash@mail.ru", "password", "2001-08-06", "msk").
+				WithArgs("Artyom", "Shirshov", "ash@mail.ru", "password", "2001-08-06", "msk", "user_face.png").
 				RowsWillBeClosed().
 				WillReturnRows(rows)
 		},
@@ -48,6 +49,7 @@ var createUserTests = []createUserTest{
 			Email: "ash@mail.ru",
 			DateOfBirth: "2001-08-06",
 			City: "msk",
+			ImgUrl: "user_face.png",
 		}, 
 		nil,
 	},
@@ -60,10 +62,11 @@ var createUserTests = []createUserTest{
 			Password: "password",
 			DateOfBirth: "2001-08-06",
 			City: "msk",
+			ImgUrl: "user_face.png",
 		},
 		func(mockSQL sqlmock.Sqlmock) {
 			mockSQL.ExpectQuery(regexp.QuoteMeta(CreateUserQuery)).
-				WithArgs("Artyom", "Shirshov", "ash@mail.ru", "password", "2001-08-06", "msk").
+				WithArgs("Artyom", "Shirshov", "ash@mail.ru", "password", "2001-08-06", "msk", "user_face.png").
 		        WillReturnError(errors.New(("(SQLSTATE 23505)")))
 		},
 		&models.User{}, 
@@ -78,10 +81,11 @@ var createUserTests = []createUserTest{
 			Password: "password",
 			DateOfBirth: "2001-08-06",
 			City: "msk",
+			ImgUrl: "user_face.png",
 		},
 		func(mockSQL sqlmock.Sqlmock) {
 			mockSQL.ExpectQuery(regexp.QuoteMeta(CreateUserQuery)).
-				WithArgs("Artyom", "Shirshov", "ash@mail.ru", "password", "2001-08-06", "msk").
+				WithArgs("Artyom", "Shirshov", "ash@mail.ru", "password", "2001-08-06", "msk", "user_face.png").
 				WillReturnError(errors.New("sql error"))
 		},
 		&models.User{},
