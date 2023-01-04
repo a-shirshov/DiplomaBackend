@@ -42,6 +42,7 @@ func (uD *AuthDelivery) SignUp(c *gin.Context) {
 		return
 	}
 	if err == nil {
+		log.Println("Image Err = ", err.Error())
 		user.ImgUrl = imgUrl
 	}
 
