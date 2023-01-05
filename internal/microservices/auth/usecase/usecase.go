@@ -2,8 +2,9 @@ package usecase
 
 import (
 	"Diploma/internal/microservices/auth"
-	"Diploma/pkg"
 	"Diploma/internal/models"
+	"Diploma/pkg"
+	"Diploma/utils"
 	"errors"
 	"fmt"
 	"log"
@@ -41,6 +42,8 @@ func (aU *authUsecase) CreateUser(user *models.User) (*models.User, *models.Toke
 	if err != nil {
 		return nil, nil, err
 	}
+
+	resultUser.ImgUrl = utils.BuildImgUrl(resultUser.ImgUrl)
 
 	td, err := aU.tokenManager.CreateToken(resultUser.ID)
 	if err != nil {

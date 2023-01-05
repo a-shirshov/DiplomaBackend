@@ -7,6 +7,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -54,10 +55,9 @@ func ValidateAndSanitize(object interface{}) error {
 }
 
 func SaveImageFromRequest(c *gin.Context, httpRequestKey string) (string, error) {
-	serverName := viper.GetString("server.name")
-
 	avatarFile, handler, err := c.Request.FormFile(httpRequestKey)
 	if err != nil {
+		log.Println("first err = ", err.Error())
 		return "", err
 	}
 	defer avatarFile.Close()
@@ -78,12 +78,14 @@ func SaveImageFromRequest(c *gin.Context, httpRequestKey string) (string, error)
 
 	options, err := encoder.NewLossyEncoderOptions(encoder.PresetDefault, 40)
 	if err != nil {
+		log.Println("second err = ", err.Error())
 		return "", err
 	}
 
 	resultFileName := newFilename + "." + filenameExtension
 	output, err := os.Create(viper.GetString("img_path") + "/" + resultFileName)
 	if err != nil {
+		log.Println("third err = ", err.Error())
 		return "", err
 	}
 	defer output.Close()
@@ -104,13 +106,19 @@ func SaveImageFromRequest(c *gin.Context, httpRequestKey string) (string, error)
 		if err != nil {
 			return "", err
 		}
-		return serverName + "/images/" + resultFileName, nil
+		return newFilename, nil
 	}
 
 	if err := webp.Encode(output, img, options); err != nil {
+		log.Println("fourth err = ", err.Error())
 		return "", err
 	}
-	return serverName + "/images/" + resultFileName, nil
+	return newFilename, nil
+}
+
+func BuildImgUrl(imgUUID string) (string) {
+	serverName := viper.GetString("server.name")
+	return serverName + "/images/" + imgUUID
 }
 
 func GetPageQueryParamFromRequest(c *gin.Context) (int, error) {

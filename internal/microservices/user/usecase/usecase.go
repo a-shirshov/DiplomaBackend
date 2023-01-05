@@ -3,6 +3,7 @@ package usecase
 import (
 	"Diploma/internal/microservices/user"
 	"Diploma/internal/models"
+	"Diploma/utils"
 )
 
 type userUsecase struct {
@@ -20,5 +21,10 @@ func (uU *userUsecase) GetUser(userId int) (*models.User, error) {
 }
 
 func (uU *userUsecase) UpdateUser(user *models.User) (*models.User, error) {
-	return uU.userRepo.UpdateUser(user)
+	resultUser, err := uU.userRepo.UpdateUser(user)
+	if err != nil {
+		return &models.User{}, err
+	}
+	resultUser.ImgUrl = utils.BuildImgUrl(resultUser.ImgUrl)
+	return resultUser, nil
 }

@@ -37,6 +37,7 @@ var createUserTests = []createUserTest{
 			Surname: "Shirshov",
 			Email:  "ash@mail.ru",
 			Password: "password",
+			ImgUrl: "uuid",
 		},
 		func(userRepo *mock.MockRepository, sessionRepo *mock.MockSessionRepository, 
 			passwordHasher *mock.MockPasswordHasher, tokenManager *mock.MockTokenManager) {
@@ -51,6 +52,7 @@ var createUserTests = []createUserTest{
 						Surname: "Shirshov",
 						Email:  "ash@mail.ru",
 						Password: "hashed_password",
+						ImgUrl: "uuid",
 					},
 				).
 				Return(
@@ -59,6 +61,7 @@ var createUserTests = []createUserTest{
 						Name: "Artyom",
 						Surname: "Shirshov",
 						Email:  "ash@mail.ru",
+						ImgUrl: "uuid",
 					},
 					nil,
 				)
@@ -76,6 +79,7 @@ var createUserTests = []createUserTest{
 			Name: "Artyom",
 			Surname: "Shirshov",
 			Email:  "ash@mail.ru",
+			ImgUrl: "/images/uuid",
 		}, 
 		nil,
 	},

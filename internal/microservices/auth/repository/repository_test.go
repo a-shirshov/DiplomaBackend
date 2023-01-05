@@ -35,8 +35,8 @@ var createUserTests = []createUserTest{
 			ImgUrl: "user_face.png",
 		},
 		func(mockSQL sqlmock.Sqlmock) {
-			columns := []string{"id"}
-			rows := mockSQL.NewRows(columns).AddRow(1)
+			columns := []string{"id", "name", "surname", "email", "password", "date_of_birth", "city", "about", "img_url"}
+			rows := mockSQL.NewRows(columns).AddRow(1, "Artyom", "Shirshov", "ash@mail.ru", "password", "2001-08-06", "msk", "", "user_face.png")
 			mockSQL.ExpectQuery(regexp.QuoteMeta(CreateUserQuery)).
 				WithArgs("Artyom", "Shirshov", "ash@mail.ru", "password", "2001-08-06", "msk", "user_face.png").
 				RowsWillBeClosed().

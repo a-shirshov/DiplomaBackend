@@ -13,7 +13,8 @@ import (
 const logMessage = "auth:repository:"
 
 const (
-	CreateUserQuery = `insert into "user" (name, surname, email, password, date_of_birth, city, img_url) values ($1, $2, $3, $4, $5, $6, $7) returning id;`
+	CreateUserQuery = `insert into "user" (name, surname, email, password, date_of_birth, city, img_url) values ($1, $2, $3, $4, $5, $6, $7) 
+		returning id, name, surname, email, password, date_of_birth, city, img_url;`
 	GetUserByEmailQuery = `select id, name, surname, email, password, date_of_birth, city, about, img_url from "user" where email = $1;`
 )
 
@@ -27,10 +28,20 @@ func NewAuthRepository(db *sqlx.DB) *AuthRepository {
 	}
 }
 
-func (uR *AuthRepository) CreateUser(user *models.User) (*models.User, error) {
+func (uR *AuthRepository) CreateUser(inputUser *models.User) (*models.User, error) {
 	message := logMessage + "CreateUser:"
 	log.Debug(message + "started")
-	err := uR.db.QueryRowx(CreateUserQuery, &user.Name, &user.Surname, &user.Email, &user.Password, &user.DateOfBirth, &user.City, &user.ImgUrl).Scan(&user.ID)
+	user := models.User{}
+
+	err := uR.db.QueryRowx(CreateUserQuery, 
+		&inputUser.Name, 
+		&inputUser.Surname, 
+		&inputUser.Email, 
+		&inputUser.Password, 
+		&inputUser.DateOfBirth, 
+		&inputUser.City, 
+		&inputUser.ImgUrl).StructScan(&user)
+
 	if err != nil {
 		log.Error(err)
 		if strings.Contains(err.Error(), "(SQLSTATE 23505)") {
@@ -39,7 +50,7 @@ func (uR *AuthRepository) CreateUser(user *models.User) (*models.User, error) {
 		return &models.User{}, customErrors.ErrPostgres
 	}
 	user.Password = ""
-	return user, nil
+	return &user, nil
 }
 
 func (uR *AuthRepository) GetUserByEmail(email string) (*models.User, error) {
