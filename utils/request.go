@@ -71,7 +71,7 @@ func SaveImageFromRequest(c *gin.Context, httpRequestKey string) (string, error)
 	switch filenameExtension {
 		case "jpg", "jpeg", "png":
 			filenameExtension = "webp"
-		case "ico","woff","swg","webp","webm","gif":
+		case "webp":
 		default:
 			return "", customErrors.ErrWrongExtension
 	}
@@ -118,7 +118,7 @@ func SaveImageFromRequest(c *gin.Context, httpRequestKey string) (string, error)
 
 func BuildImgUrl(imgUUID string) (string) {
 	serverName := viper.GetString("server.name")
-	return serverName + "/images/" + imgUUID
+	return serverName + "/images/" + imgUUID + ".webp"
 }
 
 func GetPageQueryParamFromRequest(c *gin.Context) (int, error) {
