@@ -79,7 +79,7 @@ var createUserTests = []createUserTest{
 			Name: "Artyom",
 			Surname: "Shirshov",
 			Email:  "ash@mail.ru",
-			ImgUrl: "/images/uuid",
+			ImgUrl: "/images/uuid.webp",
 		}, 
 		nil,
 	},

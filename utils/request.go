@@ -9,7 +9,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
@@ -121,13 +120,9 @@ func BuildImgUrl(imgUUID string) (string) {
 	return serverName + "/images/" + imgUUID + ".webp"
 }
 
-func GetPageQueryParamFromRequest(c *gin.Context) (int, error) {
+func GetPageQueryParamFromRequest(c *gin.Context) (string) {
 	pageParam := c.DefaultQuery("page", "1")
-	page, err := strconv.Atoi(pageParam)
-	if err != nil {
-		return 0, err
-	}
-	return page, nil
+	return pageParam
 }
 
 func SendErrorMessage(c *gin.Context, statusCode int, errorMessage string) () {

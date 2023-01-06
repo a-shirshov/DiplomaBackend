@@ -3,11 +3,11 @@ package delivery
 import (
 	"Diploma/internal/microservices/event"
 	"Diploma/internal/models"
-	log "Diploma/pkg/logger"
 	"Diploma/utils"
 	"fmt"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -95,53 +95,50 @@ func (eD *EventDelivery) GetEvent(c *gin.Context) {
 // }
 
 func (eD *EventDelivery) GetExternalEvents(c *gin.Context) {
-	kudaGoURL := NewKudaGoUrl()
-	page, err := utils.GetPageQueryParamFromRequest(c)
-	if err != nil {
-		log.Error(err)
-		utils.SendErrorMessage(c, http.StatusBadRequest, err.Error())
-		return
-	}
+	kudaGoURL := NewKudaGoUrl(mainKudaGoEventURL)
+	page := utils.GetPageQueryParamFromRequest(c)
 	kudaGoURL.AddPage(page)
 	
 	var httpClient = &http.Client{Timeout: 10 * time.Second}
-	resp, err := httpClient.Get(kudaGoURL.url)
-	if err != nil {
-		fmt.Println(err)
-		utils.SendErrorMessage(c, http.StatusNotFound, "Kudago error")
-		return
-	}
-	defer resp.Body.Close()
-
-	KudaGoEvents := &models.KudaGoEvents{}
-	err = json.NewDecoder(resp.Body).Decode(KudaGoEvents)
-	if err != nil {
-		fmt.Println(err)
-		utils.SendErrorMessage(c, http.StatusNotFound, "Kudago error")
-		return
-	}
+	kudaGoEvents := &models.KudaGoEvents{}
+	sendKudagoRequestAndParseToStruct(httpClient, kudaGoURL.url, kudaGoEvents)
 
 	events := &models.MyEvents{}
-	for _, result := range KudaGoEvents.Results {
-		event := models.MyEvent{}
-		event.KudaGoID = result.ID
-		event.Title = result.Title
-		event.Start = result.Dates[0].Start
-		event.End = result.Dates[0].End
-		event.Image = result.Images[0].Image
-		events.Events = append(events.Events, event)
+	for _, result := range kudaGoEvents.Results {
+		events.Events = append(events.Events, toMyEvent(result))
 	}
 	c.JSON(http.StatusOK, events)
 }
 
-func (eD *EventDelivery) GetCloseExternalEvents(c *gin.Context) {
-	kudaGoURL := NewKudaGoUrl()
-	page, err := utils.GetPageQueryParamFromRequest(c)
+func sendKudagoRequestAndParseToStruct(httpClient *http.Client, url string, jsonUnmarshalStruct interface{}) () {
+	resp, err := httpClient.Get(url)
 	if err != nil {
-		log.Error(err)
-		utils.SendErrorMessage(c, http.StatusBadRequest, err.Error())
-		return
+		fmt.Println(err)
+		return 
 	}
+	defer resp.Body.Close()
+	err = json.NewDecoder(resp.Body).Decode(jsonUnmarshalStruct)
+	if err != nil {
+		fmt.Println(err)
+		return 
+	}
+}
+
+func toMyEvent(result models.KudaGoResult) (models.MyEvent) {
+	event := models.MyEvent{}
+	event.KudaGoID = result.ID
+	event.Title = result.Title
+	event.Start = result.Dates[0].Start
+	event.End = result.Dates[0].End
+	event.Image = result.Images[0].Image
+	event.Place = result.Place.ID
+	event.Location = result.Location.Slug
+	return event
+}
+
+func (eD *EventDelivery) GetCloseExternalEvents(c *gin.Context) {
+	kudaGoURL := NewKudaGoUrl(mainKudaGoEventURL)
+	page := utils.GetPageQueryParamFromRequest(c)
 	kudaGoURL.AddPage(page)
 
 	longitude := getLongitudeQueryParamFromRequest(c)
@@ -151,34 +148,14 @@ func (eD *EventDelivery) GetCloseExternalEvents(c *gin.Context) {
 	kudaGoURL.AddLatitude(latitude)
 
 	kudaGoURL.AddRadius()
-
+	
 	var httpClient = &http.Client{Timeout: 10 * time.Second}
-	log.Debug(kudaGoURL)
-	resp, err := httpClient.Get(kudaGoURL.url)
-	if err != nil {
-		fmt.Println(err)
-		utils.SendErrorMessage(c, http.StatusNotFound, "Kudago error")
-		return
-	}
-	defer resp.Body.Close()
-
-	KudaGoEvents := &models.KudaGoEvents{}
-	err = json.NewDecoder(resp.Body).Decode(KudaGoEvents)
-	if err != nil {
-		fmt.Println(err)
-		utils.SendErrorMessage(c, http.StatusNotFound, "Kudago error")
-		return
-	}
+	kudaGoEvents := &models.KudaGoEvents{}
+	sendKudagoRequestAndParseToStruct(httpClient, kudaGoURL.url, kudaGoEvents)
 
 	events := &models.MyEvents{}
-	for _, result := range KudaGoEvents.Results {
-		event := models.MyEvent{}
-		event.KudaGoID = result.ID
-		event.Title = result.Title
-		event.Start = result.Dates[0].Start
-		event.End = result.Dates[0].End
-		event.Image = result.Images[0].Image
-		events.Events = append(events.Events, event)
+	for _, result := range kudaGoEvents.Results {
+		events.Events = append(events.Events, toMyEvent(result))
 	}
 	c.JSON(http.StatusOK, events)
 }
@@ -194,44 +171,51 @@ func getLatitudeQueryParamFromRequest(c *gin.Context) (string) {
 }
 
 func (eD *EventDelivery) GetTodayEvents(c *gin.Context) {
-	kudaGoURL := NewKudaGoUrl()
-	page, err := utils.GetPageQueryParamFromRequest(c)
-	if err != nil {
-		log.Error(err)
-		utils.SendErrorMessage(c, http.StatusBadRequest, err.Error())
-		return
-	}
+	kudaGoURL := NewKudaGoUrl(mainKudaGoEventURL)
+	page := utils.GetPageQueryParamFromRequest(c)
 	kudaGoURL.AddPage(page)
 	kudaGoURL.AddActualSince()
 	kudaGoURL.AddActualUntil()
 
 	var httpClient = &http.Client{Timeout: 10 * time.Second}
-	log.Debug(kudaGoURL)
-	resp, err := httpClient.Get(kudaGoURL.url)
-	if err != nil {
-		fmt.Println(err)
-		utils.SendErrorMessage(c, http.StatusNotFound, "Kudago error")
-		return
-	}
-	defer resp.Body.Close()
-
-	KudaGoEvents := &models.KudaGoEvents{}
-	err = json.NewDecoder(resp.Body).Decode(KudaGoEvents)
-	if err != nil {
-		fmt.Println(err)
-		utils.SendErrorMessage(c, http.StatusNotFound, "Kudago error")
-		return
-	}
+	kudaGoEvents := &models.KudaGoEvents{}
+	sendKudagoRequestAndParseToStruct(httpClient, kudaGoURL.url, kudaGoEvents)
 
 	events := &models.MyEvents{}
-	for _, result := range KudaGoEvents.Results {
-		event := models.MyEvent{}
-		event.KudaGoID = result.ID
-		event.Title = result.Title
-		event.Start = result.Dates[0].Start
-		event.End = result.Dates[0].End
-		event.Image = result.Images[0].Image
-		events.Events = append(events.Events, event)
+	for _, result := range kudaGoEvents.Results {
+		events.Events = append(events.Events, toMyEvent(result))
 	}
 	c.JSON(http.StatusOK, events)
+}
+
+func (eD *EventDelivery) GetExternalEvent(c *gin.Context) {
+	KudaGoEventUrl := NewKudaGoUrl(KudaGoEventURL)
+	KudaGoPlaceUrl := NewKudaGoUrl(KudaGoPlaceUrl)
+
+	eventID := c.Param("event_id")
+	KudaGoEventUrl.AddEventId(eventID)
+	KudaGoEventUrl.AddEventFields()
+
+	placeID := c.Param("place_id")
+	KudaGoPlaceUrl.AddPlaceId(placeID)
+	KudaGoPlaceUrl.AddPlaceFields()
+
+	var wg sync.WaitGroup
+	var httpClient = &http.Client{Timeout: 10 * time.Second}
+	
+	KudaGoEvent := &models.KudaGoResult{}
+	KudaGoPlace := &models.KudaGoPlaceResult{}
+
+	wg.Add(2)
+	go sendKudagoRequestAndParseToStruct(httpClient, KudaGoEventUrl.url, KudaGoEvent)
+	sendKudagoRequestAndParseToStruct(httpClient,  KudaGoPlaceUrl.url, KudaGoPlace)
+	wg.Done()
+	wg.Wait()
+
+	event := toMyEvent(*KudaGoEvent)
+	eventAndPlace := &models.KudaGoPlaceAndEvent{
+		Event: event,
+		Place: *KudaGoPlace,
+	}
+	c.JSON(http.StatusOK, eventAndPlace)
 }

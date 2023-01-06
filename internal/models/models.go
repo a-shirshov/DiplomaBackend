@@ -65,6 +65,12 @@ type KudaGoResult struct {
 	Dates []KudaGoDate `json:"dates"`
 	Title   string `json:"title"`
 	Images []KudaGoImage `json:"images"`
+	Location struct {
+		Slug string `json:"slug"`
+	} `json:"location"`
+	Place struct{
+		ID int `json:"id"`
+	} `json:"place"`
 }
 
 type KudaGoDate struct {
@@ -86,7 +92,25 @@ type MyEvent struct {
 	Title   string `json:"title"`
 	Start int `json:"start"`
 	End   int `json:"end"`
+	Location string `json:"location"`
 	Image string `json:"image"`
+	Place int `json:"place"`
+}
+
+type KudaGoPlaceResult struct {
+	Title      string `json:"title"`
+	Address    string `json:"address"`
+	SiteURL    string `json:"site_url"`
+	ForeignURL string `json:"foreign_url"`
+	Coords     struct {
+		Lat float64 `json:"lat"`
+		Lon float64 `json:"lon"`
+	} `json:"coords"`
+}
+
+type KudaGoPlaceAndEvent struct {
+	Event MyEvent `json:"event"`
+	Place KudaGoPlaceResult `json:"place"`
 }
 
 type ErrorMessage struct {

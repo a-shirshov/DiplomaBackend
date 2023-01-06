@@ -28,6 +28,7 @@ func EventEndpoints(r *gin.RouterGroup, eD *eventD.EventDelivery) {
 	r.GET("/external", eD.GetExternalEvents)
 	r.GET("/external/close", eD.GetCloseExternalEvents)
 	r.GET("/external/today", eD.GetTodayEvents)
+	r.GET("/external/:place_id/:event_id", eD.GetExternalEvent)
 }
 
 func PlaceEndpoints(r *gin.RouterGroup, pD *placeD.PlaceDelivery, eD *eventD.EventDelivery) {

@@ -5,7 +5,11 @@ import (
 	"time"
 )
 
-const mainKudaGoEventURL = `https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location&order_by=-id&page_size=10`
+const mainKudaGoEventURL = `https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location,place&order_by=-id&page_size=10`
+
+const KudaGoEventURL = `https://kudago.com/public-api/v1.4/events/`
+
+const KudaGoPlaceUrl = `https://kudago.com/public-api/v1.4/places/`
 
 const twentyKilometers = 20000
 
@@ -13,12 +17,12 @@ type KudaGoUrl struct {
 	url string
 }
 
-func NewKudaGoUrl() *KudaGoUrl {
-	return &KudaGoUrl{url: mainKudaGoEventURL}
+func NewKudaGoUrl(kudaGoUrl string) *KudaGoUrl {
+	return &KudaGoUrl{url: kudaGoUrl}
 }
 
-func (kgUrl *KudaGoUrl) AddPage(page int) {
-	kgUrl.url = fmt.Sprintf("%s&%s=%d",kgUrl.url,"page", page)
+func (kgUrl *KudaGoUrl) AddPage(page string) {
+	kgUrl.url = fmt.Sprintf("%s&%s=%s",kgUrl.url,"page", page)
 }
 
 func (kgUrl *KudaGoUrl) AddLongitude(longitude string) {
@@ -43,4 +47,20 @@ func (kgUrl *KudaGoUrl) AddActualUntil() {
 
 func (kgUrl *KudaGoUrl) GetUrl() (string) {
 	return kgUrl.url
+}
+
+func (kgUrl *KudaGoUrl) AddPlaceFields() {
+	kgUrl.url = fmt.Sprintf("%s?fields=%s", kgUrl.url, "site_url,foreign_url,coords,address,title")
+}
+
+func (kgUrl *KudaGoUrl) AddEventFields() {
+	kgUrl.url = fmt.Sprintf("%s?fields=%s", kgUrl.url,"id,dates,title,images,location,place")
+}
+
+func (kgUrl *KudaGoUrl) AddEventId(eventId string) {
+	kgUrl.url = fmt.Sprintf("%s%s/", kgUrl.url, eventId)
+}
+
+func (kgUrl *KudaGoUrl) AddPlaceId(placeId string) {
+	kgUrl.url = fmt.Sprintf("%s%s/", kgUrl.url, placeId)
 }
