@@ -31,21 +31,18 @@ func (m *Middlewares) TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 	   	au, err := m.token.ExtractTokenMetadata(c.Request)
 	   	if err != nil {
-		  c.JSON(http.StatusUnauthorized, err.Error())
-		  c.Abort()
+		  c.Set("access_details", models.AccessDetails{})
 		  return
 	   	}
 
 		userId, err := m.auth.FetchAuth(au.AccessUuid)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, err.Error())
-			c.Abort()
+			c.Set("access_details", models.AccessDetails{})
 			return
 		}
 
 		if userId != au.UserId {
-			c.JSON(http.StatusUnauthorized, err.Error())
-			c.Abort()
+			c.Set("access_details", models.AccessDetails{})
 			return
 		}
 

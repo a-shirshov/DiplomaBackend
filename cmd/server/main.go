@@ -129,7 +129,7 @@ func main() {
 	router.UserEndpoints(userRouter, mws, userD)
 
 	eventRouter := routerAPI.Group("/events")
-	router.EventEndpoints(eventRouter,eventD)
+	router.EventEndpoints(eventRouter, mws, eventD)
 
 	placeRouter := routerAPI.Group("/places")
 	router.PlaceEndpoints(placeRouter, placeD, eventD)

@@ -3,6 +3,7 @@ package repository
 import (
 	"Diploma/internal/customErrors"
 	"Diploma/internal/models"
+	"database/sql"
 	"log"
 
 	"github.com/jmoiron/sqlx"
@@ -18,6 +19,12 @@ const (
 		where RowNum Between 1 + $2 * ($3-1) and $2 * $3;`
 	GetEventQuery = `select id, name, description, about, category, tags, specialInfo from "event" 
 		where id = $1;`
+	
+	GetPeopleCount = `select people_count from "kudago_event" where event_id = $1;`
+	CreateKudaGoEvent = `insert into "kudago_event" (event_id) values ($1);`
+	CreateKudaGoMeeting = `insert into "kudago_meeting" (user_id, event_id) values ($1, $2);`
+	CheckKudaGoMeeting = `select id from "kudago_meeting" where user_id = $1 and event_id = $2;`
+	DeleteKudaGoMeeting = `delete from "kudago_meeting" where id = $1;`
 )
 
 type EventRepository struct {
@@ -48,4 +55,58 @@ func (eR *EventRepository) GetEvent(eventId int) (*models.Event, error) {
 		return event, customErrors.ErrPostgres
 	}
 	return event, nil
+}
+
+func (eR *EventRepository) GetPeopleCount(eventID int) (int, error) {
+	var peopleCount int
+	err := eR.db.Get(&peopleCount, GetPeopleCount, &eventID)
+	if err != nil {
+		return 0, err
+	}
+	return peopleCount, nil
+}
+
+func (eR *EventRepository) CreateKudaGoEvent(eventID int) (error) {
+	_, err := eR.db.Exec(CreateKudaGoEvent, &eventID)
+	return err
+}
+
+func (eR *EventRepository) SwitchEventMeeting(userID int, eventID int) (error) {
+	var meetingID int
+	err := eR.db.Get(&meetingID, CheckKudaGoMeeting, &userID, &eventID)
+	if err != nil {
+		log.Println(err.Error())
+		if err != sql.ErrNoRows {
+			log.Println(err.Error())
+			return customErrors.ErrPostgres
+		}
+
+		_, err = eR.db.Exec(CreateKudaGoMeeting, &userID, &eventID)
+		if err != nil {
+			log.Println(err.Error())
+			return customErrors.ErrPostgres
+		}
+		return nil
+	}
+
+	_, err = eR.db.Exec(DeleteKudaGoMeeting, &meetingID)
+	if err != nil {
+		log.Println(err.Error())
+		return customErrors.ErrPostgres
+	}
+	return nil
+}
+
+func (eR *EventRepository) CheckKudaGoMeeting(userID int, eventID int) (bool, error) {
+	var meetingID int
+	isGoing := false
+	err := eR.db.Get(&meetingID, CheckKudaGoMeeting, &userID, &eventID)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return isGoing, customErrors.ErrPostgres
+		}
+		return isGoing, nil
+	}
+	isGoing = true
+	return isGoing, nil
 }

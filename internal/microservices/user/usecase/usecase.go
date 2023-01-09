@@ -17,7 +17,12 @@ func NewUserUsecase(userRepo user.Repository) *userUsecase {
 }
 
 func (uU *userUsecase) GetUser(userId int) (*models.User, error) {
-	return uU.userRepo.GetUser(userId)
+	resultUser, err :=  uU.userRepo.GetUser(userId)
+	if err != nil {
+		return &models.User{}, err
+	}
+	resultUser.ImgUrl = utils.BuildImgUrl(resultUser.ImgUrl)
+	return resultUser, nil
 }
 
 func (uU *userUsecase) UpdateUser(user *models.User) (*models.User, error) {

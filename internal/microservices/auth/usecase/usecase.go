@@ -64,6 +64,8 @@ func (aU *authUsecase) SignIn(user *models.LoginUser) (*models.User, *models.Tok
 		return nil, nil, err
 	}
 
+	resultUser.ImgUrl = utils.BuildImgUrl(resultUser.ImgUrl)
+
 	_, err = aU.passwordHasher.VerifyPassword(user.Password, resultUser.Password)
 	if err != nil {
 		return nil, nil, err

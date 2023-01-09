@@ -13,29 +13,35 @@ CREATE TABLE IF NOT EXISTS "user"  (
     deleted_at timestamp
 );
 
--- CREATE TABLE IF NOT EXISTS "place" (
---     id serial not null UNIQUE,
---     name text not null,
---     description text not null,
---     about text not null,
--- 	category text not null,
--- 	img_url text,
---     created_at timestamp default now() not null,
---     updated_at timestamp, 
---     deleted_at timestamp
--- );
+CREATE TABLE IF NOT EXISTS "kudago_event" (
+    id serial not null UNIQUE,
+    event_id int UNIQUE,
+    people_count int default 0,
+    created_at timestamp default now() not null
+);
 
--- CREATE TABLE IF NOT EXISTS "event" (
---     id serial not null UNIQUE,
---     place_id int REFERENCES "place"(id) on delete cascade not null,
---     name text not null,
---     description text not null,
---     about text not null,
---     category text not null,
---     tags text[],
---     specialInfo text,
---     img_url text,
---     created_at timestamp default now() not null,
---     updated_at timestamp, 
---     deleted_at timestamp
--- );
+CREATE TABLE IF NOT EXISTS "kudago_meeting" (
+    id serial not null UNIQUE,
+    user_id int references "user"(id) on delete cascade not null,
+    event_id int references "kudago_event"(event_id) on delete cascade not null
+);
+
+create or replace function update_kudago_event_people_count_up() returns trigger as $update_kudago_event_people_count_up$
+begin
+    update kudago_event set people_count = (people_count + 1) where event_id = new.event_id;
+    return new;
+end;
+$update_kudago_event_people_count_up$ language plpgsql;
+
+drop trigger if exists create_meeting ON kudago_meeting;
+create trigger create_meeting after insert on kudago_meeting for each row execute procedure update_kudago_event_people_count_up();
+
+create or replace function update_kudago_event_people_count_down() returns trigger as $update_kudago_event_people_count_down$
+begin
+    update kudago_event set people_count = (people_count - 1) where event_id = new.event_id;
+    return new;
+end;
+$update_kudago_event_people_count_down$ language plpgsql;
+
+drop trigger if exists delete_meeting ON kudago_meeting;
+create trigger delete_meeting after delete on kudago_meeting for each row execute procedure update_kudago_event_people_count_down();

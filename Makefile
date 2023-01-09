@@ -13,5 +13,5 @@ test:
 .PHONY: cover
 cover:
 	go test -cover -coverprofile=cover.out -coverpkg=./... ./...
-	cat cover.out | fgrep -v "main.go" | fgrep -v "mock.go" | fgrep -v "docs.go"  > cover1.out
+	cat cover.out | fgrep -v "main.go" | fgrep -v "mock.go" | fgrep -v "docs.go" | fgrep -v "logger.go"  > cover1.out
 	go tool cover -func=cover1.out

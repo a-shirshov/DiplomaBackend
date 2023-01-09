@@ -22,13 +22,14 @@ func UserEndpoints(r *gin.RouterGroup, mws *middleware.Middlewares, uD *userD.Us
 	r.GET("/:id", uD.GetUser)
 }
 
-func EventEndpoints(r *gin.RouterGroup, eD *eventD.EventDelivery) {
+func EventEndpoints(r *gin.RouterGroup, mws *middleware.Middlewares, eD *eventD.EventDelivery) {
 	r.GET("/:event_id", eD.GetEvent)
 	r.GET("/", eD.GetEvents)
 	r.GET("/external", eD.GetExternalEvents)
 	r.GET("/external/close", eD.GetCloseExternalEvents)
 	r.GET("/external/today", eD.GetTodayEvents)
-	r.GET("/external/:place_id/:event_id", eD.GetExternalEvent)
+	r.GET("/external/:place_id/:event_id", mws.TokenAuthMiddleware(), eD.GetExternalEvent)
+	r.POST("external/:event_id/go", mws.TokenAuthMiddleware(), eD.SwitchEventMeeting)
 }
 
 func PlaceEndpoints(r *gin.RouterGroup, pD *placeD.PlaceDelivery, eD *eventD.EventDelivery) {

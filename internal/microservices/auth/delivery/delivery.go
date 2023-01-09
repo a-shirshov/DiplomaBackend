@@ -135,6 +135,7 @@ func (uD *AuthDelivery) Logout(c *gin.Context) {
 		utils.SendErrorMessage(c, http.StatusUnauthorized, err.Error())
 		return
 	}
+	c.JSON(http.StatusOK, "OK")
 }
 
 // @Summary Refresh

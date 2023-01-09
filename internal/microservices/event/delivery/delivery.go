@@ -1,13 +1,13 @@
 package delivery
 
 import (
+	"Diploma/internal/customErrors"
 	"Diploma/internal/microservices/event"
 	"Diploma/internal/models"
 	"Diploma/utils"
 	"fmt"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -101,8 +101,13 @@ func (eD *EventDelivery) GetExternalEvents(c *gin.Context) {
 	
 	var httpClient = &http.Client{Timeout: 10 * time.Second}
 	kudaGoEvents := &models.KudaGoEvents{}
-	sendKudagoRequestAndParseToStruct(httpClient, kudaGoURL.url, kudaGoEvents)
-
+	eventErr := make(chan error, 1)
+	sendKudagoRequestAndParseToStruct(httpClient, kudaGoURL.url, kudaGoEvents, eventErr)
+	if <-eventErr != nil {
+		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
+		return
+	}
+	
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
 		events.Events = append(events.Events, toMyEvent(result))
@@ -110,18 +115,22 @@ func (eD *EventDelivery) GetExternalEvents(c *gin.Context) {
 	c.JSON(http.StatusOK, events)
 }
 
-func sendKudagoRequestAndParseToStruct(httpClient *http.Client, url string, jsonUnmarshalStruct interface{}) () {
+func sendKudagoRequestAndParseToStruct(httpClient *http.Client, url string, jsonUnmarshalStruct interface{}, errChan chan<- error) () {
 	resp, err := httpClient.Get(url)
+	defer close(errChan)
 	if err != nil {
 		fmt.Println(err)
+		errChan <- err
 		return 
 	}
 	defer resp.Body.Close()
 	err = json.NewDecoder(resp.Body).Decode(jsonUnmarshalStruct)
 	if err != nil {
 		fmt.Println(err)
+		errChan <- err
 		return 
 	}
+	errChan <- nil
 }
 
 func toMyEvent(result models.KudaGoResult) (models.MyEvent) {
@@ -151,7 +160,12 @@ func (eD *EventDelivery) GetCloseExternalEvents(c *gin.Context) {
 	
 	var httpClient = &http.Client{Timeout: 10 * time.Second}
 	kudaGoEvents := &models.KudaGoEvents{}
-	sendKudagoRequestAndParseToStruct(httpClient, kudaGoURL.url, kudaGoEvents)
+	eventErr := make(chan error, 1)
+	sendKudagoRequestAndParseToStruct(httpClient, kudaGoURL.url, kudaGoEvents, eventErr)
+	if <-eventErr != nil {
+		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
+		return
+	}
 
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
@@ -179,7 +193,12 @@ func (eD *EventDelivery) GetTodayEvents(c *gin.Context) {
 
 	var httpClient = &http.Client{Timeout: 10 * time.Second}
 	kudaGoEvents := &models.KudaGoEvents{}
-	sendKudagoRequestAndParseToStruct(httpClient, kudaGoURL.url, kudaGoEvents)
+	eventErr := make(chan error, 1)
+	sendKudagoRequestAndParseToStruct(httpClient, kudaGoURL.url, kudaGoEvents, eventErr)
+	if <-eventErr != nil {
+		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
+		return
+	}
 
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
@@ -189,33 +208,82 @@ func (eD *EventDelivery) GetTodayEvents(c *gin.Context) {
 }
 
 func (eD *EventDelivery) GetExternalEvent(c *gin.Context) {
+	var userID int
+	au, err := utils.GetAUFromContext(c)
+	if err != nil {
+		userID = 0
+	} else {
+		userID = au.UserId
+	}
 	KudaGoEventUrl := NewKudaGoUrl(KudaGoEventURL)
 	KudaGoPlaceUrl := NewKudaGoUrl(KudaGoPlaceUrl)
 
-	eventID := c.Param("event_id")
-	KudaGoEventUrl.AddEventId(eventID)
+	eventIDStr := c.Param("event_id")
+	eventID, err := strconv.Atoi(eventIDStr)
+	if err != nil {
+		utils.SendErrorMessage(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	KudaGoEventUrl.AddEventId(eventIDStr)
 	KudaGoEventUrl.AddEventFields()
 
 	placeID := c.Param("place_id")
 	KudaGoPlaceUrl.AddPlaceId(placeID)
 	KudaGoPlaceUrl.AddPlaceFields()
 
-	var wg sync.WaitGroup
 	var httpClient = &http.Client{Timeout: 10 * time.Second}
 	
 	KudaGoEvent := &models.KudaGoResult{}
 	KudaGoPlace := &models.KudaGoPlaceResult{}
 
-	wg.Add(2)
-	go sendKudagoRequestAndParseToStruct(httpClient, KudaGoEventUrl.url, KudaGoEvent)
-	sendKudagoRequestAndParseToStruct(httpClient,  KudaGoPlaceUrl.url, KudaGoPlace)
-	wg.Done()
-	wg.Wait()
+	eventErr := make(chan error, 1)
+	placeErr := make(chan error, 1)
+	go sendKudagoRequestAndParseToStruct(httpClient, KudaGoEventUrl.url, KudaGoEvent, eventErr)
+	go sendKudagoRequestAndParseToStruct(httpClient, KudaGoPlaceUrl.url, KudaGoPlace, placeErr)
+	peopleCount, isGoing, err := eD.eventUsecase.GetPeopleCountAndCheckMeeting(userID, eventID)
+	if err != nil {
+		utils.SendErrorMessage(c, http.StatusInternalServerError, customErrors.ErrPostgres.Error())
+		return
+	}
+	
+	if <-eventErr != nil {
+		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
+		return
+	}
+
+	if <-placeErr != nil {
+		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
+		return
+	}
 
 	event := toMyEvent(*KudaGoEvent)
 	eventAndPlace := &models.KudaGoPlaceAndEvent{
 		Event: event,
 		Place: *KudaGoPlace,
+		PeopleCount: peopleCount,
+		IsGoing: isGoing,
 	}
 	c.JSON(http.StatusOK, eventAndPlace)
+}
+
+func (eD *EventDelivery) SwitchEventMeeting(c *gin.Context) {
+	au, err := utils.GetAUFromContext(c)
+	if err != nil {
+		utils.SendErrorMessage(c, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	eventIDStr := c.Param("event_id")
+	eventID, err := strconv.Atoi(eventIDStr)
+	if err != nil {
+		utils.SendErrorMessage(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = eD.eventUsecase.SwitchEventMeeting(au.UserId, eventID)
+	if err != nil {
+		utils.SendErrorMessage(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, "OK")
 }

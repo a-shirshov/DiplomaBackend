@@ -2,10 +2,12 @@ package repository
 
 import (
 	"Diploma/internal/models"
-	"testing"
-	"fmt"
-
 	"database/sql/driver"
+	"fmt"
+	"log"
+	"regexp"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -57,6 +59,53 @@ var getEventsByPlaceTests = []getEventsTest{
 	},
 }
 
+type getPeopleCountTest struct {
+	name string
+	inputEventID int
+	beforeTest func(mockSQL sqlmock.Sqlmock)
+	expextedPeopleCount int
+	expectedErr error
+}
+
+var getPeopleCountTests = []getPeopleCountTest {
+	{
+		"Successfully get people count",
+		1,
+		func(mockSQL sqlmock.Sqlmock) {
+			columns := []string{"people_count"}
+			rows := mockSQL.NewRows(columns).
+				AddRow(10)
+			
+			mockSQL.ExpectQuery(regexp.QuoteMeta(GetPeopleCount)).
+				WithArgs(1).
+				WillReturnRows(rows)
+		},
+		10,
+		nil,
+	},
+}
+
+type createKudaGoEventTest struct {
+	name string
+	inputEventID int
+	beforeTest func(mockSQL sqlmock.Sqlmock)
+	expectedErr error
+}
+
+var createKudaGoEventTests = []createKudaGoEventTest {
+	{
+		"Successfully create KudaGo Event",
+		1,
+		func(mockSQL sqlmock.Sqlmock) {
+			mockSQL.ExpectExec(regexp.QuoteMeta(CreateKudaGoEvent)).
+				WithArgs(1).
+				WillReturnResult(sqlmock.NewResult(1,1)).
+				WillReturnError(nil)
+		},
+		nil,
+	},
+}
+
 func TestGetEventsByPlace(t *testing.T) {
 	db, mock, err := sqlmock.New(
 		sqlmock.ValueConverterOption(customConverter{}), 
@@ -103,5 +152,64 @@ func TestGetEventsByPlace(t *testing.T) {
 		if err := mock.ExpectationsWereMet(); err != nil {
 			t.Errorf("Not all expectations: %s", err)
 		}
+	}
+}
+
+func prepareTestEnvironment() (*EventRepository, sqlmock.Sqlmock, error) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	repositoryTest := NewEventRepository(sqlxDB)
+
+	return repositoryTest, mock, nil
+}
+
+func TestGetPeopleCount(t *testing.T) {
+	for _, test := range getPeopleCountTests {
+		t.Run(test.name, func(t *testing.T) {
+			repositoryTest, mock, err := prepareTestEnvironment()
+			if err != nil {
+				log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+			}
+			defer repositoryTest.db.Close()
+
+			if test.beforeTest != nil {
+				test.beforeTest(mock)
+			}
+
+			actualPeopleCount, actualErr := repositoryTest.GetPeopleCount(test.inputEventID)
+			assert.Equal(t, test.expextedPeopleCount, actualPeopleCount)
+			assert.Equal(t, test.expectedErr, actualErr)
+
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Errorf("Not all expectations: %s", err)
+			}
+		})	
+	}
+}
+
+func TestCreateKudaGoEvent(t *testing.T) {
+	for _, test := range createKudaGoEventTests {
+		t.Run(test.name, func(t *testing.T) {
+			repositoryTest, mock, err := prepareTestEnvironment()
+			if err != nil {
+				log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+			}
+			defer repositoryTest.db.Close()
+
+			if test.beforeTest != nil {
+				test.beforeTest(mock)
+			}
+
+			actualErr := repositoryTest.CreateKudaGoEvent(test.inputEventID)
+			assert.Equal(t, test.expectedErr, actualErr)
+
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Errorf("Not all expectations: %s", err)
+			}
+		})	
 	}
 }

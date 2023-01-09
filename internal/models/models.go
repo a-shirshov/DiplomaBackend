@@ -111,6 +111,8 @@ type KudaGoPlaceResult struct {
 type KudaGoPlaceAndEvent struct {
 	Event MyEvent `json:"event"`
 	Place KudaGoPlaceResult `json:"place"`
+	PeopleCount int `json:"peopleCount"`
+	IsGoing bool `json:"isGoing"`
 }
 
 type ErrorMessage struct {

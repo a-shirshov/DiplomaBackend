@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
@@ -24,12 +25,16 @@ import (
 func GetAUFromContext(c *gin.Context) (*models.AccessDetails, error) {
 	ctxau, ok := c.Get("access_details")
 	if !ok {
-		return nil, customErrors.ErrNoTokenInContext
+		return &models.AccessDetails{}, customErrors.ErrNoTokenInContext
 	}
 
 	au, ok := ctxau.(models.AccessDetails)
 	if !ok {
-		return nil, customErrors.ErrNoTokenInContext
+		return &models.AccessDetails{}, customErrors.ErrNoTokenInContext
+	}
+
+	if reflect.ValueOf(au).IsZero() {
+		return &models.AccessDetails{}, customErrors.ErrNoTokenInContext
 	}
 	
 	return &au, nil
