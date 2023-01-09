@@ -29,7 +29,8 @@ func NewMiddleware(auth auth.SessionRepository, token pkg.TokenManager) *Middlew
 
 func (m *Middlewares) TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-	   	au, err := m.token.ExtractTokenMetadata(c.Request)
+		token := c.Request.Header.Get("Authorization")
+	   	au, err := m.token.ExtractTokenMetadata(token)
 	   	if err != nil {
 		  c.Set("access_details", models.AccessDetails{})
 		  return
@@ -54,7 +55,7 @@ func (m *Middlewares) TokenAuthMiddleware() gin.HandlerFunc {
 func (m *Middlewares) CORSMiddleware() gin.HandlerFunc {
     return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
-		isAllowed := false
+		var isAllowed bool
 		for _, orig := range allowedOrigins {
 			if origin == orig {
 				isAllowed = true

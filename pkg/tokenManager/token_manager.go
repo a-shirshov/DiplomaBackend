@@ -4,7 +4,6 @@ import (
 	"Diploma/internal/models"
 	"errors"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -24,18 +23,16 @@ func NewTokenManager() *tokenManager{
 	}
 }
 
-func extractToken(r *http.Request) string {
-	bearToken := r.Header.Get("Authorization")
-	//normally Authorization the_token_xxx
-	strArr := strings.Split(bearToken, " ")
+func extractToken(requestToken string) string {
+	strArr := strings.Split(requestToken, " ")
 	if len(strArr) == 2 {
 	   return strArr[1]
 	}
 	return ""
 }
 
-func verifyToken(r *http.Request) (*jwt.Token, error) {
-	tokenString := extractToken(r)
+func verifyToken(requestToken string) (*jwt.Token, error) {
+	tokenString := extractToken(requestToken)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 	   //Make sure that the token method conform to "SigningMethodHMAC"
 	   if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -81,8 +78,8 @@ func(tM *tokenManager) CreateToken(userId int) (*models.TokenDetails, error) {
 	return td, nil
 }
 
-func(tM *tokenManager) ExtractTokenMetadata(r *http.Request) (*models.AccessDetails, error) {
-	token, err := verifyToken(r)
+func(tM *tokenManager) ExtractTokenMetadata(requestToken string) (*models.AccessDetails, error) {
+	token, err := verifyToken(requestToken)
 	if err != nil {
 	   return nil, err
 	}

@@ -1,100 +1,270 @@
 package delivery
 
-// import (
-// 	"Diploma/internal/microservices/auth/mock"
-// 	"Diploma/internal/middleware"
-// 	"Diploma/internal/models"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"strings"
-// 	"testing"
+import (
+	"Diploma/internal/customErrors"
+	"Diploma/internal/microservices/auth/mock"
+	"Diploma/internal/middleware"
+	"Diploma/internal/models"
+	"bytes"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/gin-gonic/gin"
-// 	"github.com/golang/mock/gomock"
-// 	"github.com/stretchr/testify/assert"
-// )
+	"github.com/gin-gonic/gin"
+	"github.com/goccy/go-json"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+)
 
-// type signInTest struct {
-// 	name string
-// 	inputJSON string
-// 	beforeTest func(userUsecase *mock.MockUsecase)
-// 	expectedStatusCode int
-// 	wantBody string
-// }
+type signInTest struct {
+	name string
+	inputStructToBeJSON *models.LoginUser
+	beforeTest func(authUsecase *mock.MockUsecase)
+	expectedStatusCode int
+	expectedStructToBeJSON interface{}
+}
 
-// var signInTests = []signInTest {
-// 	{
-// 		"Succesfully signIn",
-// 		`{
-// 			"email": "mail@yaimage.ru",
-// 			"password": "12345678"
-// 		}`,
-// 		func(userUsecase *mock.MockUsecase) {
-// 			userUsecase.EXPECT().
-// 				SignIn(&models.User{
-// 					Email: "ash@mail.ru",
-// 					Password: "password",
-// 				}).
-// 				Return(&models.User{
-// 					ID: 1,
-// 					Name: "Artyom",
-// 					Surname: "Shirshov",
-// 					Email: "ash@mail.ru",
-// 					DateOfBirth: "2001-08-06",
-// 					City: "msk",
-// 					About: "about",
-// 					ImgUrl: "user_face.png",
-// 				}, 
-// 					&models.TokenDetails{
-// 						AccessToken: "jwt.valid",
-// 						RefreshToken: "jwt.valid",
-// 					},
-// 					nil,
-// 				)
-// 		},
-// 		200,
-// 		`{
-// 			"user": {
-// 				"id": 1,
-// 				"name": "Artyom",
-// 				"surname": "Shirshov",
-// 				"email": "ash@mail.ru",
-// 				"dateOfBirth": "2001-08-06",
-// 				"city": "msk",
-// 				"about": "about",
-// 				"imgUrl": "user_face.png"
-// 			},
-// 			"tokens": {
-// 				"access_token": "jwt.valid",
-// 				"refresh_token": "jwt.valid"
-// 			}
-// 		}`,
-// 	},
-// }
+var signInTests = []signInTest {
+	{
+		"Succesfully signIn",
+		&models.LoginUser{
+			Email: "ash@mail.ru",
+			Password: "password",
+		},
+		func(authUsecase *mock.MockUsecase) {
+			authUsecase.EXPECT().
+				SignIn(&models.LoginUser{
+					Email: "ash@mail.ru",
+					Password: "password",
+				}).
+				Return(&models.User{
+					ID: 1,
+					Name: "Artyom",
+					Surname: "Shirshov",
+					Email: "ash@mail.ru",
+					DateOfBirth: "2001-08-06",
+					City: "msk",
+					About: "about",
+					ImgUrl: "user_face.png",
+				}, 
+					&models.TokenDetails{
+						AccessToken: "jwt.valid",
+						RefreshToken: "jwt.valid",
+					},
+					nil,
+				)
+		},
+		http.StatusOK,
+		&models.UserWithTokens{
+			User: models.User{
+				ID: 1,
+				Name: "Artyom",
+				Surname: "Shirshov",
+				Email: "ash@mail.ru",
+				DateOfBirth: "2001-08-06",
+				City: "msk",
+				About: "about",
+				ImgUrl: "user_face.png",
+			},
+			Tokens: models.Tokens{
+				AccessToken: "jwt.valid",
+				RefreshToken: "jwt.valid",
+			},
+		},
+	},
+	{
+		"No user with this email",
+		&models.LoginUser{
+			Email: "ash@mail.ru",
+			Password: "password",
+		},
+		func(authUsecase *mock.MockUsecase) {
+			authUsecase.EXPECT().
+				SignIn(&models.LoginUser{
+					Email: "ash@mail.ru",
+					Password: "password",
+				}).
+				Return(&models.User{}, 
+					&models.TokenDetails{},
+					customErrors.ErrWrongEmail,
+				)
+		},
+		http.StatusForbidden,
+		&models.ErrorMessage{
+			Message: customErrors.ErrWrongEmail.Error(),
+		},
+	},
+	{
+		"Wrong Password",
+		&models.LoginUser{
+			Email: "ash@mail.ru",
+			Password: "password",
+		},
+		func(authUsecase *mock.MockUsecase) {
+			authUsecase.EXPECT().
+				SignIn(&models.LoginUser{
+					Email: "ash@mail.ru",
+					Password: "password",
+				}).
+				Return(&models.User{}, 
+					&models.TokenDetails{},
+					customErrors.ErrWrongPassword,
+				)
+		},
+		http.StatusForbidden,
+		&models.ErrorMessage{
+			Message: customErrors.ErrWrongPassword.Error(),
+		},
+	},
+	{
+		"Internal server error",
+		&models.LoginUser{
+			Email: "ash@mail.ru",
+			Password: "password",
+		},
+		func(authUsecase *mock.MockUsecase) {
+			authUsecase.EXPECT().
+				SignIn(&models.LoginUser{
+					Email: "ash@mail.ru",
+					Password: "password",
+				}).
+				Return(&models.User{}, 
+					&models.TokenDetails{},
+					customErrors.ErrPostgres,
+				)
+		},
+		http.StatusInternalServerError,
+		&models.ErrorMessage{
+			Message: customErrors.ErrPostgres.Error(),
+		},
+	},
+}
 
-// func TestSignIn(t *testing.T){
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
+func TestSignIn(t *testing.T){
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// 	for _, test := range signInTests{
-// 		t.Run(test.name, func(t *testing.T) {
-// 			gin.SetMode(gin.TestMode)
-// 			router := gin.Default()
-// 			mockUserUsecase := mock.NewMockUsecase(ctrl)
-// 			deliveryTest := NewAuthDelivery(mockUserUsecase)
+	for _, test := range signInTests{
+		t.Run(test.name, func(t *testing.T) {
+			gin.SetMode(gin.TestMode)
+			router := gin.Default()
+			mockauthUsecase := mock.NewMockUsecase(ctrl)
+			deliveryTest := NewAuthDelivery(mockauthUsecase)
+			mws := middleware.NewMiddleware(mock.NewMockSessionRepository(ctrl), mock.NewMockTokenManager(ctrl))
 
-// 			if test.beforeTest != nil {
-// 				test.beforeTest(mockUserUsecase)
-// 			}
-// 			router.Use()
-// 			responseRecorder := httptest.NewRecorder()
-// 			router.POST("/login", deliveryTest.SignIn)
+			if test.beforeTest != nil {
+				test.beforeTest(mockauthUsecase)
+			}
+
+			router.Use(mws.MiddlewareValidateLoginUser())
+			responseRecorder := httptest.NewRecorder()
+			router.POST("/login", deliveryTest.SignIn)
+
+			inputJSON, _ := json.Marshal(test.inputStructToBeJSON)
+			request, err := http.NewRequest(http.MethodPost, "/login", bytes.NewReader(inputJSON))
+			assert.NoError(t, err)
+			router.ServeHTTP(responseRecorder, request)
+
+			assert.Equal(t, test.expectedStatusCode, responseRecorder.Code)
+			expectedJSON, _ := json.Marshal(test.expectedStructToBeJSON)
+			assert.Equal(t, string(expectedJSON), responseRecorder.Body.String())
+		})
+	}
+}
+
+type logoutTest struct {
+	name string
+	inputAccessDetails *models.AccessDetails
+	beforeTest func(authUsecase *mock.MockUsecase)
+	expectedStatusCode int
+}
+
+var logoutTests = []logoutTest {
+	{
+		"Successfully logout",
+		&models.AccessDetails{
+			AccessUuid: "access_uuid",
+			UserId: 1,
+		},
+		func(authUsecase *mock.MockUsecase) {
+			authUsecase.EXPECT().
+				Logout(&models.AccessDetails{
+					AccessUuid: "access_uuid",
+					UserId: 1,
+				}).
+				Return(nil)
+		},
+		http.StatusOK,
+	},
+	{
+		"No authorization token",
+		&models.AccessDetails{},
+		nil,
+		http.StatusUnauthorized,
+	},
+	{
+		"Error during Logout",
+		&models.AccessDetails{
+			AccessUuid: "access_uuid",
+			UserId: 1,
+		},
+		func(authUsecase *mock.MockUsecase) {
+			authUsecase.EXPECT().
+				Logout(&models.AccessDetails{
+					AccessUuid: "access_uuid",
+					UserId: 1,
+				}).
+				Return(errors.New("error"))
+		},
+		http.StatusUnauthorized,
+	},
+}
+
+func TestLogout(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	for _, test := range logoutTests{
+		t.Run(test.name, func(t *testing.T) {
+			mockauthUsecase := mock.NewMockUsecase(ctrl)
+			deliveryTest := NewAuthDelivery(mockauthUsecase)
+
+			if test.beforeTest != nil {
+				test.beforeTest(mockauthUsecase)
+			}
+
+			responseRecorder := httptest.NewRecorder()
+			gin.SetMode(gin.TestMode)
+			ctx, router := gin.CreateTestContext(responseRecorder)
+			router.Use(func(ctx *gin.Context){
+				ctx.Set("access_details", *test.inputAccessDetails)
+			})
 			
-// 			request, err := http.NewRequest(http.MethodPost, "/login", strings.NewReader(test.inputJSON))
-// 			assert.NoError(t, err)
-// 			router.ServeHTTP(responseRecorder, request)
-// 			assert.Equal(t, http.StatusOK, responseRecorder.Code)
-// 			assert.Equal(t, test.wantBody, responseRecorder.Body.String())
-// 		})
-// 	}
-// }
+			router.POST("/logout", deliveryTest.Logout)
+			ctx.Request, _ = http.NewRequest(http.MethodPost, "/logout", nil)
+			router.ServeHTTP(responseRecorder, ctx.Request)
+
+			assert.Equal(t, test.expectedStatusCode, responseRecorder.Code)
+		})
+	}
+}
+
+func TestMini(t *testing.T) {
+	resp := httptest.NewRecorder()
+	gin.SetMode(gin.TestMode)
+	c, r := gin.CreateTestContext(resp)
+
+	r.Use(func(c *gin.Context) {
+		c.Set("profile", "myfakeprofile")
+	})
+
+	r.GET("/test", func(c *gin.Context) {
+		_, found := c.Get("profile")
+		// found is true
+		t.Log(found)
+		c.Status(200)
+	})
+	c.Request, _ = http.NewRequest(http.MethodGet, "/test", nil)
+	r.ServeHTTP(resp, c.Request)
+}

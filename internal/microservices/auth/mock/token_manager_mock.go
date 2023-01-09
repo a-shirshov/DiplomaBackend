@@ -6,7 +6,6 @@ package mock
 
 import (
 	models "Diploma/internal/models"
-	http "net/http"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -51,16 +50,16 @@ func (mr *MockTokenManagerMockRecorder) CreateToken(userId interface{}) *gomock.
 }
 
 // ExtractTokenMetadata mocks base method.
-func (m *MockTokenManager) ExtractTokenMetadata(r *http.Request) (*models.AccessDetails, error) {
+func (m *MockTokenManager) ExtractTokenMetadata(token string) (*models.AccessDetails, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ExtractTokenMetadata", r)
+	ret := m.ctrl.Call(m, "ExtractTokenMetadata", token)
 	ret0, _ := ret[0].(*models.AccessDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ExtractTokenMetadata indicates an expected call of ExtractTokenMetadata.
-func (mr *MockTokenManagerMockRecorder) ExtractTokenMetadata(r interface{}) *gomock.Call {
+func (mr *MockTokenManagerMockRecorder) ExtractTokenMetadata(token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExtractTokenMetadata", reflect.TypeOf((*MockTokenManager)(nil).ExtractTokenMetadata), r)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExtractTokenMetadata", reflect.TypeOf((*MockTokenManager)(nil).ExtractTokenMetadata), token)
 }
