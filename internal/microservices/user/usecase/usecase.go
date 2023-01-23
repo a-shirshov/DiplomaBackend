@@ -33,3 +33,11 @@ func (uU *userUsecase) UpdateUser(user *models.User) (*models.User, error) {
 	resultUser.ImgUrl = utils.BuildImgUrl(resultUser.ImgUrl)
 	return resultUser, nil
 }
+
+func (uU *userUsecase) GetFavouriteKudagoEventsIDs(userID int) ([]int, error) {
+	favouriteEventIDs, err := uU.userRepo.GetFavouriteKudagoEventsIDs(userID)
+	if err != nil {
+		return nil, err
+	}
+	return favouriteEventIDs, nil
+}

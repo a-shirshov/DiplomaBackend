@@ -34,6 +34,20 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
+// AddEventToFavourite mocks base method.
+func (m *MockRepository) AddEventToFavourite(userID, eventID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddEventToFavourite", userID, eventID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddEventToFavourite indicates an expected call of AddEventToFavourite.
+func (mr *MockRepositoryMockRecorder) AddEventToFavourite(userID, eventID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEventToFavourite", reflect.TypeOf((*MockRepository)(nil).AddEventToFavourite), userID, eventID)
+}
+
 // CheckKudaGoMeeting mocks base method.
 func (m *MockRepository) CheckKudaGoMeeting(userID, eventID int) (bool, error) {
 	m.ctrl.T.Helper()

@@ -71,6 +71,8 @@ type KudaGoResult struct {
 	Place struct{
 		ID int `json:"id"`
 	} `json:"place"`
+	Description string `json:"description,omitempty"`
+	Price string `json:"price,omitempty"`
 }
 
 type KudaGoDate struct {
@@ -83,7 +85,7 @@ type KudaGoImage struct {
 }
 
 type MyEvents struct {
-	Events []MyEvent
+	Events []MyEvent `json:"events"`
 }
 
 type MyEvent struct {
@@ -95,6 +97,8 @@ type MyEvent struct {
 	Location string `json:"location"`
 	Image string `json:"image"`
 	Place int `json:"place"`
+	Description string `json:"description"`
+	Price string `json:"price"`
 }
 
 type KudaGoPlaceResult struct {
@@ -112,7 +116,8 @@ type KudaGoPlaceAndEvent struct {
 	Event MyEvent `json:"event"`
 	Place KudaGoPlaceResult `json:"place"`
 	PeopleCount int `json:"peopleCount"`
-	IsGoing bool `json:"isGoing"`
+	IsGoing bool `json:"is_going"`
+	IsFavourite bool `json:"is_favourite"`
 }
 
 type ErrorMessage struct {

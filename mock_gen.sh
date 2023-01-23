@@ -22,3 +22,11 @@ mockgen -source=internal/microservices/event/usecase.go \
 mockgen -source=internal/microservices/event/repository.go \
   -destination=internal/microservices/event/mock/repository_mock.go \
   -package=mock
+
+mockgen -source=internal/microservices/user/usecase.go \
+  -destination=internal/microservices/user/mock/usecase_mock.go \
+  -package=mock
+
+mockgen -source=internal/microservices/user/repository.go \
+  -destination=internal/microservices/user/mock/repository_mock.go \
+  -package=mock

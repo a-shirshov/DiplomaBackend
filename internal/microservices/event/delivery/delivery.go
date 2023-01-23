@@ -4,21 +4,20 @@ import (
 	"Diploma/internal/customErrors"
 	"Diploma/internal/microservices/event"
 	"Diploma/internal/models"
+	"Diploma/pkg/kudagoUrl"
 	"Diploma/utils"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/goccy/go-json"
 )
 
 type EventDelivery struct {
 	eventUsecase event.Usecase
 }
 
-func NewEventDelivery(eventU event.Usecase) (*EventDelivery) {
+func NewEventDelivery(eventU event.Usecase) *EventDelivery {
 	return &EventDelivery{
 		eventUsecase: eventU,
 	}
@@ -46,7 +45,7 @@ func (eD *EventDelivery) GetEvents(c *gin.Context) {
 	if err != nil {
 		c.String(http.StatusBadRequest, "no events for you")
 	}
-	c.JSON(http.StatusOK,resultEvents)
+	c.JSON(http.StatusOK, resultEvents)
 }
 
 // @Summary One Event
@@ -95,58 +94,27 @@ func (eD *EventDelivery) GetEvent(c *gin.Context) {
 // }
 
 func (eD *EventDelivery) GetExternalEvents(c *gin.Context) {
-	kudaGoURL := NewKudaGoUrl(mainKudaGoEventURL)
+	kudaGoURL := kudagoUrl.NewKudaGoUrl(kudagoUrl.MainKudaGoEventURL, &http.Client{Timeout: 10 * time.Second})
 	page := utils.GetPageQueryParamFromRequest(c)
 	kudaGoURL.AddPage(page)
-	
-	var httpClient = &http.Client{Timeout: 10 * time.Second}
+
 	kudaGoEvents := &models.KudaGoEvents{}
 	eventErr := make(chan error, 1)
-	sendKudagoRequestAndParseToStruct(httpClient, kudaGoURL.url, kudaGoEvents, eventErr)
+	kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
 	if <-eventErr != nil {
 		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
 		return
 	}
-	
+
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
-		events.Events = append(events.Events, toMyEvent(result))
+		events.Events = append(events.Events, utils.ToMyEvent(&result))
 	}
 	c.JSON(http.StatusOK, events)
 }
 
-func sendKudagoRequestAndParseToStruct(httpClient *http.Client, url string, jsonUnmarshalStruct interface{}, errChan chan<- error) () {
-	resp, err := httpClient.Get(url)
-	defer close(errChan)
-	if err != nil {
-		fmt.Println(err)
-		errChan <- err
-		return 
-	}
-	defer resp.Body.Close()
-	err = json.NewDecoder(resp.Body).Decode(jsonUnmarshalStruct)
-	if err != nil {
-		fmt.Println(err)
-		errChan <- err
-		return 
-	}
-	errChan <- nil
-}
-
-func toMyEvent(result models.KudaGoResult) (models.MyEvent) {
-	event := models.MyEvent{}
-	event.KudaGoID = result.ID
-	event.Title = result.Title
-	event.Start = result.Dates[0].Start
-	event.End = result.Dates[0].End
-	event.Image = result.Images[0].Image
-	event.Place = result.Place.ID
-	event.Location = result.Location.Slug
-	return event
-}
-
 func (eD *EventDelivery) GetCloseExternalEvents(c *gin.Context) {
-	kudaGoURL := NewKudaGoUrl(mainKudaGoEventURL)
+	kudaGoURL := kudagoUrl.NewKudaGoUrl(kudagoUrl.MainKudaGoEventURL, &http.Client{Timeout: 10 * time.Second})
 	page := utils.GetPageQueryParamFromRequest(c)
 	kudaGoURL.AddPage(page)
 
@@ -157,11 +125,10 @@ func (eD *EventDelivery) GetCloseExternalEvents(c *gin.Context) {
 	kudaGoURL.AddLatitude(latitude)
 
 	kudaGoURL.AddRadius()
-	
-	var httpClient = &http.Client{Timeout: 10 * time.Second}
+
 	kudaGoEvents := &models.KudaGoEvents{}
 	eventErr := make(chan error, 1)
-	sendKudagoRequestAndParseToStruct(httpClient, kudaGoURL.url, kudaGoEvents, eventErr)
+	kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
 	if <-eventErr != nil {
 		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
 		return
@@ -169,32 +136,31 @@ func (eD *EventDelivery) GetCloseExternalEvents(c *gin.Context) {
 
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
-		events.Events = append(events.Events, toMyEvent(result))
+		events.Events = append(events.Events, utils.ToMyEvent(&result))
 	}
 	c.JSON(http.StatusOK, events)
 }
 
-func getLongitudeQueryParamFromRequest(c *gin.Context) (string) {
+func getLongitudeQueryParamFromRequest(c *gin.Context) string {
 	longitudeParam := c.DefaultQuery("lon", "37.6155600")
 	return longitudeParam
 }
 
-func getLatitudeQueryParamFromRequest(c *gin.Context) (string) {
+func getLatitudeQueryParamFromRequest(c *gin.Context) string {
 	latitudeParam := c.DefaultQuery("lat", "55.7522200")
 	return latitudeParam
 }
 
 func (eD *EventDelivery) GetTodayEvents(c *gin.Context) {
-	kudaGoURL := NewKudaGoUrl(mainKudaGoEventURL)
+	kudaGoURL := kudagoUrl.NewKudaGoUrl(kudagoUrl.MainKudaGoEventURL, &http.Client{Timeout: 10 * time.Second})
 	page := utils.GetPageQueryParamFromRequest(c)
 	kudaGoURL.AddPage(page)
 	kudaGoURL.AddActualSince()
 	kudaGoURL.AddActualUntil()
 
-	var httpClient = &http.Client{Timeout: 10 * time.Second}
 	kudaGoEvents := &models.KudaGoEvents{}
 	eventErr := make(chan error, 1)
-	sendKudagoRequestAndParseToStruct(httpClient, kudaGoURL.url, kudaGoEvents, eventErr)
+	kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
 	if <-eventErr != nil {
 		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
 		return
@@ -202,7 +168,7 @@ func (eD *EventDelivery) GetTodayEvents(c *gin.Context) {
 
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
-		events.Events = append(events.Events, toMyEvent(result))
+		events.Events = append(events.Events, utils.ToMyEvent(&result))
 	}
 	c.JSON(http.StatusOK, events)
 }
@@ -215,8 +181,8 @@ func (eD *EventDelivery) GetExternalEvent(c *gin.Context) {
 	} else {
 		userID = au.UserId
 	}
-	KudaGoEventUrl := NewKudaGoUrl(KudaGoEventURL)
-	KudaGoPlaceUrl := NewKudaGoUrl(KudaGoPlaceUrl)
+	KudaGoEventUrl := kudagoUrl.NewKudaGoUrl(kudagoUrl.KudaGoEventURL, &http.Client{Timeout: 10 * time.Second})
+	KudaGoPlaceUrl := kudagoUrl.NewKudaGoUrl(kudagoUrl.KudaGoPlaceUrl, &http.Client{Timeout: 10 * time.Second})
 
 	eventIDStr := c.Param("event_id")
 	eventID, err := strconv.Atoi(eventIDStr)
@@ -231,21 +197,19 @@ func (eD *EventDelivery) GetExternalEvent(c *gin.Context) {
 	KudaGoPlaceUrl.AddPlaceId(placeID)
 	KudaGoPlaceUrl.AddPlaceFields()
 
-	var httpClient = &http.Client{Timeout: 10 * time.Second}
-	
 	KudaGoEvent := &models.KudaGoResult{}
 	KudaGoPlace := &models.KudaGoPlaceResult{}
 
 	eventErr := make(chan error, 1)
 	placeErr := make(chan error, 1)
-	go sendKudagoRequestAndParseToStruct(httpClient, KudaGoEventUrl.url, KudaGoEvent, eventErr)
-	go sendKudagoRequestAndParseToStruct(httpClient, KudaGoPlaceUrl.url, KudaGoPlace, placeErr)
-	peopleCount, isGoing, err := eD.eventUsecase.GetPeopleCountAndCheckMeeting(userID, eventID)
+	go KudaGoEventUrl.SendKudagoRequestAndParseToStruct(KudaGoEvent, eventErr)
+	go KudaGoPlaceUrl.SendKudagoRequestAndParseToStruct(KudaGoPlace, placeErr)
+	peopleCount, isGoing, isFavourite, err := eD.eventUsecase.GetPeopleCountAndCheckMeeting(userID, eventID)
 	if err != nil {
 		utils.SendErrorMessage(c, http.StatusInternalServerError, customErrors.ErrPostgres.Error())
 		return
 	}
-	
+
 	if <-eventErr != nil {
 		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
 		return
@@ -256,12 +220,13 @@ func (eD *EventDelivery) GetExternalEvent(c *gin.Context) {
 		return
 	}
 
-	event := toMyEvent(*KudaGoEvent)
+	event := utils.ToMyEvent(KudaGoEvent)
 	eventAndPlace := &models.KudaGoPlaceAndEvent{
-		Event: event,
-		Place: *KudaGoPlace,
+		Event:       event,
+		Place:       *KudaGoPlace,
 		PeopleCount: peopleCount,
-		IsGoing: isGoing,
+		IsGoing:     isGoing,
+		IsFavourite: isFavourite,
 	}
 	c.JSON(http.StatusOK, eventAndPlace)
 }
@@ -281,6 +246,28 @@ func (eD *EventDelivery) SwitchEventMeeting(c *gin.Context) {
 	}
 
 	err = eD.eventUsecase.SwitchEventMeeting(au.UserId, eventID)
+	if err != nil {
+		utils.SendErrorMessage(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, "OK")
+}
+
+func (eD *EventDelivery) SwitchEventFavourite(c *gin.Context) {
+	au, err := utils.GetAUFromContext(c)
+	if err != nil {
+		utils.SendErrorMessage(c, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	eventIDStr := c.Param("event_id")
+	eventID, err := strconv.Atoi(eventIDStr)
+	if err != nil {
+		utils.SendErrorMessage(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = eD.eventUsecase.SwitchEventFavourite(au.UserId, eventID)
 	if err != nil {
 		utils.SendErrorMessage(c, http.StatusInternalServerError, err.Error())
 		return

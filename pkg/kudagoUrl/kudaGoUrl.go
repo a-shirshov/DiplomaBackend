@@ -1,11 +1,13 @@
-package delivery
+package kudagoUrl
 
 import (
 	"fmt"
+	"net/http"
 	"time"
+	"github.com/goccy/go-json"
 )
 
-const mainKudaGoEventURL = `https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location,place&order_by=-id&page_size=10`
+const MainKudaGoEventURL = `https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location,place&order_by=-id&page_size=10`
 
 const KudaGoEventURL = `https://kudago.com/public-api/v1.4/events/`
 
@@ -15,10 +17,14 @@ const twentyKilometers = 20000
 
 type KudaGoUrl struct {
 	url string
+	httpClient *http.Client
 }
 
-func NewKudaGoUrl(kudaGoUrl string) *KudaGoUrl {
-	return &KudaGoUrl{url: kudaGoUrl}
+func NewKudaGoUrl(kudaGoUrl string, httpClient *http.Client) *KudaGoUrl {
+	return &KudaGoUrl{
+		url: kudaGoUrl,
+		httpClient: httpClient,
+	}
 }
 
 func (kgUrl *KudaGoUrl) AddPage(page string) {
@@ -54,7 +60,7 @@ func (kgUrl *KudaGoUrl) AddPlaceFields() {
 }
 
 func (kgUrl *KudaGoUrl) AddEventFields() {
-	kgUrl.url = fmt.Sprintf("%s?fields=%s", kgUrl.url,"id,dates,title,images,location,place")
+	kgUrl.url = fmt.Sprintf("%s?fields=%s", kgUrl.url,"id,dates,title,images,location,place,description,price")
 }
 
 func (kgUrl *KudaGoUrl) AddEventId(eventId string) {
@@ -63,4 +69,22 @@ func (kgUrl *KudaGoUrl) AddEventId(eventId string) {
 
 func (kgUrl *KudaGoUrl) AddPlaceId(placeId string) {
 	kgUrl.url = fmt.Sprintf("%s%s/", kgUrl.url, placeId)
+}
+
+func (kgUrl *KudaGoUrl) SendKudagoRequestAndParseToStruct(jsonUnmarshalStruct interface{}, errChan chan<- error) {
+	resp, err := kgUrl.httpClient.Get(kgUrl.url)
+	defer close(errChan)
+	if err != nil {
+		fmt.Println(err)
+		errChan <- err
+		return
+	}
+	defer resp.Body.Close()
+	err = json.NewDecoder(resp.Body).Decode(jsonUnmarshalStruct)
+	if err != nil {
+		fmt.Println(err)
+		errChan <- err
+		return
+	}
+	errChan <- nil
 }

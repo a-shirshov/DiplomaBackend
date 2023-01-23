@@ -4,9 +4,13 @@ import (
 	"Diploma/internal/customErrors"
 	"Diploma/internal/microservices/user"
 	"Diploma/internal/models"
+	"Diploma/pkg/kudagoUrl"
 	"Diploma/utils"
+	"fmt"
 	"net/http"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -106,4 +110,44 @@ func (uD *UserDelivery) UpdateUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK,newUser)
+}
+
+func (uD *UserDelivery) GetFavourites(c *gin.Context) {
+	userIDString := c.Param("id")
+	userID, err := strconv.Atoi(userIDString)
+	if err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	favouriteEvents := models.MyEvents{}
+	favouriteEvents.Events = []models.MyEvent{}
+
+	favouriteEventIDs, err := uD.userUsecase.GetFavouriteKudagoEventsIDs(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	httpClient :=  &http.Client{Timeout: 10 * time.Second}
+	var wg sync.WaitGroup
+	for _, id := range favouriteEventIDs {
+		eventID := id
+		wg.Add(1)
+		go func() {	
+			defer wg.Done()
+			kudagoEvent := &models.KudaGoResult{}
+			eventErr := make(chan error, 1)
+			kudaGoURL := kudagoUrl.NewKudaGoUrl(kudagoUrl.KudaGoEventURL, httpClient)
+			kudaGoURL.AddEventId(fmt.Sprintf("%d", eventID))
+			kudaGoURL.AddEventFields()
+			kudaGoURL.SendKudagoRequestAndParseToStruct(kudagoEvent, eventErr)
+			if <-eventErr != nil {
+				return
+			}
+			favouriteEvents.Events = append(favouriteEvents.Events, utils.ToMyEvent(kudagoEvent))
+		}()
+	}
+	wg.Wait()
+	c.JSON(http.StatusOK, favouriteEvents)
 }

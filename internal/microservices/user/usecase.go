@@ -7,4 +7,5 @@ import (
 type Usecase interface {
 	GetUser(int) (*models.User, error)
 	UpdateUser(*models.User) (*models.User, error)
+	GetFavouriteKudagoEventsIDs(userID int) ([]int, error)
 }
