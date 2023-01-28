@@ -185,7 +185,10 @@ func (aD *AuthDelivery) SendEmail(c *gin.Context) {
 
 	d := gomail.NewDialer(smtpHost, smtpPort, from, password)
 
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
+	d.TLSConfig = &tls.Config{
+		InsecureSkipVerify: false,
+		ServerName: viper.GetString("DOMAIN_NAME"),
+	}
 
 	if err := d.DialAndSend(m); err != nil {
 		fmt.Println(err)
