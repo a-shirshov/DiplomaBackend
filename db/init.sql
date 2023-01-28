@@ -26,6 +26,12 @@ CREATE TABLE IF NOT EXISTS "kudago_meeting" (
     event_id int references "kudago_event"(event_id) on delete cascade not null
 );
 
+create table if not exists "kudago_favourite" (
+    id serial not null UNIQUE,
+    user_id int not null,
+    event_id int not null
+);
+
 create or replace function update_kudago_event_people_count_up() returns trigger as $update_kudago_event_people_count_up$
 begin
     update kudago_event set people_count = (people_count + 1) where event_id = new.event_id;

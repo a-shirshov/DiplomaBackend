@@ -5,10 +5,14 @@ import (
 	"Diploma/internal/microservices/auth"
 	"Diploma/internal/models"
 	"Diploma/utils"
+	"crypto/tls"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	gomail "gopkg.in/mail.v2"
 )
 
 type AuthDelivery struct {
@@ -143,7 +147,7 @@ func (uD *AuthDelivery) Logout(c *gin.Context) {
 // @Failure 422 {object} models.ErrorMessageBadRequest
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /auth/refresh [post]
-func (uD *AuthDelivery) Refresh(c *gin.Context) {
+func (aD *AuthDelivery) Refresh(c *gin.Context) {
 	var inputTokens models.Tokens
 	if err := c.ShouldBindJSON(&inputTokens); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, models.ErrorMessage{
@@ -153,7 +157,7 @@ func (uD *AuthDelivery) Refresh(c *gin.Context) {
 	}
 	
 	log.Print("Refresh token:", inputTokens.RefreshToken)
-	tokens, err := uD.authUsecase.Refresh(inputTokens.RefreshToken)
+	tokens, err := aD.authUsecase.Refresh(inputTokens.RefreshToken)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
@@ -162,3 +166,54 @@ func (uD *AuthDelivery) Refresh(c *gin.Context) {
 	c.JSON(http.StatusOK, tokens)
 }
 
+func (aD *AuthDelivery) SendEmail(c *gin.Context) {
+	m := gomail.NewMessage()
+	from := viper.GetString("EMAIL_SENDER")
+	m.SetHeader("From", from)
+
+	to := viper.GetString("EMAIL_TO")
+	m.SetHeader("To", to)
+
+	m.SetHeader("Subject", "Gomail test subject")
+
+	m.SetBody("text/html","Ваш подтверждающий код для смены пароля: <b>312341<b>")
+
+	password := viper.GetString("EMAIL_PASSWORD")
+
+	smtpHost := viper.GetString("SMTP_HOST")
+  	smtpPort := viper.GetInt("SMTP_PORT")
+
+	d := gomail.NewDialer(smtpHost, smtpPort, from, password)
+
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
+
+	if err := d.DialAndSend(m); err != nil {
+		fmt.Println(err)
+	}
+}
+
+func (aD *AuthDelivery) SendEmailInsecure(c *gin.Context) {
+	m := gomail.NewMessage()
+	from := viper.GetString("EMAIL_SENDER")
+	m.SetHeader("From", from)
+
+	to := viper.GetString("EMAIL_TO")
+	m.SetHeader("To", to)
+
+	m.SetHeader("Subject", "Gomail test subject")
+
+	m.SetBody("text/html","Ваш подтверждающий код для смены пароля: <b>312341<b>")
+
+	password := viper.GetString("EMAIL_PASSWORD")
+
+	smtpHost := viper.GetString("SMTP_HOST")
+  	smtpPort := viper.GetInt("SMTP_PORT")
+
+	d := gomail.NewDialer(smtpHost, smtpPort, from, password)
+
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+	if err := d.DialAndSend(m); err != nil {
+		fmt.Println(err)
+	}
+}

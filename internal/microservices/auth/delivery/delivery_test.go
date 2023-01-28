@@ -15,6 +15,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+
 )
 
 type signInTest struct {
@@ -268,3 +269,7 @@ func TestMini(t *testing.T) {
 	c.Request, _ = http.NewRequest(http.MethodGet, "/test", nil)
 	r.ServeHTTP(resp, c.Request)
 }
+
+// func TestMail(t *testing.T){
+// 	SendEmail()
+// }
