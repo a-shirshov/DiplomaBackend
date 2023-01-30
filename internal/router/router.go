@@ -15,8 +15,8 @@ func AuthEndpoints(r *gin.RouterGroup, mws *middleware.Middlewares, aD *authD.Au
 	r.POST("/login", mws.MiddlewareValidateLoginUser(), aD.SignIn)
 	r.GET("/logout", mws.TokenAuthMiddleware(), aD.Logout)
 	r.POST("/refresh", aD.Refresh)
-	r.GET("/emailt", aD.SendEmailInsecure)
-	r.GET("/emailf", aD.SendEmail)
+	r.POST("/redeem", mws.MiddlewareValidateRedeemCode(), aD.SendEmail)
+	r.POST("/codecheck", mws.MiddlewareValidateRedeemCode(), aD.CheckRedeemCode)
 }
 
 func UserEndpoints(r *gin.RouterGroup, mws *middleware.Middlewares, uD *userD.UserDelivery) {

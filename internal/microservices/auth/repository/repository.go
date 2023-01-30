@@ -16,6 +16,7 @@ const (
 	CreateUserQuery = `insert into "user" (name, surname, email, password, date_of_birth, city, img_url) values ($1, $2, $3, $4, $5, $6, $7) 
 		returning id, name, surname, email, password, date_of_birth, city, img_url;`
 	GetUserByEmailQuery = `select id, name, surname, email, password, date_of_birth, city, about, img_url from "user" where email = $1;`
+	UpdatePasswordQuery = `update "user" set password = $1 where email = $2;`
 )
 
 type AuthRepository struct {
@@ -28,12 +29,12 @@ func NewAuthRepository(db *sqlx.DB) *AuthRepository {
 	}
 }
 
-func (uR *AuthRepository) CreateUser(inputUser *models.User) (*models.User, error) {
+func (aR *AuthRepository) CreateUser(inputUser *models.User) (*models.User, error) {
 	message := logMessage + "CreateUser:"
 	log.Debug(message + "started")
 	user := models.User{}
 
-	err := uR.db.QueryRowx(CreateUserQuery, 
+	err := aR.db.QueryRowx(CreateUserQuery, 
 		&inputUser.Name, 
 		&inputUser.Surname, 
 		&inputUser.Email, 
@@ -53,11 +54,11 @@ func (uR *AuthRepository) CreateUser(inputUser *models.User) (*models.User, erro
 	return &user, nil
 }
 
-func (uR *AuthRepository) GetUserByEmail(email string) (*models.User, error) {
+func (aR *AuthRepository) GetUserByEmail(email string) (*models.User, error) {
 	message := logMessage + "GetUserByEmail:"
 	log.Debug(message + "started")
 	user := models.User{}
-	err := uR.db.Get(&user, GetUserByEmailQuery, email)
+	err := aR.db.Get(&user, GetUserByEmailQuery, email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return &user, customErrors.ErrWrongEmail
@@ -66,4 +67,11 @@ func (uR *AuthRepository) GetUserByEmail(email string) (*models.User, error) {
 		return &user, customErrors.ErrPostgres
 	}
 	return &user, nil
+}
+
+func (aR *AuthRepository) UpdatePassword(passwordHash string, email string) (error) {
+	message := logMessage + "UpdatePassword:"
+	log.Debug(message + "started")
+	_, err := aR.db.Exec(UpdatePasswordQuery, passwordHash, email)
+	return err
 }

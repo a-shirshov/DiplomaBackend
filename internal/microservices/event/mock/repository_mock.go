@@ -34,18 +34,19 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
-// AddEventToFavourite mocks base method.
-func (m *MockRepository) AddEventToFavourite(userID, eventID int) error {
+// CheckKudaGoFavourite mocks base method.
+func (m *MockRepository) CheckKudaGoFavourite(userID, eventID int) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddEventToFavourite", userID, eventID)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "CheckKudaGoFavourite", userID, eventID)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// AddEventToFavourite indicates an expected call of AddEventToFavourite.
-func (mr *MockRepositoryMockRecorder) AddEventToFavourite(userID, eventID interface{}) *gomock.Call {
+// CheckKudaGoFavourite indicates an expected call of CheckKudaGoFavourite.
+func (mr *MockRepositoryMockRecorder) CheckKudaGoFavourite(userID, eventID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEventToFavourite", reflect.TypeOf((*MockRepository)(nil).AddEventToFavourite), userID, eventID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckKudaGoFavourite", reflect.TypeOf((*MockRepository)(nil).CheckKudaGoFavourite), userID, eventID)
 }
 
 // CheckKudaGoMeeting mocks base method.
@@ -120,6 +121,20 @@ func (m *MockRepository) GetPeopleCount(placeID int) (int, error) {
 func (mr *MockRepositoryMockRecorder) GetPeopleCount(placeID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPeopleCount", reflect.TypeOf((*MockRepository)(nil).GetPeopleCount), placeID)
+}
+
+// SwitchEventFavourite mocks base method.
+func (m *MockRepository) SwitchEventFavourite(userID, eventID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SwitchEventFavourite", userID, eventID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SwitchEventFavourite indicates an expected call of SwitchEventFavourite.
+func (mr *MockRepositoryMockRecorder) SwitchEventFavourite(userID, eventID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SwitchEventFavourite", reflect.TypeOf((*MockRepository)(nil).SwitchEventFavourite), userID, eventID)
 }
 
 // SwitchEventMeeting mocks base method.

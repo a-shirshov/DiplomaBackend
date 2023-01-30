@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"strconv"
+	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/spf13/viper"
@@ -148,4 +150,42 @@ func checkToken(refreshToken string) (*jwt.Token, error) {
 	}
 
 	return token, nil
+}
+
+func (aU *authUsecase) FindUserByEmail(email string) (*models.User, error) {
+	return aU.authRepo.GetUserByEmail(email)
+}
+
+func (aU *authUsecase) CreateAndSavePasswordRedeemCode(email string) (int, error) {
+	redeemCode := createRedeemCode()
+	err := aU.sessionRepo.SavePasswordRedeemCode(email, redeemCode)
+	return redeemCode, err
+}
+
+func createRedeemCode() int {
+	max := 10
+	min := 0
+	var resultCode int 
+	multiplier := 1
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < 6; i++ {
+		number := rand.Intn(max - min) + min
+		resultCode = resultCode + number * multiplier
+		multiplier *= 10
+	}
+	return resultCode
+}
+
+func (aU *authUsecase) CheckRedeemCode(rdc models.RedeemCodeStruct) (error) {
+	err :=  aU.sessionRepo.CheckRedeemCode(rdc.Email, rdc.RedeemCode)
+	if err != nil {
+		return err
+	}
+
+	hash, err := aU.passwordHasher.GenerateHashFromPassword(rdc.Password)
+	if err != nil {
+		return err
+	}
+
+	return aU.authRepo.UpdatePassword(hash, rdc.Email)
 }

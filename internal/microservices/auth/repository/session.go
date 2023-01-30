@@ -2,11 +2,25 @@ package repository
 
 import (
 	"Diploma/internal/models"
+	"encoding/json"
+	"errors"
 	"strconv"
 	"time"
 
 	"github.com/go-redis/redis"
 )
+
+type passwordRedeemStruct struct {
+	RedeemCode int
+	NumberOfFailedAttempts int
+}
+
+func newPasswordRepository(redeemCode int) (*passwordRedeemStruct) {
+	return &passwordRedeemStruct{
+		RedeemCode: redeemCode,
+		NumberOfFailedAttempts: 0,
+	}
+}
 
 type SessionRepository struct {
 	redis *redis.Client
@@ -51,4 +65,54 @@ func (sR *SessionRepository) DeleteAuth(accessUuid string) error {
 		return err
 	}
 	return nil
+}
+
+func (sR *SessionRepository) SavePasswordRedeemCode(email string, redeemCode int) error {
+	redeemStruct := newPasswordRepository(redeemCode)
+	redeemStructJSON, err := json.Marshal(redeemStruct)
+	if err != nil {
+		return err
+	}
+	return sR.redis.Set(email, redeemStructJSON, time.Hour).Err()
+}
+
+func (sR *SessionRepository) CheckRedeemCode(email string, redeemCode int) error {
+	redeemStructJSON, err := sR.redis.Get(email).Result()
+	if err != nil {
+		return errors.New("something went wrong")
+	}
+	var redeemStruct passwordRedeemStruct
+	err = json.Unmarshal([]byte(redeemStructJSON), &redeemStruct)
+	if err != nil {
+		return err
+	}
+
+	if (redeemCode == redeemStruct.RedeemCode) {
+		_, err := sR.redis.Del(email).Result()
+		if err != nil {
+			return errors.New("something went wrong")
+		}
+		return nil
+	}
+
+	redeemStruct.NumberOfFailedAttempts++
+	if redeemStruct.NumberOfFailedAttempts >= 3 {
+		_, err := sR.redis.Del(email).Result()
+		if err != nil {
+			return errors.New("something went wrong")
+		}
+		return errors.New("redeem code has been expired")
+	}
+
+	saveJSON, err := json.Marshal(redeemStruct)
+	if err != nil {
+		return err
+	}
+
+	err = sR.redis.Set(email, saveJSON, time.Hour).Err()
+	if err != nil {
+		return err
+	}
+
+	return errors.New("wrong redeem code")
 }

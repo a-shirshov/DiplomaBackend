@@ -9,4 +9,7 @@ type Usecase interface {
 	SignIn(*models.LoginUser) (*models.User, *models.TokenDetails, error)
 	Logout(*models.AccessDetails) error
 	Refresh(string) (*models.Tokens, error)
+	FindUserByEmail(email string) (*models.User, error)
+	CreateAndSavePasswordRedeemCode(email string) (int, error)
+	CheckRedeemCode(models.RedeemCodeStruct) error
 }

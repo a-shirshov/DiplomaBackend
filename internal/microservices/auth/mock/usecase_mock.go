@@ -34,6 +34,35 @@ func (m *MockUsecase) EXPECT() *MockUsecaseMockRecorder {
 	return m.recorder
 }
 
+// CheckRedeemCode mocks base method.
+func (m *MockUsecase) CheckRedeemCode(arg0 models.RedeemCodeStruct) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckRedeemCode", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CheckRedeemCode indicates an expected call of CheckRedeemCode.
+func (mr *MockUsecaseMockRecorder) CheckRedeemCode(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckRedeemCode", reflect.TypeOf((*MockUsecase)(nil).CheckRedeemCode), arg0)
+}
+
+// CreateAndSavePasswordRedeemCode mocks base method.
+func (m *MockUsecase) CreateAndSavePasswordRedeemCode(email string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAndSavePasswordRedeemCode", email)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateAndSavePasswordRedeemCode indicates an expected call of CreateAndSavePasswordRedeemCode.
+func (mr *MockUsecaseMockRecorder) CreateAndSavePasswordRedeemCode(email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAndSavePasswordRedeemCode", reflect.TypeOf((*MockUsecase)(nil).CreateAndSavePasswordRedeemCode), email)
+}
+
 // CreateUser mocks base method.
 func (m *MockUsecase) CreateUser(arg0 *models.User) (*models.User, *models.TokenDetails, error) {
 	m.ctrl.T.Helper()
@@ -48,6 +77,21 @@ func (m *MockUsecase) CreateUser(arg0 *models.User) (*models.User, *models.Token
 func (mr *MockUsecaseMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUsecase)(nil).CreateUser), arg0)
+}
+
+// FindUserByEmail mocks base method.
+func (m *MockUsecase) FindUserByEmail(email string) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindUserByEmail", email)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindUserByEmail indicates an expected call of FindUserByEmail.
+func (mr *MockUsecaseMockRecorder) FindUserByEmail(email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByEmail", reflect.TypeOf((*MockUsecase)(nil).FindUserByEmail), email)
 }
 
 // Logout mocks base method.

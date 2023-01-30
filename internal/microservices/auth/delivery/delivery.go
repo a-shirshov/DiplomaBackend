@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	gomail "gopkg.in/mail.v2"
@@ -166,17 +165,35 @@ func (aD *AuthDelivery) Refresh(c *gin.Context) {
 	c.JSON(http.StatusOK, tokens)
 }
 
-func (aD *AuthDelivery) SendEmail(c *gin.Context) {
+func (aD *AuthDelivery) SendEmail(c *gin.Context){
+	redeemCodeStruct := c.MustGet("redeem_struct").(models.RedeemCodeStruct)
+
+	user, err := aD.authUsecase.FindUserByEmail(redeemCodeStruct.Email)
+	if err != nil {
+		utils.SendErrorMessage(c,http.StatusNotFound, err.Error())
+		return
+	}
+
+	redeemCode, err := aD.authUsecase.CreateAndSavePasswordRedeemCode(user.Email)
+	if err != nil {
+		utils.SendErrorMessage(c,http.StatusNotFound, err.Error())
+		return
+	}
+
 	m := gomail.NewMessage()
 	from := viper.GetString("EMAIL_SENDER")
 	m.SetHeader("From", from)
 
-	to := viper.GetString("EMAIL_TO")
-	m.SetHeader("To", to)
+	
+	m.SetHeader("To", user.Email)
 
-	m.SetHeader("Subject", "Gomail test subject")
+	m.SetHeader("Subject", "PartyPoint. Заявка на смену пароля.")
 
-	m.SetBody("text/html","Ваш подтверждающий код для смены пароля: <b>312341<b>")
+	resultMessage := fmt.Sprintf("%s%s.\n\n%s%d.\n%s\n\n%s",
+	"Здравствуйте, ", user.Name, "Ваш проверочный код для смены пароля:", redeemCode, 
+	"Если вы не делали заявку на смену пароля, игнорируйте это сообщение.", "C уважением, команда Partypoint.")
+
+	m.SetBody("text/plain", resultMessage)
 
 	password := viper.GetString("EMAIL_PASSWORD")
 
@@ -192,31 +209,20 @@ func (aD *AuthDelivery) SendEmail(c *gin.Context) {
 
 	if err := d.DialAndSend(m); err != nil {
 		fmt.Println(err)
+		utils.SendErrorMessage(c, http.StatusBadRequest, "Something went wrong")
+		return
 	}
+	c.JSON(http.StatusOK, "OK")
 }
 
-func (aD *AuthDelivery) SendEmailInsecure(c *gin.Context) {
-	m := gomail.NewMessage()
-	from := viper.GetString("EMAIL_SENDER")
-	m.SetHeader("From", from)
+func (aD *AuthDelivery) CheckRedeemCode(c *gin.Context) {
+	redeemCodeStruct := c.MustGet("redeem_struct").(models.RedeemCodeStruct)
 
-	to := viper.GetString("EMAIL_TO")
-	m.SetHeader("To", to)
-
-	m.SetHeader("Subject", "Gomail test subject")
-
-	m.SetBody("text/html","Ваш подтверждающий код для смены пароля: <b>312341<b>")
-
-	password := viper.GetString("EMAIL_PASSWORD")
-
-	smtpHost := viper.GetString("SMTP_HOST")
-  	smtpPort := viper.GetInt("SMTP_PORT")
-
-	d := gomail.NewDialer(smtpHost, smtpPort, from, password)
-
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
-	if err := d.DialAndSend(m); err != nil {
-		fmt.Println(err)
+	err := aD.authUsecase.CheckRedeemCode(redeemCodeStruct)
+	if err != nil {
+		utils.SendErrorMessage(c, http.StatusBadRequest, "Something went wrong")
+		return
 	}
+
+	c.JSON(http.StatusOK, "OK")
 }

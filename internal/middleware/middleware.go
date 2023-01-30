@@ -154,3 +154,28 @@ func (m *Middlewares) MiddlewareValidateUserFormData() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func (m *Middlewares) MiddlewareValidateRedeemCode() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var inputRedeemCode *models.RedeemCodeStruct
+		err := c.ShouldBindJSON(&inputRedeemCode)
+		if err != nil {
+			log.Println(err)
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
+				Message: customErrors.ErrWrongJson.Error(),
+			})
+			return
+		}
+
+		err = utils.ValidateAndSanitize(inputRedeemCode)
+		if err != nil {
+			log.Println(err)
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
+				Message: err.Error(),
+			})
+			return
+		}
+		c.Set("redeem_struct", *inputRedeemCode)
+		c.Next()
+	}
+}

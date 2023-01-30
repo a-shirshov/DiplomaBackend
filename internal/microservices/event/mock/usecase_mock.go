@@ -34,20 +34,6 @@ func (m *MockUsecase) EXPECT() *MockUsecaseMockRecorder {
 	return m.recorder
 }
 
-// AddEventToFavourite mocks base method.
-func (m *MockUsecase) AddEventToFavourite(userID, eventID int) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddEventToFavourite", userID, eventID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// AddEventToFavourite indicates an expected call of AddEventToFavourite.
-func (mr *MockUsecaseMockRecorder) AddEventToFavourite(userID, eventID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEventToFavourite", reflect.TypeOf((*MockUsecase)(nil).AddEventToFavourite), userID, eventID)
-}
-
 // GetEvent mocks base method.
 func (m *MockUsecase) GetEvent(eventId int) (*models.Event, error) {
 	m.ctrl.T.Helper()
@@ -79,19 +65,34 @@ func (mr *MockUsecaseMockRecorder) GetEvents(page interface{}) *gomock.Call {
 }
 
 // GetPeopleCountAndCheckMeeting mocks base method.
-func (m *MockUsecase) GetPeopleCountAndCheckMeeting(userID, eventID int) (int, bool, error) {
+func (m *MockUsecase) GetPeopleCountAndCheckMeeting(userID, eventID int) (int, bool, bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPeopleCountAndCheckMeeting", userID, eventID)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(bool)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret2, _ := ret[2].(bool)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // GetPeopleCountAndCheckMeeting indicates an expected call of GetPeopleCountAndCheckMeeting.
 func (mr *MockUsecaseMockRecorder) GetPeopleCountAndCheckMeeting(userID, eventID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPeopleCountAndCheckMeeting", reflect.TypeOf((*MockUsecase)(nil).GetPeopleCountAndCheckMeeting), userID, eventID)
+}
+
+// SwitchEventFavourite mocks base method.
+func (m *MockUsecase) SwitchEventFavourite(userID, eventID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SwitchEventFavourite", userID, eventID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SwitchEventFavourite indicates an expected call of SwitchEventFavourite.
+func (mr *MockUsecaseMockRecorder) SwitchEventFavourite(userID, eventID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SwitchEventFavourite", reflect.TypeOf((*MockUsecase)(nil).SwitchEventFavourite), userID, eventID)
 }
 
 // SwitchEventMeeting mocks base method.

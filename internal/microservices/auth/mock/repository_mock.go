@@ -64,6 +64,20 @@ func (mr *MockRepositoryMockRecorder) GetUserByEmail(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockRepository)(nil).GetUserByEmail), arg0)
 }
 
+// UpdatePassword mocks base method.
+func (m *MockRepository) UpdatePassword(passwordHash, email string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePassword", passwordHash, email)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePassword indicates an expected call of UpdatePassword.
+func (mr *MockRepositoryMockRecorder) UpdatePassword(passwordHash, email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockRepository)(nil).UpdatePassword), passwordHash, email)
+}
+
 // MockSessionRepository is a mock of SessionRepository interface.
 type MockSessionRepository struct {
 	ctrl     *gomock.Controller
@@ -85,6 +99,20 @@ func NewMockSessionRepository(ctrl *gomock.Controller) *MockSessionRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSessionRepository) EXPECT() *MockSessionRepositoryMockRecorder {
 	return m.recorder
+}
+
+// CheckRedeemCode mocks base method.
+func (m *MockSessionRepository) CheckRedeemCode(email string, redeemCode int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckRedeemCode", email, redeemCode)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CheckRedeemCode indicates an expected call of CheckRedeemCode.
+func (mr *MockSessionRepositoryMockRecorder) CheckRedeemCode(email, redeemCode interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckRedeemCode", reflect.TypeOf((*MockSessionRepository)(nil).CheckRedeemCode), email, redeemCode)
 }
 
 // DeleteAuth mocks base method.
@@ -114,6 +142,20 @@ func (m *MockSessionRepository) FetchAuth(accessUuid string) (int, error) {
 func (mr *MockSessionRepositoryMockRecorder) FetchAuth(accessUuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchAuth", reflect.TypeOf((*MockSessionRepository)(nil).FetchAuth), accessUuid)
+}
+
+// SavePasswordRedeemCode mocks base method.
+func (m *MockSessionRepository) SavePasswordRedeemCode(email string, redeemCode int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SavePasswordRedeemCode", email, redeemCode)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SavePasswordRedeemCode indicates an expected call of SavePasswordRedeemCode.
+func (mr *MockSessionRepositoryMockRecorder) SavePasswordRedeemCode(email, redeemCode interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePasswordRedeemCode", reflect.TypeOf((*MockSessionRepository)(nil).SavePasswordRedeemCode), email, redeemCode)
 }
 
 // SaveTokens mocks base method.
