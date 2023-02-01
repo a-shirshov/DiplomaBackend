@@ -133,6 +133,7 @@ func (m *Middlewares) MiddlewareValidateLoginUser() gin.HandlerFunc {
 func (m *Middlewares) MiddlewareValidateUserFormData() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		inputUser := c.Request.FormValue("json")
+		log.Println(inputUser)
 		user := new(models.User)
 		err := json.Unmarshal([]byte(inputUser), &user)
 		if err != nil {
