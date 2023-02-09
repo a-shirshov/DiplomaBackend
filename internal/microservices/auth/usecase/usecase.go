@@ -45,7 +45,7 @@ func (aU *authUsecase) CreateUser(user *models.User) (*models.User, *models.Toke
 		return nil, nil, err
 	}
 
-	resultUser.ImgUrl = utils.BuildImgUrl(resultUser.ImgUrl)
+	resultUser.ImgUrl = utils.TryBuildImgUrl(resultUser.ImgUrl)
 
 	td, err := aU.tokenManager.CreateToken(resultUser.ID)
 	if err != nil {
@@ -66,7 +66,7 @@ func (aU *authUsecase) SignIn(user *models.LoginUser) (*models.User, *models.Tok
 		return nil, nil, err
 	}
 
-	resultUser.ImgUrl = utils.BuildImgUrl(resultUser.ImgUrl)
+	resultUser.ImgUrl = utils.TryBuildImgUrl(resultUser.ImgUrl)
 
 	_, err = aU.passwordHasher.VerifyPassword(user.Password, resultUser.Password)
 	if err != nil {
@@ -157,8 +157,13 @@ func (aU *authUsecase) FindUserByEmail(email string) (*models.User, error) {
 }
 
 func (aU *authUsecase) CreateAndSavePasswordRedeemCode(email string) (int, error) {
+	_, err := aU.authRepo.GetUserByEmail(email)
+	if err != nil {
+		return 0, err
+	}
+
 	redeemCode := createRedeemCode()
-	err := aU.sessionRepo.SavePasswordRedeemCode(email, redeemCode)
+	err = aU.sessionRepo.SavePasswordRedeemCode(email, redeemCode)
 	return redeemCode, err
 }
 
@@ -176,10 +181,14 @@ func createRedeemCode() int {
 	return resultCode
 }
 
-func (aU *authUsecase) CheckRedeemCode(rdc models.RedeemCodeStruct) (error) {
-	err :=  aU.sessionRepo.CheckRedeemCode(rdc.Email, rdc.RedeemCode)
-	if err != nil {
-		return err
+func (aU *authUsecase) CheckRedeemCode(rdc *models.RedeemCodeStruct) (error) {
+	return aU.sessionRepo.CheckRedeemCode(rdc.Email, rdc.RedeemCode)
+}
+
+func (aU *authUsecase) UpdatePassword(rdc *models.RedeemCodeStruct) (error) {
+	allowed := aU.sessionRepo.CheckAccessToNewPassword(rdc.Email)
+	if !allowed {
+		return errors.New("operation is not allowed")
 	}
 
 	hash, err := aU.passwordHasher.GenerateHashFromPassword(rdc.Password)

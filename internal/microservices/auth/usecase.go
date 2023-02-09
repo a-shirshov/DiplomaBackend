@@ -11,5 +11,6 @@ type Usecase interface {
 	Refresh(string) (*models.Tokens, error)
 	FindUserByEmail(email string) (*models.User, error)
 	CreateAndSavePasswordRedeemCode(email string) (int, error)
-	CheckRedeemCode(models.RedeemCodeStruct) error
+	CheckRedeemCode(rdc *models.RedeemCodeStruct) error
+	UpdatePassword(rdc *models.RedeemCodeStruct) (error)
 }

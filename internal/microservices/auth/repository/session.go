@@ -13,12 +13,14 @@ import (
 type passwordRedeemStruct struct {
 	RedeemCode int
 	NumberOfFailedAttempts int
+	AcceptedToChange bool
 }
 
-func newPasswordRepository(redeemCode int) (*passwordRedeemStruct) {
+func newPasswordRedeem(redeemCode int) (*passwordRedeemStruct) {
 	return &passwordRedeemStruct{
 		RedeemCode: redeemCode,
 		NumberOfFailedAttempts: 0,
+		AcceptedToChange: false,
 	}
 }
 
@@ -68,7 +70,7 @@ func (sR *SessionRepository) DeleteAuth(accessUuid string) error {
 }
 
 func (sR *SessionRepository) SavePasswordRedeemCode(email string, redeemCode int) error {
-	redeemStruct := newPasswordRepository(redeemCode)
+	redeemStruct := newPasswordRedeem(redeemCode)
 	redeemStructJSON, err := json.Marshal(redeemStruct)
 	if err != nil {
 		return err
@@ -88,7 +90,12 @@ func (sR *SessionRepository) CheckRedeemCode(email string, redeemCode int) error
 	}
 
 	if (redeemCode == redeemStruct.RedeemCode) {
-		_, err := sR.redis.Del(email).Result()
+		redeemStruct.AcceptedToChange = true
+		saveJSON, err := json.Marshal(redeemStruct)
+		if err != nil {
+			return err
+		}
+		err = sR.redis.Set(email, saveJSON, time.Hour).Err()
 		if err != nil {
 			return errors.New("something went wrong")
 		}
@@ -115,4 +122,28 @@ func (sR *SessionRepository) CheckRedeemCode(email string, redeemCode int) error
 	}
 
 	return errors.New("wrong redeem code")
+}
+
+func (sR *SessionRepository) CheckAccessToNewPassword(email string) (bool) {
+	isAccepted := false
+	redeemStructJSON, err := sR.redis.Get(email).Result()
+	if err != nil {
+		return isAccepted
+	}
+
+	var redeemStruct passwordRedeemStruct
+	err = json.Unmarshal([]byte(redeemStructJSON), &redeemStruct)
+	if err != nil {
+		return isAccepted
+	}
+
+	if redeemStruct.AcceptedToChange {
+		_, err := sR.redis.Del(email).Result()
+		if err != nil {
+			return false
+		}
+		return redeemStruct.AcceptedToChange
+	}
+
+	return false
 }

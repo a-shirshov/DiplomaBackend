@@ -5,7 +5,6 @@
 package mock
 
 import (
-	models "Diploma/internal/models"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,51 +33,49 @@ func (m *MockUsecase) EXPECT() *MockUsecaseMockRecorder {
 	return m.recorder
 }
 
-// GetEvent mocks base method.
-func (m *MockUsecase) GetEvent(eventId int) (*models.Event, error) {
+// CheckKudaGoFavourite mocks base method.
+func (m *MockUsecase) CheckKudaGoFavourite(userID, eventID int) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEvent", eventId)
-	ret0, _ := ret[0].(*models.Event)
+	ret := m.ctrl.Call(m, "CheckKudaGoFavourite", userID, eventID)
+	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetEvent indicates an expected call of GetEvent.
-func (mr *MockUsecaseMockRecorder) GetEvent(eventId interface{}) *gomock.Call {
+// CheckKudaGoFavourite indicates an expected call of CheckKudaGoFavourite.
+func (mr *MockUsecaseMockRecorder) CheckKudaGoFavourite(userID, eventID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvent", reflect.TypeOf((*MockUsecase)(nil).GetEvent), eventId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckKudaGoFavourite", reflect.TypeOf((*MockUsecase)(nil).CheckKudaGoFavourite), userID, eventID)
 }
 
-// GetEvents mocks base method.
-func (m *MockUsecase) GetEvents(page int) ([]*models.Event, error) {
+// CheckKudaGoMeeting mocks base method.
+func (m *MockUsecase) CheckKudaGoMeeting(userID, eventID int) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEvents", page)
-	ret0, _ := ret[0].([]*models.Event)
+	ret := m.ctrl.Call(m, "CheckKudaGoMeeting", userID, eventID)
+	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetEvents indicates an expected call of GetEvents.
-func (mr *MockUsecaseMockRecorder) GetEvents(page interface{}) *gomock.Call {
+// CheckKudaGoMeeting indicates an expected call of CheckKudaGoMeeting.
+func (mr *MockUsecaseMockRecorder) CheckKudaGoMeeting(userID, eventID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvents", reflect.TypeOf((*MockUsecase)(nil).GetEvents), page)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckKudaGoMeeting", reflect.TypeOf((*MockUsecase)(nil).CheckKudaGoMeeting), userID, eventID)
 }
 
-// GetPeopleCountAndCheckMeeting mocks base method.
-func (m *MockUsecase) GetPeopleCountAndCheckMeeting(userID, eventID int) (int, bool, bool, error) {
+// GetPeopleCountWithEventCreatedIfNecessary mocks base method.
+func (m *MockUsecase) GetPeopleCountWithEventCreatedIfNecessary(eventID int) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPeopleCountAndCheckMeeting", userID, eventID)
+	ret := m.ctrl.Call(m, "GetPeopleCountWithEventCreatedIfNecessary", eventID)
 	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(bool)
-	ret2, _ := ret[2].(bool)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// GetPeopleCountAndCheckMeeting indicates an expected call of GetPeopleCountAndCheckMeeting.
-func (mr *MockUsecaseMockRecorder) GetPeopleCountAndCheckMeeting(userID, eventID interface{}) *gomock.Call {
+// GetPeopleCountWithEventCreatedIfNecessary indicates an expected call of GetPeopleCountWithEventCreatedIfNecessary.
+func (mr *MockUsecaseMockRecorder) GetPeopleCountWithEventCreatedIfNecessary(eventID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPeopleCountAndCheckMeeting", reflect.TypeOf((*MockUsecase)(nil).GetPeopleCountAndCheckMeeting), userID, eventID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPeopleCountWithEventCreatedIfNecessary", reflect.TypeOf((*MockUsecase)(nil).GetPeopleCountWithEventCreatedIfNecessary), eventID)
 }
 
 // SwitchEventFavourite mocks base method.

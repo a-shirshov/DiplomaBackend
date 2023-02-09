@@ -3,75 +3,22 @@ package usecase
 import (
 	"Diploma/internal/customErrors"
 	"Diploma/internal/microservices/event/mock"
-	"Diploma/internal/models"
 	"database/sql"
-	// "testing"
+	"testing"
 
-	// "github.com/golang/mock/gomock"
-	// "github.com/stretchr/testify/assert"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
-type getEventTest struct {
-	eventId int
-	outputEvent *models.Event
-	outputErr error
-}
-
-type getEventsTest struct {
-	page int
-	placeId int
-	outputEvents []*models.Event
-	outputErr error
-}
-
-var getEventTests = []getEventTest{
-	{
-		1, &models.Event{
-			ID: 1,
-			Name: "Name_1",
-			Description: "Description_1",
-			About: "About_1",
-			Category: "Category_1",
-			Tags: []string{"Tag_1"," Tag_2"},
-			SpecialInfo: "SpecialInfo_1",
-		}, nil,
-	},
-}
-
-var getEventsTests = []getEventsTest{
-	{
-		1, 1, []*models.Event{
-			{
-				ID: 1,
-				Name: "Name_1",
-				Description: "Description_1",
-				About: "About_1",
-				Category: "Category_1",
-				Tags: []string{"Tag_1"," Tag_2"},
-				SpecialInfo: "SpecialInfo_1",
-			},
-			{
-				ID: 2,
-				Name: "Name_2",
-				Description: "Description_2",
-				About: "About_2",
-				Category: "Category_2",
-				Tags: []string{"Tag_1"," Tag_2"},
-				SpecialInfo: "SpecialInfo_2",
-			},
-		}, nil,
-	},
-}
-
-type getPeopleCountTest struct {
+type getPeopleCountWithEventCreatedIfNecessaryTest struct {
 	name string
-	inputPlaceID int
+	inputEventID int
 	beforeTest func(eventRepo *mock.MockRepository)
 	outputPeopleCount int
 	outputErr error
 }
 
-var getPeopleCountTests = []getPeopleCountTest {
+var getPeopleCountWithEventCreatedIfNecessaryTests = []getPeopleCountWithEventCreatedIfNecessaryTest {
 	{
 		"Successfully got count from existing event",
 		1,
@@ -126,42 +73,182 @@ var getPeopleCountTests = []getPeopleCountTest {
 	},
 }
 
-// func TestGetEvent(t *testing.T) {
-// 	placeRepositoryMock := new(mock.EventRepositoryMock)
-// 	eventUsecaseTest := NewEventUsecase(placeRepositoryMock)
-// 	for _, test := range getEventTests {
-// 		placeRepositoryMock.On("GetEvent",test.eventId).Return(test.outputEvent, test.outputErr)
-// 		actualEvent, actualErr := eventUsecaseTest.GetEvent(test.eventId)
-// 		assert.Equal(t, test.outputEvent, actualEvent)
-// 		assert.Nil(t, actualErr)
-// 	}
-// }
+type checkKudaGoMeetingTest struct {
+	name string
+	inputUserID int
+	inputEventID int
+	beforeTest func(eventRepo *mock.MockRepository)
+	expectedIsGoing bool
+	outputErr error
+}
 
-// func TestGetEvents(t *testing.T) {
-// 	placeRepositoryMock := new(mock.EventRepositoryMock)
-// 	eventUsecaseTest := NewEventUsecase(placeRepositoryMock)
-// 	for _, test := range getEventsTests {
-// 		placeRepositoryMock.On("GetEvents", test.page).Return(test.outputEvents, test.outputErr)
-// 		actualEvents, actualErr := eventUsecaseTest.GetEvents(test.page)
-// 		assert.Equal(t, test.outputEvents, actualEvents)
-// 		assert.Nil(t, actualErr)
-// 	}
-// }
+var checkKudaGoMeetingTests = []checkKudaGoMeetingTest {
+	{
+		"Found meeting",
+		1,
+		1,
+		func(eventRepo *mock.MockRepository) {
+			eventRepo.EXPECT().
+				CheckKudaGoMeeting(1, 1).
+				Return(true, nil)
+		},
+		true,
+		nil,
+	},
+}
 
-// func TestGetPeopleCount(t *testing.T) {
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
+type checkKudaGoFavouriteTest struct {
+	name string
+	inputUserID int
+	inputEventID int
+	beforeTest func(eventRepo *mock.MockRepository)
+	expectedIsFavourite bool
+	outputErr error
+}
+
+var checkKudaGoFavouriteTests = []checkKudaGoFavouriteTest {
+	{
+		"Found favourite",
+		1,
+		1,
+		func(eventRepo *mock.MockRepository) {
+			eventRepo.EXPECT().
+				CheckKudaGoFavourite(1, 1).
+				Return(true, nil)
+		},
+		true,
+		nil,
+	},
+}
+
+type switchKudaGoMeetingTest struct {
+	name string
+	inputUserID int
+	inputEventID int
+	beforeTest func(eventRepo *mock.MockRepository)
+	outputErr error
+}
+
+var switchKudaGoMeetingTests = []switchKudaGoMeetingTest {
+	{
+		"Switched favourite",
+		1,
+		1,
+		func(eventRepo *mock.MockRepository) {
+			eventRepo.EXPECT().
+				SwitchEventMeeting(1, 1).
+				Return(nil)
+		},
+		nil,
+	},
+}
+
+type switchKudaGoFavouriteTest struct {
+	name string
+	inputUserID int
+	inputEventID int
+	beforeTest func(eventRepo *mock.MockRepository)
+	outputErr error
+}
+
+var switchKudaGoFavouriteTests = []switchKudaGoFavouriteTest {
+	{
+		"Switched favourite",
+		1,
+		1,
+		func(eventRepo *mock.MockRepository) {
+			eventRepo.EXPECT().
+				SwitchEventFavourite(1, 1).
+				Return(nil)
+		},
+		nil,
+	},
+}
+
+func TestGetPeopleCountWithEventCreatedIfNecessary(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	
-// 	for _, test := range getPeopleCountTests {
-// 		t.Run(test.name, func(t *testing.T) {
-// 			EventRepositoryMock := mock.NewMockRepository(ctrl)
-// 			UsecaseTest := NewEventUsecase(EventRepositoryMock)
-// 			if test.beforeTest != nil {
-// 				test.beforeTest(EventRepositoryMock)
-// 			}
-// 			actualPeopleCount, actualErr := UsecaseTest.GetPeopleCount(test.inputPlaceID)
-// 			assert.Equal(t, test.outputPeopleCount, actualPeopleCount)
-// 			assert.Equal(t, test.outputErr, actualErr)
-// 		})
-// 	}
-// }
+	for _, test := range getPeopleCountWithEventCreatedIfNecessaryTests {
+		t.Run(test.name, func(t *testing.T) {
+			EventRepositoryMock := mock.NewMockRepository(ctrl)
+			UsecaseTest := NewEventUsecase(EventRepositoryMock)
+			if test.beforeTest != nil {
+				test.beforeTest(EventRepositoryMock)
+			}
+			actualPeopleCount, actualErr := UsecaseTest.GetPeopleCountWithEventCreatedIfNecessary(test.inputEventID)
+			assert.Equal(t, test.outputPeopleCount, actualPeopleCount)
+			assert.Equal(t, test.outputErr, actualErr)
+		})
+	}
+}
+
+func TestCheckKudaGoMeeting(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	
+	for _, test := range checkKudaGoMeetingTests {
+		t.Run(test.name, func(t *testing.T) {
+			EventRepositoryMock := mock.NewMockRepository(ctrl)
+			UsecaseTest := NewEventUsecase(EventRepositoryMock)
+			if test.beforeTest != nil {
+				test.beforeTest(EventRepositoryMock)
+			}
+			actualIsGoing, actualErr := UsecaseTest.CheckKudaGoMeeting(test.inputUserID, test.inputEventID)
+			assert.Equal(t, test.expectedIsGoing, actualIsGoing)
+			assert.Equal(t, test.outputErr, actualErr)
+		})
+	}
+}
+
+func TestCheckKudaGoFavourite(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	
+	for _, test := range checkKudaGoFavouriteTests {
+		t.Run(test.name, func(t *testing.T) {
+			EventRepositoryMock := mock.NewMockRepository(ctrl)
+			UsecaseTest := NewEventUsecase(EventRepositoryMock)
+			if test.beforeTest != nil {
+				test.beforeTest(EventRepositoryMock)
+			}
+			actualIsGoing, actualErr := UsecaseTest.CheckKudaGoFavourite(test.inputUserID, test.inputEventID)
+			assert.Equal(t, test.expectedIsFavourite, actualIsGoing)
+			assert.Equal(t, test.outputErr, actualErr)
+		})
+	}
+}
+
+func TestSwitchKudaGoFavourite(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	
+	for _, test := range switchKudaGoFavouriteTests {
+		t.Run(test.name, func(t *testing.T) {
+			EventRepositoryMock := mock.NewMockRepository(ctrl)
+			UsecaseTest := NewEventUsecase(EventRepositoryMock)
+			if test.beforeTest != nil {
+				test.beforeTest(EventRepositoryMock)
+			}
+			actualErr := UsecaseTest.SwitchEventFavourite(test.inputUserID, test.inputEventID)
+			assert.Equal(t, test.outputErr, actualErr)
+		})
+	}
+}
+
+func TestSwitchKudaGoMeeting(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	
+	for _, test := range switchKudaGoMeetingTests {
+		t.Run(test.name, func(t *testing.T) {
+			EventRepositoryMock := mock.NewMockRepository(ctrl)
+			UsecaseTest := NewEventUsecase(EventRepositoryMock)
+			if test.beforeTest != nil {
+				test.beforeTest(EventRepositoryMock)
+			}
+			actualErr := UsecaseTest.SwitchEventMeeting(test.inputUserID, test.inputEventID)
+			assert.Equal(t, test.outputErr, actualErr)
+		})
+	}
+}

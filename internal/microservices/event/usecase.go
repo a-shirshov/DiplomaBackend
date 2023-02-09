@@ -1,13 +1,9 @@
 package event
 
-import (
-	"Diploma/internal/models"
-)
-
 type Usecase interface {
-	GetEvents(page int) ([]*models.Event, error)
-	GetEvent(eventId int) (*models.Event, error)
-	GetPeopleCountAndCheckMeeting(userID int, eventID int) (int, bool, bool, error)
+	GetPeopleCountWithEventCreatedIfNecessary(eventID int) (int, error)
+	CheckKudaGoMeeting(userID, eventID int) (bool, error)
+	CheckKudaGoFavourite(userID, eventID int) (bool, error)
 	SwitchEventMeeting(userID int, eventID int) (error)
 	SwitchEventFavourite(userID int, eventID int) error
 }

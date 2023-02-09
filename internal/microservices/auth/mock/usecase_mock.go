@@ -35,17 +35,17 @@ func (m *MockUsecase) EXPECT() *MockUsecaseMockRecorder {
 }
 
 // CheckRedeemCode mocks base method.
-func (m *MockUsecase) CheckRedeemCode(arg0 models.RedeemCodeStruct) error {
+func (m *MockUsecase) CheckRedeemCode(rdc *models.RedeemCodeStruct) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckRedeemCode", arg0)
+	ret := m.ctrl.Call(m, "CheckRedeemCode", rdc)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CheckRedeemCode indicates an expected call of CheckRedeemCode.
-func (mr *MockUsecaseMockRecorder) CheckRedeemCode(arg0 interface{}) *gomock.Call {
+func (mr *MockUsecaseMockRecorder) CheckRedeemCode(rdc interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckRedeemCode", reflect.TypeOf((*MockUsecase)(nil).CheckRedeemCode), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckRedeemCode", reflect.TypeOf((*MockUsecase)(nil).CheckRedeemCode), rdc)
 }
 
 // CreateAndSavePasswordRedeemCode mocks base method.
@@ -137,4 +137,18 @@ func (m *MockUsecase) SignIn(arg0 *models.LoginUser) (*models.User, *models.Toke
 func (mr *MockUsecaseMockRecorder) SignIn(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignIn", reflect.TypeOf((*MockUsecase)(nil).SignIn), arg0)
+}
+
+// UpdatePassword mocks base method.
+func (m *MockUsecase) UpdatePassword(rdc *models.RedeemCodeStruct) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePassword", rdc)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePassword indicates an expected call of UpdatePassword.
+func (mr *MockUsecaseMockRecorder) UpdatePassword(rdc interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockUsecase)(nil).UpdatePassword), rdc)
 }

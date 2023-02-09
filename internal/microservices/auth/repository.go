@@ -16,4 +16,5 @@ type SessionRepository interface {
 	DeleteAuth(accessUuid string) error
 	SavePasswordRedeemCode(email string, redeemCode int) error
 	CheckRedeemCode(email string, redeemCode int) error
+	CheckAccessToNewPassword(email string) (bool)
 }

@@ -101,6 +101,20 @@ func (m *MockSessionRepository) EXPECT() *MockSessionRepositoryMockRecorder {
 	return m.recorder
 }
 
+// CheckAccessToNewPassword mocks base method.
+func (m *MockSessionRepository) CheckAccessToNewPassword(email string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckAccessToNewPassword", email)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// CheckAccessToNewPassword indicates an expected call of CheckAccessToNewPassword.
+func (mr *MockSessionRepositoryMockRecorder) CheckAccessToNewPassword(email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckAccessToNewPassword", reflect.TypeOf((*MockSessionRepository)(nil).CheckAccessToNewPassword), email)
+}
+
 // CheckRedeemCode mocks base method.
 func (m *MockSessionRepository) CheckRedeemCode(email string, redeemCode int) error {
 	m.ctrl.T.Helper()

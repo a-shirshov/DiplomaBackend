@@ -2,9 +2,7 @@ package usecase
 
 import (
 	"Diploma/internal/microservices/event"
-	"Diploma/internal/models"
 	"database/sql"
-	"sync"
 )
 
 type EventUsecase struct {
@@ -17,52 +15,42 @@ func NewEventUsecase(eventR event.Repository) (*EventUsecase) {
 	}
 }
 
-func (eU *EventUsecase) GetEvents(page int) ([]*models.Event, error) {
-	return eU.eventRepo.GetEvents(page)
-}
-
-func (eU *EventUsecase) GetEvent(eventId int) (*models.Event, error) {
-	return eU.eventRepo.GetEvent(eventId)
-}
-
-func (eU *EventUsecase) GetPeopleCountAndCheckMeeting(userID int, eventID int) (int, bool, bool, error) {
+func (eU *EventUsecase) GetPeopleCountWithEventCreatedIfNecessary(eventID int) (int, error) {
 	var peopleCount int
-	isGoing := false
-	isFavourite := false
 	peopleCount, err := eU.eventRepo.GetPeopleCount(eventID)
 	if err != nil {
 		if err != sql.ErrNoRows {
-			return 0, isGoing, isFavourite, err
+			return 0, err
 		}
 
 		err = eU.eventRepo.CreateKudaGoEvent(eventID)
 		if err != nil {
-			return 0, isGoing, isFavourite, err
+			return 0, err
 		}
 
 		peopleCount = 0
-		return peopleCount, isGoing, isFavourite, nil
+		return peopleCount, nil
 	}
-	if (userID != 0) {
-		var wg sync.WaitGroup
-		wg.Add(2)
-		go func(){
-			defer wg.Done()
-			isGoing, err = eU.eventRepo.CheckKudaGoMeeting(userID, eventID)
-			if err != nil {
-				return 
-			}
-		}()
-		go func(){
-			defer wg.Done()
-			isFavourite, err = eU.eventRepo.CheckKudaGoFavourite(userID, eventID)
-			if err != nil {
-				return 
-			}
-		}()
-		wg.Wait()
+
+	return peopleCount, nil
+}
+
+func (eU *EventUsecase) CheckKudaGoMeeting(userID, eventID int) (bool, error) {
+	isGoing, err := eU.eventRepo.CheckKudaGoMeeting(userID, eventID)
+	if err != nil {
+		return false, err
 	}
-	return peopleCount, isGoing, isFavourite, nil
+	
+	return isGoing, nil
+}
+
+func (eU *EventUsecase) CheckKudaGoFavourite(userID, eventID int) (bool, error) {
+	isFavourite, err := eU.eventRepo.CheckKudaGoFavourite(userID, eventID)
+	if err != nil {
+		return false, err
+	}
+	
+	return isFavourite, nil
 }
 
 func (eU *EventUsecase) SwitchEventMeeting(userID int, eventID int) (error) {

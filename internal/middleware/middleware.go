@@ -87,17 +87,13 @@ func (m *Middlewares) MiddlewareValidateUser() gin.HandlerFunc {
 		var inputUser *models.User
 		err := c.ShouldBindJSON(&inputUser)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
-				Message: customErrors.ErrWrongJson.Error(),
-			})
+			utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
 			return
 		}
 
 		err = utils.ValidateAndSanitize(inputUser)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
-				Message: err.Error(),
-			})
+			utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
 			return
 		}
 
@@ -111,17 +107,13 @@ func (m *Middlewares) MiddlewareValidateLoginUser() gin.HandlerFunc {
 		var inputUser *models.LoginUser
 		err := c.ShouldBindJSON(&inputUser)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
-				Message: customErrors.ErrWrongJson.Error(),
-			})
+			utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
 			return
 		}
 
 		err = utils.ValidateAndSanitize(inputUser)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
-				Message: err.Error(),
-			})
+			utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
 			return
 		}
 
@@ -137,17 +129,13 @@ func (m *Middlewares) MiddlewareValidateUserFormData() gin.HandlerFunc {
 		user := new(models.User)
 		err := json.Unmarshal([]byte(inputUser), &user)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
-				Message: err.Error(),
-			})
+			utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
 			return
 		}
 
 		err = utils.ValidateAndSanitize(user)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
-				Message: err.Error(),
-			})
+			utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
 			return
 		}
 
@@ -161,19 +149,13 @@ func (m *Middlewares) MiddlewareValidateRedeemCode() gin.HandlerFunc {
 		var inputRedeemCode *models.RedeemCodeStruct
 		err := c.ShouldBindJSON(&inputRedeemCode)
 		if err != nil {
-			log.Println(err)
-			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
-				Message: customErrors.ErrWrongJson.Error(),
-			})
+			utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
 			return
 		}
 
 		err = utils.ValidateAndSanitize(inputRedeemCode)
 		if err != nil {
-			log.Println(err)
-			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.ErrorMessage{
-				Message: err.Error(),
-			})
+			utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
 			return
 		}
 		c.Set("redeem_struct", *inputRedeemCode)

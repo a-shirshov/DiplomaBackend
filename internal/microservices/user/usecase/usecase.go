@@ -16,12 +16,12 @@ func NewUserUsecase(userRepo user.Repository) *userUsecase {
 	}
 }
 
-func (uU *userUsecase) GetUser(userId int) (*models.User, error) {
-	resultUser, err :=  uU.userRepo.GetUser(userId)
+func (uU *userUsecase) GetUser(userID int) (*models.User, error) {
+	resultUser, err := uU.userRepo.GetUser(userID)
 	if err != nil {
 		return &models.User{}, err
 	}
-	resultUser.ImgUrl = utils.BuildImgUrl(resultUser.ImgUrl)
+	resultUser.ImgUrl = utils.TryBuildImgUrl(resultUser.ImgUrl)
 	return resultUser, nil
 }
 
@@ -30,14 +30,21 @@ func (uU *userUsecase) UpdateUser(user *models.User) (*models.User, error) {
 	if err != nil {
 		return &models.User{}, err
 	}
-	resultUser.ImgUrl = utils.BuildImgUrl(resultUser.ImgUrl)
+
+	resultUser.ImgUrl = utils.TryBuildImgUrl(resultUser.ImgUrl)
+	return resultUser, nil
+}
+
+func (uU *userUsecase) UpdateUserImage(userID int, imgUUID string) (*models.User, error) {
+	resultUser, err := uU.userRepo.UpdateUserImage(userID, imgUUID)
+	if err != nil {
+		return &models.User{}, err
+	}
+
+	resultUser.ImgUrl = utils.TryBuildImgUrl(resultUser.ImgUrl)
 	return resultUser, nil
 }
 
 func (uU *userUsecase) GetFavouriteKudagoEventsIDs(userID int) ([]int, error) {
-	favouriteEventIDs, err := uU.userRepo.GetFavouriteKudagoEventsIDs(userID)
-	if err != nil {
-		return nil, err
-	}
-	return favouriteEventIDs, nil
+	return uU.userRepo.GetFavouriteKudagoEventsIDs(userID)
 }

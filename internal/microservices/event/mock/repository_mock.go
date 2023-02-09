@@ -5,7 +5,6 @@
 package mock
 
 import (
-	models "Diploma/internal/models"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -76,36 +75,6 @@ func (m *MockRepository) CreateKudaGoEvent(placeID int) error {
 func (mr *MockRepositoryMockRecorder) CreateKudaGoEvent(placeID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKudaGoEvent", reflect.TypeOf((*MockRepository)(nil).CreateKudaGoEvent), placeID)
-}
-
-// GetEvent mocks base method.
-func (m *MockRepository) GetEvent(eventId int) (*models.Event, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEvent", eventId)
-	ret0, _ := ret[0].(*models.Event)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetEvent indicates an expected call of GetEvent.
-func (mr *MockRepositoryMockRecorder) GetEvent(eventId interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvent", reflect.TypeOf((*MockRepository)(nil).GetEvent), eventId)
-}
-
-// GetEvents mocks base method.
-func (m *MockRepository) GetEvents(page int) ([]*models.Event, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEvents", page)
-	ret0, _ := ret[0].([]*models.Event)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetEvents indicates an expected call of GetEvents.
-func (mr *MockRepositoryMockRecorder) GetEvents(page interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvents", reflect.TypeOf((*MockRepository)(nil).GetEvents), page)
 }
 
 // GetPeopleCount mocks base method.

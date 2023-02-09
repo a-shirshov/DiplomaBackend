@@ -91,7 +91,7 @@ var signInTests = []signInTest {
 				)
 		},
 		http.StatusForbidden,
-		&models.ErrorMessage{
+		&models.Message{
 			Message: customErrors.ErrWrongEmail.Error(),
 		},
 	},
@@ -113,7 +113,7 @@ var signInTests = []signInTest {
 				)
 		},
 		http.StatusForbidden,
-		&models.ErrorMessage{
+		&models.Message{
 			Message: customErrors.ErrWrongPassword.Error(),
 		},
 	},
@@ -135,7 +135,7 @@ var signInTests = []signInTest {
 				)
 		},
 		http.StatusInternalServerError,
-		&models.ErrorMessage{
+		&models.Message{
 			Message: customErrors.ErrPostgres.Error(),
 		},
 	},

@@ -8,6 +8,7 @@ import (
 	"Diploma/utils"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -23,76 +24,6 @@ func NewEventDelivery(eventU event.Usecase) *EventDelivery {
 	}
 }
 
-// @Summary EventsList
-// @Tags Events
-// @Description GetEvents by selected page
-// @Param page query int false "Page of events"
-// @Param id path int true "Place id"
-// @Accept json
-// @Produce json
-// @Success 200 {object} []models.Event
-// @Failure 400 {object} models.ErrorMessageBadRequest
-// @Failure 500 {object} models.ErrorMessageInternalServer
-// @Router /places/{id}/events [get]
-func (eD *EventDelivery) GetEvents(c *gin.Context) {
-	pageParam := c.DefaultQuery("page", "1")
-	page, err := strconv.Atoi(pageParam)
-	if err != nil {
-		c.String(http.StatusBadRequest, "bad request")
-	}
-
-	resultEvents, err := eD.eventUsecase.GetEvents(page)
-	if err != nil {
-		c.String(http.StatusBadRequest, "no events for you")
-	}
-	c.JSON(http.StatusOK, resultEvents)
-}
-
-// @Summary One Event
-// @Tags Events
-// @Description Get Event by id
-// @Param id path int true "Event id"
-// @Accept json
-// @Produce json
-// @Success 200 {object} models.Event
-// @Failure 400 {object} models.ErrorMessageBadRequest
-// @Failure 500 {object} models.ErrorMessageInternalServer
-// @Router /events/{id} [get]
-func (eD *EventDelivery) GetEvent(c *gin.Context) {
-	eventIdString := c.Param("event_id")
-	eventId, err := strconv.Atoi(eventIdString)
-	if err != nil {
-		c.String(http.StatusBadRequest, err.Error())
-		return
-	}
-
-	event, err := eD.eventUsecase.GetEvent(eventId)
-	if err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, event)
-}
-
-// func (eD *EventDelivery) GetTodayEvents(c *gin.Context) {
-// 	page, err := utils.GetPageQueryParamFromRequest(c)
-// 	if err != nil {
-// 		log.Println(err.Error())
-// 		utils.SendErrorMessage(c, http.StatusBadRequest, err.Error())
-// 		return
-// 	}
-
-// 	events, err := eD.eventUsecase.GetTodayEvents(page)
-// 	if err != nil {
-// 		log.Println(err.Error())
-// 		utils.SendErrorMessage(c, http.StatusInternalServerError, err.Error())
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, events)
-// }
-
 func (eD *EventDelivery) GetExternalEvents(c *gin.Context) {
 	kudaGoURL := kudagoUrl.NewKudaGoUrl(kudagoUrl.MainKudaGoEventURL, &http.Client{Timeout: 10 * time.Second})
 	page := utils.GetPageQueryParamFromRequest(c)
@@ -102,7 +33,7 @@ func (eD *EventDelivery) GetExternalEvents(c *gin.Context) {
 	eventErr := make(chan error, 1)
 	kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
 	if <-eventErr != nil {
-		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
+		utils.SendMessage(c, http.StatusMisdirectedRequest, "kudago error")
 		return
 	}
 
@@ -130,7 +61,7 @@ func (eD *EventDelivery) GetCloseExternalEvents(c *gin.Context) {
 	eventErr := make(chan error, 1)
 	kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
 	if <-eventErr != nil {
-		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
+		utils.SendMessage(c, http.StatusMisdirectedRequest, "kudago error")
 		return
 	}
 
@@ -162,7 +93,7 @@ func (eD *EventDelivery) GetTodayEvents(c *gin.Context) {
 	eventErr := make(chan error, 1)
 	kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
 	if <-eventErr != nil {
-		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
+		utils.SendMessage(c, http.StatusMisdirectedRequest, "kudago error")
 		return
 	}
 
@@ -181,13 +112,14 @@ func (eD *EventDelivery) GetExternalEvent(c *gin.Context) {
 	} else {
 		userID = au.UserId
 	}
+
 	KudaGoEventUrl := kudagoUrl.NewKudaGoUrl(kudagoUrl.KudaGoEventURL, &http.Client{Timeout: 10 * time.Second})
 	KudaGoPlaceUrl := kudagoUrl.NewKudaGoUrl(kudagoUrl.KudaGoPlaceUrl, &http.Client{Timeout: 10 * time.Second})
 
 	eventIDStr := c.Param("event_id")
 	eventID, err := strconv.Atoi(eventIDStr)
 	if err != nil {
-		utils.SendErrorMessage(c, http.StatusBadRequest, err.Error())
+		utils.SendMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	KudaGoEventUrl.AddEventId(eventIDStr)
@@ -204,19 +136,43 @@ func (eD *EventDelivery) GetExternalEvent(c *gin.Context) {
 	placeErr := make(chan error, 1)
 	go KudaGoEventUrl.SendKudagoRequestAndParseToStruct(KudaGoEvent, eventErr)
 	go KudaGoPlaceUrl.SendKudagoRequestAndParseToStruct(KudaGoPlace, placeErr)
-	peopleCount, isGoing, isFavourite, err := eD.eventUsecase.GetPeopleCountAndCheckMeeting(userID, eventID)
+	peopleCount, err := eD.eventUsecase.GetPeopleCountWithEventCreatedIfNecessary(eventID)
 	if err != nil {
-		utils.SendErrorMessage(c, http.StatusInternalServerError, customErrors.ErrPostgres.Error())
+		utils.SendMessage(c, http.StatusInternalServerError, customErrors.ErrPostgres.Error())
 		return
 	}
 
+	isGoing := false
+	isFavourite := false
+	var meetingErr error
+	var favouriteErr error
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func(){
+		isGoing, meetingErr = eD.eventUsecase.CheckKudaGoMeeting(userID, eventID)
+		if meetingErr != nil {
+			return
+		}
+	}()
+
+	go func(){
+		isFavourite, favouriteErr = eD.eventUsecase.CheckKudaGoMeeting(userID, eventID)
+		if favouriteErr != nil {
+			return
+		}
+	}()
+
+	wg.Wait()
+
 	if <-eventErr != nil {
-		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
+		utils.SendMessage(c, http.StatusMisdirectedRequest, "kudago error")
 		return
 	}
 
 	if <-placeErr != nil {
-		utils.SendErrorMessage(c, http.StatusMisdirectedRequest, "kudago error")
+		utils.SendMessage(c, http.StatusMisdirectedRequest, "kudago error")
 		return
 	}
 
@@ -234,20 +190,20 @@ func (eD *EventDelivery) GetExternalEvent(c *gin.Context) {
 func (eD *EventDelivery) SwitchEventMeeting(c *gin.Context) {
 	au, err := utils.GetAUFromContext(c)
 	if err != nil {
-		utils.SendErrorMessage(c, http.StatusUnauthorized, "Unauthorized")
+		utils.SendMessage(c, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
 	eventIDStr := c.Param("event_id")
 	eventID, err := strconv.Atoi(eventIDStr)
 	if err != nil {
-		utils.SendErrorMessage(c, http.StatusBadRequest, err.Error())
+		utils.SendMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	err = eD.eventUsecase.SwitchEventMeeting(au.UserId, eventID)
 	if err != nil {
-		utils.SendErrorMessage(c, http.StatusInternalServerError, err.Error())
+		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, "OK")
@@ -256,20 +212,20 @@ func (eD *EventDelivery) SwitchEventMeeting(c *gin.Context) {
 func (eD *EventDelivery) SwitchEventFavourite(c *gin.Context) {
 	au, err := utils.GetAUFromContext(c)
 	if err != nil {
-		utils.SendErrorMessage(c, http.StatusUnauthorized, "Unauthorized")
+		utils.SendMessage(c, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
 	eventIDStr := c.Param("event_id")
 	eventID, err := strconv.Atoi(eventIDStr)
 	if err != nil {
-		utils.SendErrorMessage(c, http.StatusBadRequest, err.Error())
+		utils.SendMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	err = eD.eventUsecase.SwitchEventFavourite(au.UserId, eventID)
 	if err != nil {
-		utils.SendErrorMessage(c, http.StatusInternalServerError, err.Error())
+		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, "OK")

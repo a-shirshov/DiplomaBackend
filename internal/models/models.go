@@ -120,7 +120,7 @@ type KudaGoPlaceAndEvent struct {
 	IsFavourite bool `json:"is_favourite"`
 }
 
-type ErrorMessage struct {
+type Message struct {
 	Message string `json:"message,omitempty"`
 }
 

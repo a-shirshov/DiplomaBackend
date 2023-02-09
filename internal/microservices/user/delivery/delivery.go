@@ -66,50 +66,65 @@ func (uD *UserDelivery) GetUser(c *gin.Context) {
 // @Failure 422 {object} models.ErrorMessageUnprocessableEntity
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /users/{id} [post]
+
 func (uD *UserDelivery) UpdateUser(c *gin.Context) {
 	au, err := utils.GetAUFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized,  err.Error())
+		utils.SendMessage(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	user := c.MustGet("user").(models.User)
+	var inputUser models.User
+	if err := c.ShouldBindJSON(&inputUser); err != nil {
+		utils.SendMessage(c, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
 
-	userIdStr := c.Param("id")
-	userId, err := strconv.Atoi(userIdStr)
+	userIDStr := c.Param("id")
+	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusNotFound, models.ErrorMessage{
-			Message: customErrors.ErrUserNotFound.Error(),
-		})
+		utils.SendMessage(c, http.StatusBadRequest, "bad request")
 		return
 	}
 
-	if userId != au.UserId {
-		c.JSON(http.StatusForbidden, models.ErrorMessage{
-			Message: customErrors.ErrUserNotFound.Error(),
-		})
+	if userID != au.UserId {
+		utils.SendMessage(c, http.StatusForbidden, "bad credentials")
 		return
 	}
 
-	imgUrl, err := utils.SaveImageFromRequest(c,"image")
-	if err == customErrors.ErrWrongExtension {
-		c.JSON(http.StatusBadRequest, models.ErrorMessage{
-			Message: customErrors.ErrWrongExtension.Error(),
-		})
-		return
-	}
-	if err == nil {
-		user.ImgUrl = imgUrl
-	}
-
-	user.ID = au.UserId
-	newUser, err := uD.userUsecase.UpdateUser(&user)
+	user, err := uD.userUsecase.UpdateUser(&inputUser)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK,newUser)
+	c.JSON(http.StatusOK, user)
+}
+
+func (uD *UserDelivery) UpdateUserImage(c *gin.Context) {
+	au, err := utils.GetAUFromContext(c)
+	if err != nil {
+		utils.SendMessage(c, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	imgUUID, err := utils.SaveImageFromRequest(c, "image")
+	if err != nil {
+		if err == customErrors.ErrWrongExtension {
+			utils.SendMessage(c, http.StatusUnprocessableEntity, err.Error())
+		} else {
+			utils.SendMessage(c, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	user, err := uD.userUsecase.UpdateUserImage(au.UserId, imgUUID)
+	if err != nil {
+		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 func (uD *UserDelivery) GetFavourites(c *gin.Context) {

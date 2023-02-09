@@ -7,5 +7,6 @@ import (
 type Repository interface {
 	GetUser(int) (*models.User, error)
 	UpdateUser(user *models.User) (*models.User, error)
+	UpdateUserImage(userID int, imgUUID string) (*models.User, error)
 	GetFavouriteKudagoEventsIDs(userID int) ([]int, error)
 }

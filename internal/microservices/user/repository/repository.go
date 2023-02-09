@@ -3,15 +3,15 @@ package repository
 import (
 	"Diploma/internal/customErrors"
 	"Diploma/internal/models"
-	"log"
+	"database/sql"
 
 	"github.com/jmoiron/sqlx"
 )
 
 const (
 	GetUserQuery = `select id, name, surname, about, img_url from "user" where id = $1;`
-	UpdateUserWithoutImgUrlQuery = `update "user" set name = $1, surname = $2, about = $3 where id = $4 returning id, name, surname, email, about, img_url;`
-	UpdateUserQuery = `update "user" set name = $1, surname = $2, about = $3, img_url = $4 where id = $5 returning id, name, surname, email, about, img_url;`
+	UpdateUserQuery = `update "user" set name = $1, surname = $2, about = $3 where id = $4 returning id, name, surname, about, img_url;`
+	UpdateUserImageQuery = `update "user" set img_url = $1 where id = $2 returning id, name, surname, about, img_url;`
 	GetFavouriteEventsID = `select event_id from "kudago_favourite" where user_id = $1;`
 )
 
@@ -29,7 +29,9 @@ func (uR *UserRepository) GetUser(id int) (*models.User, error) {
 	user := models.User{}
 	err := uR.db.Get(&user, GetUserQuery, &id)
 	if err != nil {
-		log.Println(err)
+		if err == sql.ErrNoRows {
+			return &user, customErrors.ErrUserNotFound
+		}
 		return &user, customErrors.ErrPostgres
 	}
 	return &user, nil
@@ -37,9 +39,17 @@ func (uR *UserRepository) GetUser(id int) (*models.User, error) {
 
 func (uR *UserRepository) UpdateUser(inputUser *models.User) (*models.User, error) {
 	outputUser := models.User{}
-	err := uR.db.QueryRowx(UpdateUserQuery, &inputUser.Name, &inputUser.Surname, &inputUser.About, &inputUser.ImgUrl, &inputUser.ID).StructScan(&outputUser)
+	err := uR.db.QueryRowx(UpdateUserQuery, &inputUser.Name, &inputUser.Surname, &inputUser.About, &inputUser.ID).StructScan(&outputUser)
 	if err != nil {
-		log.Print(err)
+		return &outputUser, customErrors.ErrPostgres
+	}
+	return &outputUser, nil
+}
+
+func (uR *UserRepository) UpdateUserImage(userID int, imgUUID string) (*models.User, error) {
+	outputUser := models.User{}
+	err := uR.db.QueryRowx(UpdateUserQuery, &imgUUID, &userID).StructScan(&outputUser)
+	if err != nil {
 		return &outputUser, customErrors.ErrPostgres
 	}
 	return &outputUser, nil
@@ -49,8 +59,10 @@ func (uR *UserRepository) GetFavouriteKudagoEventsIDs(userID int) ([]int, error)
 	favouritesEventIDs := []int{}
 	err := uR.db.Select(&favouritesEventIDs, GetFavouriteEventsID, &userID)
 	if err != nil {
-		log.Println(err.Error())
-		return []int{}, err
+		if err == sql.ErrNoRows {
+			return []int{}, nil
+		}
+		return []int{}, customErrors.ErrPostgres
 	}
 	return favouritesEventIDs, nil
 }

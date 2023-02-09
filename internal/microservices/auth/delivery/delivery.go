@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	gomail "gopkg.in/mail.v2"
@@ -39,9 +40,7 @@ func (uD *AuthDelivery) SignUp(c *gin.Context) {
 
 	imgUrl, err := utils.SaveImageFromRequest(c,"image")
 	if err == customErrors.ErrWrongExtension {
-		c.JSON(http.StatusBadRequest, models.ErrorMessage{
-			Message: customErrors.ErrWrongExtension.Error(),
-		})
+		utils.SendMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	if err == nil {
@@ -51,13 +50,9 @@ func (uD *AuthDelivery) SignUp(c *gin.Context) {
 	resultUser, tokenDetails, err := uD.authUsecase.CreateUser(&user)
 	if err != nil {
 		if err == customErrors.ErrUserExists {
-			c.JSON(http.StatusConflict, models.ErrorMessage{
-				Message: customErrors.ErrUserExists.Error(),
-			})
+			utils.SendMessage(c, http.StatusConflict, err.Error())
 		} else {
-			c.JSON(http.StatusInternalServerError, models.ErrorMessage{
-				Message: customErrors.ErrWrongJson.Error(),
-			})
+			utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		}
 		return
 	}
@@ -91,9 +86,9 @@ func (uD *AuthDelivery) SignIn(c *gin.Context) {
 	resultUser, tokenDetails, err := uD.authUsecase.SignIn(&user)
 	if err != nil {
 		if err == customErrors.ErrWrongPassword || err == customErrors.ErrWrongEmail {
-			utils.SendErrorMessage(c, http.StatusForbidden, err.Error())
+			utils.SendMessage(c, http.StatusForbidden, err.Error())
 		} else {
-			utils.SendErrorMessage(c, http.StatusInternalServerError, err.Error())
+			utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		}
 		return
 	}
@@ -124,13 +119,13 @@ func (uD *AuthDelivery) SignIn(c *gin.Context) {
 func (uD *AuthDelivery) Logout(c *gin.Context) {
 	au, err := utils.GetAUFromContext(c)
 	if err != nil {
-		utils.SendErrorMessage(c, http.StatusUnauthorized, err.Error())
+		utils.SendMessage(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 	
 	err = uD.authUsecase.Logout(au)
 	if err != nil {
-		utils.SendErrorMessage(c, http.StatusUnauthorized, err.Error())
+		utils.SendMessage(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, "OK")
@@ -149,9 +144,7 @@ func (uD *AuthDelivery) Logout(c *gin.Context) {
 func (aD *AuthDelivery) Refresh(c *gin.Context) {
 	var inputTokens models.Tokens
 	if err := c.ShouldBindJSON(&inputTokens); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, models.ErrorMessage{
-			Message: customErrors.ErrWrongJson.Error(),
-		})
+		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
 		return 
 	}
 	
@@ -170,13 +163,13 @@ func (aD *AuthDelivery) SendEmail(c *gin.Context){
 
 	user, err := aD.authUsecase.FindUserByEmail(redeemCodeStruct.Email)
 	if err != nil {
-		utils.SendErrorMessage(c,http.StatusNotFound, err.Error())
+		utils.SendMessage(c,http.StatusNotFound, err.Error())
 		return
 	}
 
 	redeemCode, err := aD.authUsecase.CreateAndSavePasswordRedeemCode(user.Email)
 	if err != nil {
-		utils.SendErrorMessage(c,http.StatusNotFound, err.Error())
+		utils.SendMessage(c,http.StatusNotFound, err.Error())
 		return
 	}
 
@@ -209,20 +202,33 @@ func (aD *AuthDelivery) SendEmail(c *gin.Context){
 
 	if err := d.DialAndSend(m); err != nil {
 		fmt.Println(err)
-		utils.SendErrorMessage(c, http.StatusBadRequest, "Something went wrong")
+		utils.SendMessage(c, http.StatusBadRequest, "Something went wrong")
 		return
 	}
-	c.JSON(http.StatusOK, "OK")
+	
+	utils.SendMessage(c, http.StatusOK, "OK")
 }
 
 func (aD *AuthDelivery) CheckRedeemCode(c *gin.Context) {
 	redeemCodeStruct := c.MustGet("redeem_struct").(models.RedeemCodeStruct)
 
-	err := aD.authUsecase.CheckRedeemCode(redeemCodeStruct)
+	err := aD.authUsecase.CheckRedeemCode(&redeemCodeStruct)
 	if err != nil {
-		utils.SendErrorMessage(c, http.StatusBadRequest, "Something went wrong")
+		utils.SendMessage(c, http.StatusBadRequest, "Something went wrong")
 		return
 	}
 
-	c.JSON(http.StatusOK, "OK")
+	utils.SendMessage(c, http.StatusOK, "OK")
+}
+
+func (aD *AuthDelivery) UpdatePassword(c *gin.Context) {
+	redeemCodeStruct := c.MustGet("redeem_struct").(models.RedeemCodeStruct)
+
+	err := aD.authUsecase.UpdatePassword(&redeemCodeStruct)
+	if err != nil {
+		utils.SendMessage(c, http.StatusBadRequest, "Something went wrong")
+		return
+	}
+
+	utils.SendMessage(c, http.StatusOK, "OK")
 }

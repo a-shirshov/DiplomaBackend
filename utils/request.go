@@ -122,7 +122,11 @@ func SaveImageFromRequest(c *gin.Context, httpRequestKey string) (string, error)
 	return newFilename, nil
 }
 
-func BuildImgUrl(imgUUID string) (string) {
+func TryBuildImgUrl(imgUUID string) (string) {
+	if imgUUID == "" {
+		return ""
+	}
+	
 	serverName := viper.GetString("server.name")
 	return serverName + "/images/" + imgUUID + ".webp"
 }
@@ -132,8 +136,8 @@ func GetPageQueryParamFromRequest(c *gin.Context) (string) {
 	return pageParam
 }
 
-func SendErrorMessage(c *gin.Context, statusCode int, errorMessage string) () {
-	c.JSON(statusCode, models.ErrorMessage{
-		Message: errorMessage,
+func SendMessage(c *gin.Context, statusCode int, message string) () {
+	c.JSON(statusCode, models.Message{
+		Message: message,
 	})
 }

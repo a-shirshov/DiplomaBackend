@@ -20,10 +20,6 @@ import (
 	authRepo "Diploma/internal/microservices/auth/repository"
 	authUsecase "Diploma/internal/microservices/auth/usecase"
 
-	placeDelivery "Diploma/internal/microservices/place/delivery"
-	placeRepo "Diploma/internal/microservices/place/repository"
-	placeUsecase "Diploma/internal/microservices/place/usecase"
-
 	log "Diploma/pkg/logger"
 	"Diploma/pkg/passwordHasher"
 	"Diploma/pkg/tokenManager"
@@ -99,17 +95,14 @@ func main() {
 	sessionR := authRepo.NewSessionRepository(redisDB)
 	eventR := eventRepo.NewEventRepository(postgresDB)
 	authR := authRepo.NewAuthRepository(postgresDB)
-	placeR := placeRepo.NewPlaceRepository(postgresDB)
 
 	userU := userUsecase.NewUserUsecase(userR)
 	eventU := eventUsecase.NewEventUsecase(eventR)
 	authU := authUsecase.NewAuthUsecase(authR, sessionR, passwordHasher, tokenManager)
-	placeU := placeUsecase.NewPlaceUsecase(placeR)
 
 	userD := userDelivery.NewUserDelivery(userU)
 	eventD := eventDelivery.NewEventDelivery(eventU)
 	authD := authDelivery.NewAuthDelivery(authU)
-	placeD := placeDelivery.NewPlaceDelivery(placeU)
 
 	mws := middleware.NewMiddleware(sessionR, tokenManager)
 
@@ -130,9 +123,6 @@ func main() {
 
 	eventRouter := routerAPI.Group("/events")
 	router.EventEndpoints(eventRouter, mws, eventD)
-
-	placeRouter := routerAPI.Group("/places")
-	router.PlaceEndpoints(placeRouter, placeD, eventD)
 
 	port := viper.GetString("server.port")
 	
