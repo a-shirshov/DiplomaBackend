@@ -151,6 +151,7 @@ func (eD *EventDelivery) GetExternalEvent(c *gin.Context) {
 	wg.Add(2)
 
 	go func(){
+		defer wg.Done()
 		isGoing, meetingErr = eD.eventUsecase.CheckKudaGoMeeting(userID, eventID)
 		if meetingErr != nil {
 			return
@@ -158,6 +159,7 @@ func (eD *EventDelivery) GetExternalEvent(c *gin.Context) {
 	}()
 
 	go func(){
+		defer wg.Done()
 		isFavourite, favouriteErr = eD.eventUsecase.CheckKudaGoMeeting(userID, eventID)
 		if favouriteErr != nil {
 			return
