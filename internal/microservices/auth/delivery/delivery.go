@@ -167,7 +167,7 @@ func (aD *AuthDelivery) SendEmail(c *gin.Context){
 		return
 	}
 
-	redeemCode, err := aD.authUsecase.CreateAndSavePasswordRedeemCode(user.Email)
+	redeemCode, err := aD.authUsecase.CreateAndSavePasswordRedeemCode(redeemCodeStruct.Email)
 	if err != nil {
 		utils.SendMessage(c,http.StatusNotFound, err.Error())
 		return
@@ -178,7 +178,7 @@ func (aD *AuthDelivery) SendEmail(c *gin.Context){
 	m.SetHeader("From", from)
 
 	
-	m.SetHeader("To", user.Email)
+	m.SetHeader("To", redeemCodeStruct.Email)
 
 	m.SetHeader("Subject", "PartyPoint. Заявка на смену пароля.")
 
