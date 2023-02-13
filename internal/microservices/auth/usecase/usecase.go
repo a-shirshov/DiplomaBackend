@@ -6,6 +6,7 @@ import (
 	"Diploma/pkg"
 	"Diploma/utils"
 	"errors"
+	"log"
 	"math/rand"
 	"time"
 )
@@ -134,8 +135,10 @@ func (aU *authUsecase) FindUserByEmail(email string) (*models.User, error) {
 }
 
 func (aU *authUsecase) CreateAndSavePasswordRedeemCode(email string) (int, error) {
+	log.Println(email)
 	_, err := aU.authRepo.GetUserByEmail(email)
 	if err != nil {
+		log.Println(err.Error())
 		return 0, err
 	}
 
