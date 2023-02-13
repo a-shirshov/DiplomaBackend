@@ -7,7 +7,6 @@ import (
 	"Diploma/utils"
 	"crypto/tls"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -36,9 +35,14 @@ func NewAuthDelivery(authUsecase auth.Usecase) *AuthDelivery {
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /auth/signup [post]
 func (uD *AuthDelivery) SignUp(c *gin.Context) {
-	user := c.MustGet("user").(models.User)
+	userCtxValue, ok := c.Get("user")
+	if !ok {
+		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
+		return
+	}
+	user := userCtxValue.(models.User)
 
-	imgUrl, err := utils.SaveImageFromRequest(c,"image")
+	imgUrl, err := utils.SaveImageFromRequest(c, "image")
 	if err == customErrors.ErrWrongExtension {
 		utils.SendMessage(c, http.StatusBadRequest, err.Error())
 		return
@@ -58,12 +62,12 @@ func (uD *AuthDelivery) SignUp(c *gin.Context) {
 	}
 
 	tokens := &models.Tokens{
-		AccessToken: tokenDetails.AccessToken,
+		AccessToken:  tokenDetails.AccessToken,
 		RefreshToken: tokenDetails.RefreshToken,
 	}
 
 	userWithTokens := &models.UserWithTokens{
-		User: *resultUser,
+		User:   *resultUser,
 		Tokens: *tokens,
 	}
 
@@ -81,7 +85,12 @@ func (uD *AuthDelivery) SignUp(c *gin.Context) {
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /auth/login [post]
 func (uD *AuthDelivery) SignIn(c *gin.Context) {
-	user := c.MustGet("login_user").(models.LoginUser)
+	loginUserCtxValue, ok := c.Get("login_user")
+	if !ok {
+		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
+		return
+	}
+	user := loginUserCtxValue.(models.LoginUser)
 
 	resultUser, tokenDetails, err := uD.authUsecase.SignIn(&user)
 	if err != nil {
@@ -94,12 +103,12 @@ func (uD *AuthDelivery) SignIn(c *gin.Context) {
 	}
 
 	tokens := &models.Tokens{
-		AccessToken: tokenDetails.AccessToken,
+		AccessToken:  tokenDetails.AccessToken,
 		RefreshToken: tokenDetails.RefreshToken,
 	}
 
 	userWithTokens := &models.UserWithTokens{
-		User: *resultUser,
+		User:   *resultUser,
 		Tokens: *tokens,
 	}
 
@@ -112,7 +121,7 @@ func (uD *AuthDelivery) SignIn(c *gin.Context) {
 // @Description Logout
 // @Accept json
 // @Produce json
-// @Success 200 
+// @Success 200
 // @Failure 401 {object} models.ErrorMessageUnauthorized
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /auth/logout [get]
@@ -122,7 +131,7 @@ func (uD *AuthDelivery) Logout(c *gin.Context) {
 		utils.SendMessage(c, http.StatusUnauthorized, err.Error())
 		return
 	}
-	
+
 	err = uD.authUsecase.Logout(au)
 	if err != nil {
 		utils.SendMessage(c, http.StatusUnauthorized, err.Error())
@@ -145,31 +154,35 @@ func (aD *AuthDelivery) Refresh(c *gin.Context) {
 	var inputTokens models.Tokens
 	if err := c.ShouldBindJSON(&inputTokens); err != nil {
 		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
-		return 
+		return
 	}
-	
-	log.Print("Refresh token:", inputTokens.RefreshToken)
+
 	tokens, err := aD.authUsecase.Refresh(inputTokens.RefreshToken)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, tokens)
 }
 
-func (aD *AuthDelivery) SendEmail(c *gin.Context){
-	redeemCodeStruct := c.MustGet("redeem_struct").(models.RedeemCodeStruct)
-	log.Println("Email request", redeemCodeStruct.Email)
+func (aD *AuthDelivery) SendEmail(c *gin.Context) {
+	redeemStructCtxValue, ok := c.Get("redeem_struct")
+	if !ok {
+		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
+		return
+	}
+	redeemCodeStruct := redeemStructCtxValue.(models.RedeemCodeStruct)
+
 	user, err := aD.authUsecase.FindUserByEmail(redeemCodeStruct.Email)
 	if err != nil {
-		utils.SendMessage(c,http.StatusNotFound, err.Error())
+		utils.SendMessage(c, http.StatusNotFound, err.Error())
 		return
 	}
 
 	redeemCode, err := aD.authUsecase.CreateAndSavePasswordRedeemCode(redeemCodeStruct.Email)
 	if err != nil {
-		utils.SendMessage(c,http.StatusNotFound, err.Error())
+		utils.SendMessage(c, http.StatusNotFound, err.Error())
 		return
 	}
 
@@ -177,27 +190,26 @@ func (aD *AuthDelivery) SendEmail(c *gin.Context){
 	from := viper.GetString("EMAIL_SENDER")
 	m.SetHeader("From", from)
 
-	
 	m.SetHeader("To", redeemCodeStruct.Email)
 
 	m.SetHeader("Subject", "PartyPoint. Заявка на смену пароля.")
 
 	resultMessage := fmt.Sprintf("%s%s.\n\n%s%d.\n%s\n\n%s",
-	"Здравствуйте, ", user.Name, "Ваш проверочный код для смены пароля:", redeemCode, 
-	"Если вы не делали заявку на смену пароля, игнорируйте это сообщение.", "C уважением, команда Partypoint.")
+		"Здравствуйте, ", user.Name, "Ваш проверочный код для смены пароля:", redeemCode,
+		"Если вы не делали заявку на смену пароля, игнорируйте это сообщение.", "C уважением, команда Partypoint.")
 
 	m.SetBody("text/plain", resultMessage)
 
 	password := viper.GetString("EMAIL_PASSWORD")
 
 	smtpHost := viper.GetString("SMTP_HOST")
-  	smtpPort := viper.GetInt("SMTP_PORT")
+	smtpPort := viper.GetInt("SMTP_PORT")
 
 	d := gomail.NewDialer(smtpHost, smtpPort, from, password)
 
 	d.TLSConfig = &tls.Config{
 		InsecureSkipVerify: false,
-		ServerName: viper.GetString("DOMAIN_NAME"),
+		ServerName:         viper.GetString("DOMAIN_NAME"),
 	}
 
 	if err := d.DialAndSend(m); err != nil {
@@ -205,12 +217,17 @@ func (aD *AuthDelivery) SendEmail(c *gin.Context){
 		utils.SendMessage(c, http.StatusBadRequest, "Something went wrong")
 		return
 	}
-	
+
 	utils.SendMessage(c, http.StatusOK, "OK")
 }
 
 func (aD *AuthDelivery) CheckRedeemCode(c *gin.Context) {
-	redeemCodeStruct := c.MustGet("redeem_struct").(models.RedeemCodeStruct)
+	redeemStructCtxValue, ok := c.Get("redeem_struct")
+	if !ok {
+		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
+		return
+	}
+	redeemCodeStruct := redeemStructCtxValue.(models.RedeemCodeStruct)
 
 	err := aD.authUsecase.CheckRedeemCode(&redeemCodeStruct)
 	if err != nil {
@@ -222,7 +239,12 @@ func (aD *AuthDelivery) CheckRedeemCode(c *gin.Context) {
 }
 
 func (aD *AuthDelivery) UpdatePassword(c *gin.Context) {
-	redeemCodeStruct := c.MustGet("redeem_struct").(models.RedeemCodeStruct)
+	redeemStructCtxValue, ok := c.Get("redeem_struct")
+	if !ok {
+		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
+		return
+	}
+	redeemCodeStruct := redeemStructCtxValue.(models.RedeemCodeStruct)
 
 	err := aD.authUsecase.UpdatePassword(&redeemCodeStruct)
 	if err != nil {

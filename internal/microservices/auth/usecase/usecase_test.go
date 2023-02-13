@@ -474,15 +474,6 @@ var CreateAndSavePasswordRedeemCodeTests = []CreateAndSavePasswordRedeemCodeTest
 		"ash@mail.ru",
 		func(authRepo *mock.MockRepository, sessionRepo *mock.MockSessionRepository, 
 			passwordHasher *mock.MockPasswordHasher, tokenManager *mock.MockTokenManager) {
-				authRepo.EXPECT().GetUserByEmail("ash@mail.ru").
-					Return(
-						&models.User{
-						ID: 1,
-						Name: "Artyom",
-						Surname: "Shirshov",
-						ImgUrl: "uuid",
-					},
-					nil)
 				sessionRepo.EXPECT().SavePasswordRedeemCode("ash@mail.ru", gomock.Any()).Return(nil)
 			},
 		nil,
