@@ -160,7 +160,7 @@ func (aD *AuthDelivery) Refresh(c *gin.Context) {
 
 func (aD *AuthDelivery) SendEmail(c *gin.Context){
 	redeemCodeStruct := c.MustGet("redeem_struct").(models.RedeemCodeStruct)
-
+	log.Println("Email request", redeemCodeStruct.Email)
 	user, err := aD.authUsecase.FindUserByEmail(redeemCodeStruct.Email)
 	if err != nil {
 		utils.SendMessage(c,http.StatusNotFound, err.Error())
