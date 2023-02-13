@@ -3,7 +3,6 @@ package utils
 import (
 	"Diploma/internal/customErrors"
 	"Diploma/internal/models"
-	"fmt"
 	"image"
 	"image/jpeg"
 	"image/png"
@@ -26,7 +25,6 @@ import (
 func GetAUFromContext(c *gin.Context) (*models.AccessDetails, error) {
 	ctxau, ok := c.Get("access_details")
 	if !ok {
-		fmt.Println("No ctx")
 		return &models.AccessDetails{}, customErrors.ErrNoTokenInContext
 	}
 

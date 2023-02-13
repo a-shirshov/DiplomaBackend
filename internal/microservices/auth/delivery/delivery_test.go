@@ -3,7 +3,7 @@ package delivery
 import (
 	"Diploma/internal/customErrors"
 	"Diploma/internal/microservices/auth/mock"
-	"Diploma/internal/middleware"
+	"Diploma/internal/middleware/middleware"
 	"Diploma/internal/models"
 	"bytes"
 	"errors"

@@ -6,14 +6,8 @@ import (
 	"Diploma/pkg"
 	"Diploma/utils"
 	"errors"
-	"fmt"
-	"log"
 	"math/rand"
-	"strconv"
 	"time"
-
-	"github.com/golang-jwt/jwt/v4"
-	"github.com/spf13/viper"
 )
 
 type authUsecase struct {
@@ -36,13 +30,13 @@ func NewAuthUsecase(userRepo auth.Repository, sessionRepo auth.SessionRepository
 func (aU *authUsecase) CreateUser(user *models.User) (*models.User, *models.TokenDetails, error) {
 	hash, err := aU.passwordHasher.GenerateHashFromPassword(user.Password)
 	if err != nil {
-		return nil, nil, err
+		return &models.User{}, &models.TokenDetails{}, err
 	}
 	user.Password = hash
 
 	resultUser, err := aU.authRepo.CreateUser(user)
 	if err != nil {
-		return nil, nil, err
+		return &models.User{}, &models.TokenDetails{}, err
 	}
 
 	resultUser.ImgUrl = utils.TryBuildImgUrl(resultUser.ImgUrl)
@@ -68,7 +62,7 @@ func (aU *authUsecase) SignIn(user *models.LoginUser) (*models.User, *models.Tok
 
 	resultUser.ImgUrl = utils.TryBuildImgUrl(resultUser.ImgUrl)
 
-	_, err = aU.passwordHasher.VerifyPassword(user.Password, resultUser.Password)
+	err = aU.passwordHasher.VerifyPassword(user.Password, resultUser.Password)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -93,25 +87,19 @@ func (aU *authUsecase) Logout(au *models.AccessDetails) error {
 }
 
 func (aU *authUsecase) Refresh(refreshToken string) (*models.Tokens, error) {
-	token, err := checkToken(refreshToken)
+	claims, err := aU.tokenManager.CheckTokenAndGetClaims(refreshToken)
 	if err != nil {
-		log.Println(err.Error())
-		return nil, err
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims) //the token claims should conform to MapClaims
-	if !(ok && token.Valid) {
 		return nil, err
 	}
 
 	refreshUuid, ok := claims["refresh_uuid"].(string) //convert the interface to string
 	if !ok {
-		return nil, err
+		return nil, errors.New("token problem")
 	}
 
-	userId, err := strconv.ParseInt(fmt.Sprintf("%.f",claims["user_id"]),10,0)
-	if err != nil {
-		return nil, err
+	userId, ok := claims["user_id"].(int)
+	if !ok {
+		return nil, errors.New("token problem")
 	}
 
 	err = aU.sessionRepo.DeleteAuth(refreshUuid)
@@ -136,24 +124,13 @@ func (aU *authUsecase) Refresh(refreshToken string) (*models.Tokens, error) {
 	return tokens, nil
 }
 
-func checkToken(refreshToken string) (*jwt.Token, error) {
-	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error){
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		log.Printf("Returned refresh")
-		return []byte(viper.GetString("REFRESH_TOKEN")), nil
-	})
-
-	if err != nil || !token.Valid {
-		return nil, errors.New("Refresh token expired")
-	}
-
-	return token, nil
-}
-
 func (aU *authUsecase) FindUserByEmail(email string) (*models.User, error) {
-	return aU.authRepo.GetUserByEmail(email)
+	resultUser, err := aU.authRepo.GetUserByEmail(email)
+	if err != nil {
+		return &models.User{}, nil
+	}
+	resultUser.ImgUrl = utils.TryBuildImgUrl(resultUser.ImgUrl)
+	return resultUser, nil
 }
 
 func (aU *authUsecase) CreateAndSavePasswordRedeemCode(email string) (int, error) {

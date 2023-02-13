@@ -1,7 +1,7 @@
 package main
 
 import (
-	"Diploma/internal/middleware"
+	"Diploma/internal/middleware/middleware"
 	"Diploma/internal/router"
 	"net/http"
 	"os/signal"

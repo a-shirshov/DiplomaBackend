@@ -36,17 +36,21 @@ func NewUserDelivery(userUsecase user.Usecase) *UserDelivery {
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /users/{id} [get]
 func (uD *UserDelivery) GetUser(c *gin.Context) {
-	userIdString := c.Param("id")
+	userIdString := c.Param("user_id")
 
 	userId, err := strconv.Atoi(userIdString)
 	if err != nil {
-		c.String(http.StatusBadRequest, err.Error())
+		utils.SendMessage(c, http.StatusBadRequest, customErrors.ErrBadRequest.Error())
 		return
 	}
 
 	resultUser, err := uD.userUsecase.GetUser(userId)
 	if err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
+		if err == customErrors.ErrUserNotFound{
+			utils.SendMessage(c, http.StatusNotFound, err.Error())
+			return
+		}
+		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -76,11 +80,11 @@ func (uD *UserDelivery) UpdateUser(c *gin.Context) {
 
 	var inputUser models.User
 	if err := c.ShouldBindJSON(&inputUser); err != nil {
-		utils.SendMessage(c, http.StatusUnprocessableEntity, err.Error())
+		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
 		return
 	}
 
-	userIDStr := c.Param("id")
+	userIDStr := c.Param("user_id")
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
 		utils.SendMessage(c, http.StatusBadRequest, "bad request")
@@ -91,6 +95,7 @@ func (uD *UserDelivery) UpdateUser(c *gin.Context) {
 		utils.SendMessage(c, http.StatusForbidden, "bad credentials")
 		return
 	}
+	inputUser.ID = userID
 
 	user, err := uD.userUsecase.UpdateUser(&inputUser)
 	if err != nil {

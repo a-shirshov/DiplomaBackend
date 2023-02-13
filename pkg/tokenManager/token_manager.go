@@ -23,6 +23,26 @@ func NewTokenManager() *tokenManager{
 	}
 }
 
+func (tM *tokenManager) CheckTokenAndGetClaims(refreshToken string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error){
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(viper.GetString("REFRESH_TOKEN")), nil
+	})
+
+	if err != nil || !token.Valid {
+		return nil, errors.New("refresh token expired")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims) //the token claims should conform to MapClaims
+	if !(ok) {
+		return nil, err
+	}
+
+	return claims, nil
+}
+
 func extractToken(requestToken string) string {
 	strArr := strings.Split(requestToken, " ")
 	if len(strArr) == 2 {

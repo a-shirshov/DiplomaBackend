@@ -39,7 +39,7 @@ func(ph *PasswordHasher) GenerateHashFromPassword(password string) (encodedHash 
 
 	salt, err := generateRandomBytes(p.saltLength)
 	if err != nil {
-		return "", err
+		return "", customErrors.ErrHashingProblems
 	}
 
 	hash := argon2.IDKey([]byte(password), salt, p.iterations, p.memory, p.parallelism, p.keyLength)
@@ -61,12 +61,12 @@ func generateRandomBytes(n uint32) ([]byte, error) {
     return b, nil
 }
 
-func(ph *PasswordHasher) VerifyPassword(password, encodedHash string) (match bool, err error) {
+func(ph *PasswordHasher) VerifyPassword(password, encodedHash string) (err error) {
     // Extract the parameters, salt and derived key from the encoded password
     // hash.
     p, salt, hash, err := decodeHash(encodedHash)
     if err != nil {
-        return false, customErrors.ErrWrongPassword
+        return customErrors.ErrWrongPassword
     }
 
     // Derive the key from the other password using the same parameters.
@@ -76,9 +76,9 @@ func(ph *PasswordHasher) VerifyPassword(password, encodedHash string) (match boo
     // that we are using the subtle.ConstantTimeCompare() function for this
     // to help prevent timing attacks.
     if subtle.ConstantTimeCompare(hash, otherHash) == 1 {
-        return true, nil
+        return nil
     }
-    return false, customErrors.ErrWrongPassword
+    return customErrors.ErrWrongPassword
 }
 
 func decodeHash(encodedHash string) (p *params, salt, hash []byte, err error) {

@@ -49,12 +49,11 @@ func (mr *MockPasswordHasherMockRecorder) GenerateHashFromPassword(password inte
 }
 
 // VerifyPassword mocks base method.
-func (m *MockPasswordHasher) VerifyPassword(password, encodedHash string) (bool, error) {
+func (m *MockPasswordHasher) VerifyPassword(password, encodedHash string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyPassword", password, encodedHash)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // VerifyPassword indicates an expected call of VerifyPassword.

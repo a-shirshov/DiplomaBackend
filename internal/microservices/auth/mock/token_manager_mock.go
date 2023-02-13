@@ -8,6 +8,7 @@ import (
 	models "Diploma/internal/models"
 	reflect "reflect"
 
+	jwt "github.com/golang-jwt/jwt/v4"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -32,6 +33,21 @@ func NewMockTokenManager(ctrl *gomock.Controller) *MockTokenManager {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockTokenManager) EXPECT() *MockTokenManagerMockRecorder {
 	return m.recorder
+}
+
+// CheckTokenAndGetClaims mocks base method.
+func (m *MockTokenManager) CheckTokenAndGetClaims(refreshToken string) (jwt.MapClaims, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckTokenAndGetClaims", refreshToken)
+	ret0, _ := ret[0].(jwt.MapClaims)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckTokenAndGetClaims indicates an expected call of CheckTokenAndGetClaims.
+func (mr *MockTokenManagerMockRecorder) CheckTokenAndGetClaims(refreshToken interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckTokenAndGetClaims", reflect.TypeOf((*MockTokenManager)(nil).CheckTokenAndGetClaims), refreshToken)
 }
 
 // CreateToken mocks base method.
