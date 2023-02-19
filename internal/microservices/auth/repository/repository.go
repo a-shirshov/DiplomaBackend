@@ -17,7 +17,7 @@ const (
 		returning id, name, surname, date_of_birth, city, img_url;`
 	GetUserByEmailQuery = `select id, name, surname, password, date_of_birth, city, about, img_url from "user" where email = $1;`
 	UpdatePasswordQuery = `update "user" set password = $1 where email = $2;`
-	DeleteUserQuery = `delete "user" where id = $1;`
+	DeleteUserQuery = `delete from "user" where id = $1;`
 )
 
 type AuthRepository struct {
