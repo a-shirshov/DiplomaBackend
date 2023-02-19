@@ -54,7 +54,7 @@ func (uD *UserDelivery) GetUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK,resultUser)
+	c.JSON(http.StatusOK, resultUser)
 }
 
 // @Summary Update user
@@ -136,7 +136,7 @@ func (uD *UserDelivery) GetFavourites(c *gin.Context) {
 	userIDString := c.Param("id")
 	userID, err := strconv.Atoi(userIDString)
 	if err != nil {
-		c.String(http.StatusBadRequest, err.Error())
+		utils.SendMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -145,7 +145,7 @@ func (uD *UserDelivery) GetFavourites(c *gin.Context) {
 
 	favouriteEventIDs, err := uD.userUsecase.GetFavouriteKudagoEventsIDs(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 

@@ -12,7 +12,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	gomail "gopkg.in/mail.v2"
+	log "Diploma/pkg/logger"
 )
+
+const logMessage = "auth:delivery:"
 
 type AuthDelivery struct {
 	authUsecase auth.Usecase
@@ -35,6 +38,9 @@ func NewAuthDelivery(authUsecase auth.Usecase) *AuthDelivery {
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /auth/signup [post]
 func (uD *AuthDelivery) SignUp(c *gin.Context) {
+	message := logMessage + "SignUp:"
+	log.Debug(message + "started")
+
 	userCtxValue, ok := c.Get("user")
 	if !ok {
 		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
@@ -43,19 +49,25 @@ func (uD *AuthDelivery) SignUp(c *gin.Context) {
 	user := userCtxValue.(models.User)
 
 	imgUrl, err := utils.SaveImageFromRequest(c, "image")
-	if err == customErrors.ErrWrongExtension {
-		utils.SendMessage(c, http.StatusBadRequest, err.Error())
+	if err != nil {
+		if err == customErrors.ErrWrongExtension {
+			utils.SendMessage(c, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		log.Error(message + err.Error())
+		utils.SendMessage(c, http.StatusInternalServerError, customErrors.ErrSmthWentWrong.Error())
 		return
 	}
-	if err == nil {
-		user.ImgUrl = imgUrl
-	}
+	user.ImgUrl = imgUrl
+	
 
 	resultUser, tokenDetails, err := uD.authUsecase.CreateUser(&user)
 	if err != nil {
 		if err == customErrors.ErrUserExists {
 			utils.SendMessage(c, http.StatusConflict, err.Error())
 		} else {
+			log.Error(message + err.Error())
 			utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		}
 		return
@@ -85,6 +97,9 @@ func (uD *AuthDelivery) SignUp(c *gin.Context) {
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /auth/login [post]
 func (uD *AuthDelivery) SignIn(c *gin.Context) {
+	message := logMessage + "SignIn:"
+	log.Debug(message + "started")
+
 	loginUserCtxValue, ok := c.Get("login_user")
 	if !ok {
 		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
@@ -97,6 +112,7 @@ func (uD *AuthDelivery) SignIn(c *gin.Context) {
 		if err == customErrors.ErrWrongPassword || err == customErrors.ErrWrongEmail {
 			utils.SendMessage(c, http.StatusForbidden, err.Error())
 		} else {
+			log.Error(message + err.Error())
 			utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		}
 		return
@@ -126,6 +142,9 @@ func (uD *AuthDelivery) SignIn(c *gin.Context) {
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /auth/logout [get]
 func (uD *AuthDelivery) Logout(c *gin.Context) {
+	message := logMessage + "Logout:"
+	log.Debug(message + "started")
+
 	au, err := utils.GetAUFromContext(c)
 	if err != nil {
 		utils.SendMessage(c, http.StatusUnauthorized, err.Error())
@@ -151,6 +170,9 @@ func (uD *AuthDelivery) Logout(c *gin.Context) {
 // @Failure 500 {object} models.ErrorMessageInternalServer
 // @Router /auth/refresh [post]
 func (aD *AuthDelivery) Refresh(c *gin.Context) {
+	message := logMessage + "Refresh:"
+	log.Debug(message + "started")
+
 	var inputTokens models.Tokens
 	if err := c.ShouldBindJSON(&inputTokens); err != nil {
 		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
@@ -159,7 +181,8 @@ func (aD *AuthDelivery) Refresh(c *gin.Context) {
 
 	tokens, err := aD.authUsecase.Refresh(inputTokens.RefreshToken)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		log.Error(message + err.Error())
+		utils.SendMessage(c, http.StatusInternalServerError, customErrors.ErrSmthWentWrong.Error())
 		return
 	}
 
@@ -167,6 +190,9 @@ func (aD *AuthDelivery) Refresh(c *gin.Context) {
 }
 
 func (aD *AuthDelivery) SendEmail(c *gin.Context) {
+	message := logMessage + "SendEmail:"
+	log.Debug(message + "started")
+
 	redeemStructCtxValue, ok := c.Get("redeem_struct")
 	if !ok {
 		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
@@ -189,31 +215,26 @@ func (aD *AuthDelivery) SendEmail(c *gin.Context) {
 	m := gomail.NewMessage()
 	from := viper.GetString("EMAIL_SENDER")
 	m.SetHeader("From", from)
-
 	m.SetHeader("To", redeemCodeStruct.Email)
-
 	m.SetHeader("Subject", "PartyPoint. Заявка на смену пароля.")
 
 	resultMessage := fmt.Sprintf("%s%s.\n\n%s%d.\n%s\n\n%s",
 		"Здравствуйте, ", user.Name, "Ваш проверочный код для смены пароля:", redeemCode,
 		"Если вы не делали заявку на смену пароля, игнорируйте это сообщение.", "C уважением, команда Partypoint.")
-
 	m.SetBody("text/plain", resultMessage)
 
 	password := viper.GetString("EMAIL_PASSWORD")
-
 	smtpHost := viper.GetString("SMTP_HOST")
 	smtpPort := viper.GetInt("SMTP_PORT")
 
 	d := gomail.NewDialer(smtpHost, smtpPort, from, password)
-
 	d.TLSConfig = &tls.Config{
 		InsecureSkipVerify: false,
 		ServerName:         viper.GetString("DOMAIN_NAME"),
 	}
 
 	if err := d.DialAndSend(m); err != nil {
-		fmt.Println(err)
+		log.Error(message + err.Error())
 		utils.SendMessage(c, http.StatusBadRequest, "Something went wrong")
 		return
 	}
@@ -222,6 +243,9 @@ func (aD *AuthDelivery) SendEmail(c *gin.Context) {
 }
 
 func (aD *AuthDelivery) CheckRedeemCode(c *gin.Context) {
+	message := logMessage + "CheckRedeemCode:"
+	log.Debug(message + "started")
+
 	redeemStructCtxValue, ok := c.Get("redeem_struct")
 	if !ok {
 		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
@@ -231,7 +255,8 @@ func (aD *AuthDelivery) CheckRedeemCode(c *gin.Context) {
 
 	err := aD.authUsecase.CheckRedeemCode(&redeemCodeStruct)
 	if err != nil {
-		utils.SendMessage(c, http.StatusBadRequest, "Something went wrong")
+		log.Error(message + err.Error())
+		utils.SendMessage(c, http.StatusInternalServerError, customErrors.ErrSmthWentWrong.Error())
 		return
 	}
 
@@ -239,6 +264,9 @@ func (aD *AuthDelivery) CheckRedeemCode(c *gin.Context) {
 }
 
 func (aD *AuthDelivery) UpdatePassword(c *gin.Context) {
+	message := logMessage + "UpdatePassword:"
+	log.Debug(message + "started")
+
 	redeemStructCtxValue, ok := c.Get("redeem_struct")
 	if !ok {
 		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
@@ -248,7 +276,27 @@ func (aD *AuthDelivery) UpdatePassword(c *gin.Context) {
 
 	err := aD.authUsecase.UpdatePassword(&redeemCodeStruct)
 	if err != nil {
-		utils.SendMessage(c, http.StatusBadRequest, "Something went wrong")
+		log.Error(message + err.Error())
+		utils.SendMessage(c, http.StatusInternalServerError, customErrors.ErrSmthWentWrong.Error())
+		return
+	}
+
+	utils.SendMessage(c, http.StatusOK, "OK")
+}
+
+func (aD *AuthDelivery) DeleteUser (c *gin.Context) {
+	message := logMessage + "DeleteUser:"
+	log.Debug(message + "started")
+
+	au, err := utils.GetAUFromContext(c)
+	if err != nil {
+		utils.SendMessage(c, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	err = aD.authUsecase.DeleteUser(au.UserId)
+	if err != nil {
+		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 

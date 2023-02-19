@@ -6,6 +6,7 @@ import (
 	"Diploma/pkg"
 	"Diploma/utils"
 	"log"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
@@ -88,6 +89,7 @@ func (m *Middlewares) MiddlewareValidateUser() gin.HandlerFunc {
 			return
 		}
 
+		inputUser.Email = strings.ToLower(inputUser.Email)
 		err = utils.ValidateAndSanitize(inputUser)
 		if err != nil {
 			return
@@ -106,6 +108,7 @@ func (m *Middlewares) MiddlewareValidateLoginUser() gin.HandlerFunc {
 			return
 		}
 
+		inputUser.Email = strings.ToLower(inputUser.Email)
 		err = utils.ValidateAndSanitize(inputUser)
 		if err != nil {
 			return
@@ -125,6 +128,7 @@ func (m *Middlewares) MiddlewareValidateUserFormData() gin.HandlerFunc {
 			return
 		}
 
+		user.Email = strings.ToLower(user.Email)
 		err = utils.ValidateAndSanitize(user)
 		if err != nil {
 			return

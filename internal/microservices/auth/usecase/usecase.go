@@ -8,7 +8,10 @@ import (
 	"errors"
 	"math/rand"
 	"time"
+	log "Diploma/pkg/logger"
 )
+
+const logMessage = "auth:usecase:"
 
 type authUsecase struct {
 	authRepo auth.Repository
@@ -28,6 +31,9 @@ func NewAuthUsecase(userRepo auth.Repository, sessionRepo auth.SessionRepository
 }
 
 func (aU *authUsecase) CreateUser(user *models.User) (*models.User, *models.TokenDetails, error) {
+	message := logMessage + "CreateUser:"
+	log.Debug(message + "started")
+
 	hash, err := aU.passwordHasher.GenerateHashFromPassword(user.Password)
 	if err != nil {
 		return &models.User{}, &models.TokenDetails{}, err
@@ -169,4 +175,8 @@ func (aU *authUsecase) UpdatePassword(rdc *models.RedeemCodeStruct) (error) {
 	}
 
 	return aU.authRepo.UpdatePassword(hash, rdc.Email)
+}
+
+func (aU *authUsecase) DeleteUser(userID int) (error) {
+	return aU.authRepo.DeleteUser(userID)
 }

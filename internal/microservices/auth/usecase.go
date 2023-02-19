@@ -13,4 +13,5 @@ type Usecase interface {
 	CreateAndSavePasswordRedeemCode(email string) (int, error)
 	CheckRedeemCode(rdc *models.RedeemCodeStruct) error
 	UpdatePassword(rdc *models.RedeemCodeStruct) (error)
+	DeleteUser(userID int) (error)
 }

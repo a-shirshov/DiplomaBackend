@@ -46,6 +46,18 @@ func (mr *MockDeliveryMockRecorder) CheckRedeemCode(c interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckRedeemCode", reflect.TypeOf((*MockDelivery)(nil).CheckRedeemCode), c)
 }
 
+// DeleteUser mocks base method.
+func (m *MockDelivery) DeleteUser(c *gin.Context) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "DeleteUser", c)
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockDeliveryMockRecorder) DeleteUser(c interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockDelivery)(nil).DeleteUser), c)
+}
+
 // Logout mocks base method.
 func (m *MockDelivery) Logout(c *gin.Context) {
 	m.ctrl.T.Helper()

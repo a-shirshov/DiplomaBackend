@@ -13,4 +13,5 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 	ErrBadRequest = errors.New("bad request")
 	ErrHashingProblems = errors.New("problems during hashing")
+	ErrSmthWentWrong = errors.New("something went wrong")
 )

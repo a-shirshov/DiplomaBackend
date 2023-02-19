@@ -249,22 +249,3 @@ func TestLogout(t *testing.T) {
 		})
 	}
 }
-
-func TestMini(t *testing.T) {
-	resp := httptest.NewRecorder()
-	gin.SetMode(gin.TestMode)
-	c, r := gin.CreateTestContext(resp)
-
-	r.Use(func(c *gin.Context) {
-		c.Set("profile", "myfakeprofile")
-	})
-
-	r.GET("/test", func(c *gin.Context) {
-		_, found := c.Get("profile")
-		// found is true
-		t.Log(found)
-		c.Status(200)
-	})
-	c.Request, _ = http.NewRequest(http.MethodGet, "/test", nil)
-	r.ServeHTTP(resp, c.Request)
-}

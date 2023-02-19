@@ -17,6 +17,7 @@ func AuthEndpoints(r *gin.RouterGroup, mws middleware.Middleware, aD auth.Delive
 	r.POST("/redeem", mws.MiddlewareValidateRedeemCode(), aD.SendEmail)
 	r.POST("/codecheck", mws.MiddlewareValidateRedeemCode(), aD.CheckRedeemCode)
 	r.POST("/credentials", mws.MiddlewareValidateRedeemCode(), aD.UpdatePassword)
+	r.DELETE("/remove", mws.TokenAuthMiddleware(), aD.DeleteUser)
 }
 
 func UserEndpoints(r *gin.RouterGroup, mws middleware.Middleware, uD user.Delivery) {

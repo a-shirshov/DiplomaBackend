@@ -208,7 +208,7 @@ func (eD *EventDelivery) SwitchEventMeeting(c *gin.Context) {
 		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, "OK")
+	utils.SendMessage(c, http.StatusOK, "OK")
 }
 
 func (eD *EventDelivery) SwitchEventFavourite(c *gin.Context) {
@@ -230,5 +230,5 @@ func (eD *EventDelivery) SwitchEventFavourite(c *gin.Context) {
 		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, "OK")
+	utils.SendMessage(c, http.StatusOK, "OK")
 }

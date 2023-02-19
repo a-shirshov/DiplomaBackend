@@ -8,6 +8,7 @@ type Repository interface {
 	CreateUser(*models.User) (*models.User, error)
 	GetUserByEmail(string) (*models.User, error)
 	UpdatePassword(passwordHash string, email string) error
+	DeleteUser(userID int) (error)
 }
 
 type SessionRepository interface {

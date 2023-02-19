@@ -10,4 +10,5 @@ type Delivery interface {
 	SendEmail(c *gin.Context)
 	CheckRedeemCode(c *gin.Context)
 	UpdatePassword(c *gin.Context)
+	DeleteUser(c *gin.Context)
 }
