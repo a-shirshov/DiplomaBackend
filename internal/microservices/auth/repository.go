@@ -14,7 +14,7 @@ type Repository interface {
 type SessionRepository interface {
 	SaveTokens(userId int, td *models.TokenDetails) error
 	FetchAuth(accessUuid string) (int, error)
-	DeleteAuth(accessUuid string) error
+	DeleteAuth(UUID string) error
 	SavePasswordRedeemCode(email string, redeemCode int) error
 	CheckRedeemCode(email string, redeemCode int) error
 	CheckAccessToNewPassword(email string) (bool)

@@ -88,8 +88,12 @@ func (aU *authUsecase) SignIn(user *models.LoginUser) (*models.User, *models.Tok
 	return resultUser, td, nil
 }
 
-func (aU *authUsecase) Logout(au *models.AccessDetails) error {
-	return aU.sessionRepo.DeleteAuth(au.AccessUuid)
+func (aU *authUsecase) Logout(au *models.AccessDetails, refreshToken string) error {
+	err := aU.sessionRepo.DeleteAuth(au.AccessUuid)
+	if err != nil {
+		return err
+	}
+	return aU.sessionRepo.DeleteAuth(refreshToken)
 }
 
 func (aU *authUsecase) Refresh(refreshToken string) (*models.Tokens, error) {

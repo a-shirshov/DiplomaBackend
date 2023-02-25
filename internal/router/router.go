@@ -1,9 +1,9 @@
 package router
 
 import (
+	auth "Diploma/internal/microservices/auth"
 	event "Diploma/internal/microservices/event/delivery"
 	user "Diploma/internal/microservices/user"
-	auth "Diploma/internal/microservices/auth"
 
 	"Diploma/internal/middleware"
 	"github.com/gin-gonic/gin"
@@ -32,6 +32,7 @@ func EventEndpoints(r *gin.RouterGroup, mws middleware.Middleware, eD *event.Eve
 	r.GET("/external/close", eD.GetCloseExternalEvents)
 	r.GET("/external/today", eD.GetTodayEvents)
 	r.GET("/external/:place_id/:event_id", mws.TokenAuthMiddleware(), eD.GetExternalEvent)
-	r.POST("external/:event_id/go", mws.TokenAuthMiddleware(), eD.SwitchEventMeeting)
-	r.POST("external/:event_id/favourite", mws.TokenAuthMiddleware(), eD.SwitchEventFavourite)
+	r.POST("/external/:event_id/go", mws.TokenAuthMiddleware(), eD.SwitchEventMeeting)
+	r.POST("/external/:event_id/favourite", mws.TokenAuthMiddleware(), eD.SwitchEventFavourite)
+	//r.POST("", mws.TokenAuthMiddleware(), mws.MiddlewareValidateUserEvent(), eD.CreateUserEvent)
 }

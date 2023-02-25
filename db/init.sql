@@ -13,6 +13,16 @@ CREATE TABLE IF NOT EXISTS "user"  (
     deleted_at timestamp
 );
 
+CREATE TABLE IF NOT EXISTS "user_event" (
+    id serial not null UNIQUE,
+    title text not null,
+    start int not null,
+    end int not null,
+    img_url text not null default '',
+    description not null default '',
+    price text not null default ''
+);
+
 CREATE TABLE IF NOT EXISTS "kudago_event" (
     id serial not null UNIQUE,
     event_id int UNIQUE,

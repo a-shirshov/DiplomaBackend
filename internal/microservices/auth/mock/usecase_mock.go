@@ -109,17 +109,17 @@ func (mr *MockUsecaseMockRecorder) FindUserByEmail(email interface{}) *gomock.Ca
 }
 
 // Logout mocks base method.
-func (m *MockUsecase) Logout(arg0 *models.AccessDetails) error {
+func (m *MockUsecase) Logout(au *models.AccessDetails, refreshToken string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Logout", arg0)
+	ret := m.ctrl.Call(m, "Logout", au, refreshToken)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Logout indicates an expected call of Logout.
-func (mr *MockUsecaseMockRecorder) Logout(arg0 interface{}) *gomock.Call {
+func (mr *MockUsecaseMockRecorder) Logout(au, refreshToken interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logout", reflect.TypeOf((*MockUsecase)(nil).Logout), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logout", reflect.TypeOf((*MockUsecase)(nil).Logout), au, refreshToken)
 }
 
 // Refresh mocks base method.

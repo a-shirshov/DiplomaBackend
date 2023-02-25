@@ -5,9 +5,9 @@ import (
 	"Diploma/internal/models"
 	"Diploma/pkg"
 	"Diploma/utils"
-	"log"
 	"strings"
 
+	log "Diploma/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 )
@@ -15,13 +15,13 @@ import (
 var allowedOrigins = []string{"", "http://45.141.102.243:8080", "http://127.0.0.1:8080"}
 
 type Middlewares struct {
-	auth auth.SessionRepository
+	auth  auth.SessionRepository
 	token pkg.TokenManager
 }
 
 func NewMiddleware(auth auth.SessionRepository, token pkg.TokenManager) *Middlewares {
 	return &Middlewares{
-		auth: auth,
+		auth:  auth,
 		token: token,
 	}
 }
@@ -29,11 +29,11 @@ func NewMiddleware(auth auth.SessionRepository, token pkg.TokenManager) *Middlew
 func (m *Middlewares) TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.Request.Header.Get("Authorization")
-	   	au, err := m.token.ExtractTokenMetadata(token)
-	   	if err != nil {
-		  c.Set("access_details", models.AccessDetails{})
-		  return
-	   	}
+		au, err := m.token.ExtractTokenMetadata(token)
+		if err != nil {
+			c.Set("access_details", models.AccessDetails{})
+			return
+		}
 
 		userId, err := m.auth.FetchAuth(au.AccessUuid)
 		if err != nil {
@@ -52,7 +52,7 @@ func (m *Middlewares) TokenAuthMiddleware() gin.HandlerFunc {
 }
 
 func (m *Middlewares) CORSMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
+	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
 		var isAllowed bool
 		for _, orig := range allowedOrigins {
@@ -63,22 +63,22 @@ func (m *Middlewares) CORSMiddleware() gin.HandlerFunc {
 		}
 
 		if !isAllowed {
-			log.Print("CORS not allowed origin = ", origin)
+			log.Error("CORS not allowed origin = ", origin)
 			return
 		}
 
-        c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
-        c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-        c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
 
-        if c.Request.Method == "OPTIONS" {
-            c.AbortWithStatus(204)
-            return
-        }
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
 
-        c.Next()
-    }
+		c.Next()
+	}
 }
 
 func (m *Middlewares) MiddlewareValidateUser() gin.HandlerFunc {
@@ -90,8 +90,10 @@ func (m *Middlewares) MiddlewareValidateUser() gin.HandlerFunc {
 		}
 
 		inputUser.Email = strings.ToLower(inputUser.Email)
+		log.Debug("Middleware input user", inputUser)
 		err = utils.ValidateAndSanitize(inputUser)
 		if err != nil {
+			log.Error("Error", err)
 			return
 		}
 
@@ -152,6 +154,23 @@ func (m *Middlewares) MiddlewareValidateRedeemCode() gin.HandlerFunc {
 			return
 		}
 		c.Set("redeem_struct", *inputRedeemCode)
+		c.Next()
+	}
+}
+
+func (m *Middlewares) MiddlewareValidateUserEvent() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var inputUserEvent *models.MyEvent
+		err := c.ShouldBindJSON(&inputUserEvent)
+		if err != nil {
+			return
+		}
+
+		err = utils.ValidateAndSanitize(inputUserEvent)
+		if err != nil {
+			return
+		}
+		c.Set("user_event", *inputUserEvent)
 		c.Next()
 	}
 }

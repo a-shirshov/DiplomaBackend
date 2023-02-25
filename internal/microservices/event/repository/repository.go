@@ -2,6 +2,7 @@ package repository
 
 import (
 	"Diploma/internal/customErrors"
+	//"Diploma/internal/models"
 	"database/sql"
 
 	"github.com/jmoiron/sqlx"
@@ -22,6 +23,8 @@ const (
 	CheckEventFavourite = `select id from "kudago_favourite" where user_id = $1 and event_id = $2;`
 	AddEventToFavourite = `insert into "kudago_favourite" (user_id, event_id) values ($1, $2);`
 	DeleteEventFromFavoutire = `delete from "kudago_favourite" where id = $1;`
+
+	CreateUserEvent = `insert into `
 )
 
 type EventRepository struct {
@@ -118,3 +121,7 @@ func (eR *EventRepository) CheckKudaGoFavourite(userID int, eventID int) (bool, 
 	isFavourite = true
 	return isFavourite, nil
 }
+
+// func (eR *EventRepository) CeateUserEvent(userID int, userEvent *models.MyEvent) (error) {
+// 	err := eR.db.Get
+// }

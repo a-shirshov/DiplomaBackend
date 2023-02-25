@@ -144,17 +144,17 @@ func (mr *MockSessionRepositoryMockRecorder) CheckRedeemCode(email, redeemCode i
 }
 
 // DeleteAuth mocks base method.
-func (m *MockSessionRepository) DeleteAuth(accessUuid string) error {
+func (m *MockSessionRepository) DeleteAuth(UUID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteAuth", accessUuid)
+	ret := m.ctrl.Call(m, "DeleteAuth", UUID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteAuth indicates an expected call of DeleteAuth.
-func (mr *MockSessionRepositoryMockRecorder) DeleteAuth(accessUuid interface{}) *gomock.Call {
+func (mr *MockSessionRepositoryMockRecorder) DeleteAuth(UUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAuth", reflect.TypeOf((*MockSessionRepository)(nil).DeleteAuth), accessUuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAuth", reflect.TypeOf((*MockSessionRepository)(nil).DeleteAuth), UUID)
 }
 
 // FetchAuth mocks base method.

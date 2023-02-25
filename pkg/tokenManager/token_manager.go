@@ -13,18 +13,17 @@ import (
 	"github.com/spf13/viper"
 )
 
-type tokenManager struct {
+const month = time.Hour * 24 * 30
 
+type tokenManager struct {
 }
 
-func NewTokenManager() *tokenManager{
-	return &tokenManager{
-
-	}
+func NewTokenManager() *tokenManager {
+	return &tokenManager{}
 }
 
 func (tM *tokenManager) CheckTokenAndGetClaims(refreshToken string) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error){
+	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -46,7 +45,7 @@ func (tM *tokenManager) CheckTokenAndGetClaims(refreshToken string) (jwt.MapClai
 func extractToken(requestToken string) string {
 	strArr := strings.Split(requestToken, " ")
 	if len(strArr) == 2 {
-	   return strArr[1]
+		return strArr[1]
 	}
 	return ""
 }
@@ -54,24 +53,24 @@ func extractToken(requestToken string) string {
 func verifyToken(requestToken string) (*jwt.Token, error) {
 	tokenString := extractToken(requestToken)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-	   //Make sure that the token method conform to "SigningMethodHMAC"
-	   if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		  return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-	   }
-	   return []byte(viper.GetString("ACCESS_TOKEN")), nil
+		//Make sure that the token method conform to "SigningMethodHMAC"
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(viper.GetString("ACCESS_TOKEN")), nil
 	})
 	if err != nil {
-	   return nil, err
+		return nil, err
 	}
 	return token, nil
-  }
+}
 
-func(tM *tokenManager) CreateToken(userId int) (*models.TokenDetails, error) {
+func (tM *tokenManager) CreateToken(userId int) (*models.TokenDetails, error) {
 	td := &models.TokenDetails{}
 	td.AtExpires = time.Now().Add(time.Minute * 15).Unix()
 	td.AccessUuid = uuid.NewV4().String()
 
-	td.RtExpires = time.Now().Add(time.Hour * 24 * 7).Unix()
+	td.RtExpires = time.Now().Add(month).Unix()
 	td.RefreshUuid = uuid.NewV4().String()
 
 	var err error
@@ -98,28 +97,28 @@ func(tM *tokenManager) CreateToken(userId int) (*models.TokenDetails, error) {
 	return td, nil
 }
 
-func(tM *tokenManager) ExtractTokenMetadata(requestToken string) (*models.AccessDetails, error) {
+func (tM *tokenManager) ExtractTokenMetadata(requestToken string) (*models.AccessDetails, error) {
 	token, err := verifyToken(requestToken)
 	if err != nil {
-	   return nil, err
+		return nil, err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
-	   accessUuid, ok := claims["access_uuid"].(string)
-	   if !ok {
-		  return nil, errors.New("type problem")
-	   }
+		accessUuid, ok := claims["access_uuid"].(string)
+		if !ok {
+			return nil, errors.New("type problem")
+		}
 
-	   userId, err := strconv.ParseInt(fmt.Sprintf("%.f",claims["user_id"]),10,0)
-	   if err != nil {
-		  return nil, err
-	   } 
+		userId, err := strconv.ParseInt(fmt.Sprintf("%.f", claims["user_id"]), 10, 0)
+		if err != nil {
+			return nil, err
+		}
 
-	   return &models.AccessDetails{
-		  AccessUuid: accessUuid,
-		  UserId:   int(userId),
-	   }, nil
+		return &models.AccessDetails{
+			AccessUuid: accessUuid,
+			UserId:     int(userId),
+		}, nil
 	}
 	return nil, err
 }

@@ -9,4 +9,5 @@ type Middleware interface {
 	MiddlewareValidateLoginUser() gin.HandlerFunc
 	MiddlewareValidateUserFormData() gin.HandlerFunc
 	MiddlewareValidateRedeemCode() gin.HandlerFunc
+	MiddlewareValidateUserEvent() gin.HandlerFunc
 }

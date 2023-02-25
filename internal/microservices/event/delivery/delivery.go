@@ -160,7 +160,7 @@ func (eD *EventDelivery) GetExternalEvent(c *gin.Context) {
 
 	go func(){
 		defer wg.Done()
-		isFavourite, favouriteErr = eD.eventUsecase.CheckKudaGoMeeting(userID, eventID)
+		isFavourite, favouriteErr = eD.eventUsecase.CheckKudaGoFavourite(userID, eventID)
 		if favouriteErr != nil {
 			return
 		}
@@ -232,3 +232,26 @@ func (eD *EventDelivery) SwitchEventFavourite(c *gin.Context) {
 	}
 	utils.SendMessage(c, http.StatusOK, "OK")
 }
+
+// func (eD *EventDelivery) CreateUserEvent(c *gin.Context) {
+// 	au, err := utils.GetAUFromContext(c)
+// 	if err != nil {
+// 		utils.SendMessage(c, http.StatusUnauthorized, "Unauthorized")
+// 		return
+// 	}
+
+// 	userEventCtxValue, ok := c.Get("user_event")
+// 	if !ok {
+// 		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
+// 		return
+// 	}
+// 	userEvent := userEventCtxValue.(models.MyEvent)
+
+// 	err = eD.eventUsecase.CreateUserEvent(au.UserId, userEvent)
+// 	if err != nil {
+// 		utils.SendMessage(c, http.StatusInternalServerError, customErrors.ErrSmthWentWrong.Error())
+// 		return
+// 	}
+
+// 	utils.SendMessage(c, http.StatusOK, "OK")
+// }

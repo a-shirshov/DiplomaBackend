@@ -294,6 +294,7 @@ func TestSignIn(t *testing.T) {
 type logoutTest struct {
 	name string
 	inputAccessDetails *models.AccessDetails
+	inputRefresh string
 	beforeTest func(authRepo *mock.MockRepository, sessionRepo *mock.MockSessionRepository,
 		passwordHasher *mock.MockPasswordHasher, tokenManager *mock.MockTokenManager)
 	ExpectedErr error
@@ -305,10 +306,15 @@ var logoutTests = []logoutTest{
 		&models.AccessDetails{
 			AccessUuid: "uuid",
 		},
+		"refresh_uuid",
 		func(authRepo *mock.MockRepository, sessionRepo *mock.MockSessionRepository, 
 			passwordHasher *mock.MockPasswordHasher, tokenManager *mock.MockTokenManager) {
 				sessionRepo.EXPECT().
 					DeleteAuth("uuid").
+					Return(nil)
+				
+				sessionRepo.EXPECT().
+					DeleteAuth("refresh_uuid").
 					Return(nil)
 			},
 		nil,
@@ -332,7 +338,7 @@ func TestLogout(t *testing.T) {
 					mockPasswordHasher, mockTokenManager)
 			}
 
-			actualErr := testAuthUsecase.Logout(test.inputAccessDetails)
+			actualErr := testAuthUsecase.Logout(test.inputAccessDetails, test.inputRefresh)
 			assert.Equal(t, test.ExpectedErr, actualErr)
 		})
 
@@ -498,7 +504,7 @@ func TestCreateAndSavePasswordRedeemCode(t *testing.T) {
 			}
 
 			actualRedeemCode, actualErr := testAuthUsecase.CreateAndSavePasswordRedeemCode(test.inputEmail)
-			assert.True(t, (actualRedeemCode > 100000) && (actualRedeemCode < 1000000))
+			assert.True(t, (actualRedeemCode >= 100000) && (actualRedeemCode < 1000000))
 			assert.Equal(t, test.ExpectedErr, actualErr)
 		})
 

@@ -90,6 +90,20 @@ func (mr *MockMiddlewareMockRecorder) MiddlewareValidateUser() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MiddlewareValidateUser", reflect.TypeOf((*MockMiddleware)(nil).MiddlewareValidateUser))
 }
 
+// MiddlewareValidateUserEvent mocks base method.
+func (m *MockMiddleware) MiddlewareValidateUserEvent() gin.HandlerFunc {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MiddlewareValidateUserEvent")
+	ret0, _ := ret[0].(gin.HandlerFunc)
+	return ret0
+}
+
+// MiddlewareValidateUserEvent indicates an expected call of MiddlewareValidateUserEvent.
+func (mr *MockMiddlewareMockRecorder) MiddlewareValidateUserEvent() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MiddlewareValidateUserEvent", reflect.TypeOf((*MockMiddleware)(nil).MiddlewareValidateUserEvent))
+}
+
 // MiddlewareValidateUserFormData mocks base method.
 func (m *MockMiddleware) MiddlewareValidateUserFormData() gin.HandlerFunc {
 	m.ctrl.T.Helper()

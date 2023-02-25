@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"Diploma/internal/microservices/event"
+	//"Diploma/internal/models"
 	"database/sql"
 )
 
@@ -60,3 +61,7 @@ func (eU *EventUsecase) SwitchEventMeeting(userID int, eventID int) (error) {
 func (eU *EventUsecase) SwitchEventFavourite(userID int, eventID int) (error) {
 	return eU.eventRepo.SwitchEventFavourite(userID, eventID)
 }
+
+// func (eU *EventUsecase) CreateUserEvent(userID int, userEvent *models.MyEvent) (error) {
+// 	return eU.eventRepo.CreateUserEvent(userID, userEvent)
+// }

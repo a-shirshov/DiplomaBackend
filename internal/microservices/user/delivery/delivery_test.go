@@ -27,14 +27,14 @@ func prepareTestEnvironment() (*gin.Context, *gin.Engine, *gin.RouterGroup, *htt
 }
 
 type getUserTest struct {
-	name string
-	queryParamUserID string
-	beforeTest func(userUsecase *mock.MockUsecase)
-	expectedUserJSON string
+	name               string
+	queryParamUserID   string
+	beforeTest         func(userUsecase *mock.MockUsecase)
+	expectedUserJSON   string
 	expectedStatusCode int
 }
 
-var getUserTests = []getUserTest {
+var getUserTests = []getUserTest{
 	{
 		"Successfully get user",
 		"1",
@@ -43,11 +43,11 @@ var getUserTests = []getUserTest {
 				GetUser(1).
 				Return(
 					&models.User{
-						ID: 1,
-						Name: "Artyom",
+						ID:      1,
+						Name:    "Artyom",
 						Surname: "Shirshov",
-						About: "About",
-						ImgUrl: "ImgUrl",
+						About:   "About",
+						ImgUrl:  "ImgUrl",
 					},
 					nil)
 		},
@@ -103,7 +103,7 @@ func TestGetUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	for _, test := range getUserTests{
+	for _, test := range getUserTests {
 		t.Run(test.name, func(t *testing.T) {
 			mockUserUsecase := mock.NewMockUsecase(ctrl)
 			deliveryTest := NewUserDelivery(mockUserUsecase)
@@ -113,8 +113,8 @@ func TestGetUser(t *testing.T) {
 				test.beforeTest(mockUserUsecase)
 			}
 
-			mockMiddlewares.EXPECT().TokenAuthMiddleware().Return(func (ctx *gin.Context){ctx.Next()})
-			mockMiddlewares.EXPECT().MiddlewareValidateUser().Return(func (ctx *gin.Context){ctx.Next()})
+			mockMiddlewares.EXPECT().TokenAuthMiddleware().Return(func(ctx *gin.Context) { ctx.Next() })
+			mockMiddlewares.EXPECT().MiddlewareValidateUser().Return(func(ctx *gin.Context) { ctx.Next() })
 
 			ctx, testEngine, userRouter, responseRecorder := prepareTestEnvironment()
 			router.UserEndpoints(userRouter, mockMiddlewares, deliveryTest)
@@ -130,16 +130,16 @@ func TestGetUser(t *testing.T) {
 }
 
 type updateUserTest struct {
-	name string
-	queryParamUserID string
-	inputBodyJSON string
+	name               string
+	queryParamUserID   string
+	inputBodyJSON      string
 	inputAccessDetails models.AccessDetails
-	beforeTest func(userUsecase *mock.MockUsecase)
-	expectedUserJSON string
+	beforeTest         func(userUsecase *mock.MockUsecase)
+	expectedUserJSON   string
 	expectedStatusCode int
 }
 
-var updateUserTests = []updateUserTest {
+var updateUserTests = []updateUserTest{
 	{
 		"Successfully update user",
 		"1",
@@ -154,29 +154,29 @@ var updateUserTests = []updateUserTest {
 		}`,
 		models.AccessDetails{
 			AccessUuid: "uuid",
-			UserId: 1,
+			UserId:     1,
 		},
 		func(userUsecase *mock.MockUsecase) {
 			userUsecase.EXPECT().
 				UpdateUser(
 					&models.User{
-						ID: 1,
-						Name: "Artyom",
-						Surname: "Shirshov",
-						About: "About",
-						ImgUrl: "ImgUrl",
+						ID:          1,
+						Name:        "Artyom",
+						Surname:     "Shirshov",
+						About:       "About",
+						ImgUrl:      "ImgUrl",
 						DateOfBirth: "2001-08-06",
-						City: "msk",
+						City:        "msk",
 					}).
 				Return(
 					&models.User{
-						ID: 1,
-						Name: "Artyom",
-						Surname: "Shirshov",
-						About: "About",
-						ImgUrl: "ImgUrl",
+						ID:          1,
+						Name:        "Artyom",
+						Surname:     "Shirshov",
+						About:       "About",
+						ImgUrl:      "ImgUrl",
 						DateOfBirth: "2001-08-06",
-						City: "msk",
+						City:        "msk",
 					},
 					nil)
 		},
@@ -218,7 +218,7 @@ var updateUserTests = []updateUserTest {
 		}`,
 		models.AccessDetails{
 			AccessUuid: "uuid",
-			UserId: 1,
+			UserId:     1,
 		},
 		nil,
 		`{
@@ -234,7 +234,7 @@ var updateUserTests = []updateUserTest {
 		}`,
 		models.AccessDetails{
 			AccessUuid: "uuid",
-			UserId: 1,
+			UserId:     1,
 		},
 		nil,
 		`{
@@ -256,7 +256,7 @@ var updateUserTests = []updateUserTest {
 		}`,
 		models.AccessDetails{
 			AccessUuid: "uuid",
-			UserId: 2,
+			UserId:     2,
 		},
 		nil,
 		`{
@@ -278,7 +278,7 @@ var updateUserTests = []updateUserTest {
 		}`,
 		models.AccessDetails{
 			AccessUuid: "uuid",
-			UserId: 1,
+			UserId:     1,
 		},
 		nil,
 		`{
@@ -300,19 +300,19 @@ var updateUserTests = []updateUserTest {
 		}`,
 		models.AccessDetails{
 			AccessUuid: "uuid",
-			UserId: 1,
+			UserId:     1,
 		},
 		func(userUsecase *mock.MockUsecase) {
 			userUsecase.EXPECT().
 				UpdateUser(
 					&models.User{
-						ID: 1,
-						Name: "Artyom",
-						Surname: "Shirshov",
-						About: "About",
-						ImgUrl: "ImgUrl",
+						ID:          1,
+						Name:        "Artyom",
+						Surname:     "Shirshov",
+						About:       "About",
+						ImgUrl:      "ImgUrl",
 						DateOfBirth: "2001-08-06",
-						City: "msk",
+						City:        "msk",
 					}).
 				Return(
 					&models.User{},
@@ -329,7 +329,7 @@ func TestUpdateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	for _, test := range updateUserTests{
+	for _, test := range updateUserTests {
 		t.Run(test.name, func(t *testing.T) {
 			mockUserUsecase := mock.NewMockUsecase(ctrl)
 			deliveryTest := NewUserDelivery(mockUserUsecase)
@@ -339,11 +339,11 @@ func TestUpdateUser(t *testing.T) {
 				test.beforeTest(mockUserUsecase)
 			}
 
-			mockMiddlewares.EXPECT().TokenAuthMiddleware().Return(func (ctx *gin.Context){ctx.Next()})
-			mockMiddlewares.EXPECT().MiddlewareValidateUser().Return(func (ctx *gin.Context){ctx.Next()})
+			mockMiddlewares.EXPECT().TokenAuthMiddleware().Return(func(ctx *gin.Context) { ctx.Next() })
+			mockMiddlewares.EXPECT().MiddlewareValidateUser().Return(func(ctx *gin.Context) { ctx.Next() })
 
 			ctx, testEngine, userRouter, responseRecorder := prepareTestEnvironment()
-			userRouter.Use(func(ctx *gin.Context){
+			userRouter.Use(func(ctx *gin.Context) {
 				ctx.Set("access_details", test.inputAccessDetails)
 			})
 			router.UserEndpoints(userRouter, mockMiddlewares, deliveryTest)

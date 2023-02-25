@@ -8,11 +8,13 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"strings"
+
+	log "Diploma/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	gomail "gopkg.in/mail.v2"
-	log "Diploma/pkg/logger"
 )
 
 const logMessage = "auth:delivery:"
@@ -50,14 +52,16 @@ func (uD *AuthDelivery) SignUp(c *gin.Context) {
 
 	imgUrl, err := utils.SaveImageFromRequest(c, "image")
 	if err != nil {
-		if err == customErrors.ErrWrongExtension {
-			utils.SendMessage(c, http.StatusBadRequest, err.Error())
+		if !strings.Contains(err.Error(), "http: no such file"){
+			if err == customErrors.ErrWrongExtension {
+				utils.SendMessage(c, http.StatusBadRequest, err.Error())
+				return
+			}
+	
+			log.Error(message + err.Error())
+			utils.SendMessage(c, http.StatusInternalServerError, customErrors.ErrSmthWentWrong.Error())
 			return
 		}
-
-		log.Error(message + err.Error())
-		utils.SendMessage(c, http.StatusInternalServerError, customErrors.ErrSmthWentWrong.Error())
-		return
 	}
 	user.ImgUrl = imgUrl
 	
@@ -151,7 +155,13 @@ func (uD *AuthDelivery) Logout(c *gin.Context) {
 		return
 	}
 
-	err = uD.authUsecase.Logout(au)
+	var inputTokens models.Tokens
+	if err := c.ShouldBindJSON(&inputTokens); err != nil {
+		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
+		return
+	}
+
+	err = uD.authUsecase.Logout(au, inputTokens.RefreshToken)
 	if err != nil {
 		utils.SendMessage(c, http.StatusUnauthorized, err.Error())
 		return

@@ -61,8 +61,8 @@ func (sR *SessionRepository) FetchAuth(accessUuid string) (int, error) {
 	return userID, nil
 }
 
-func (sR *SessionRepository) DeleteAuth(accessUuid string) error {
-	_, err := sR.redis.Del(accessUuid).Result()
+func (sR *SessionRepository) DeleteAuth(UUID string) error {
+	_, err := sR.redis.Del(UUID).Result()
 	if err != nil {
 		return err
 	}
