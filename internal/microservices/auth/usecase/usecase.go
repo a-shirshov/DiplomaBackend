@@ -4,11 +4,12 @@ import (
 	"Diploma/internal/microservices/auth"
 	"Diploma/internal/models"
 	"Diploma/pkg"
+	log "Diploma/pkg/logger"
 	"Diploma/utils"
 	"errors"
+	"math"
 	"math/rand"
 	"time"
-	log "Diploma/pkg/logger"
 )
 
 const logMessage = "auth:usecase:"
@@ -104,25 +105,29 @@ func (aU *authUsecase) Refresh(refreshToken string) (*models.Tokens, error) {
 
 	refreshUuid, ok := claims["refresh_uuid"].(string) //convert the interface to string
 	if !ok {
+		log.Debug("Here 1")
 		return nil, errors.New("token problem")
 	}
 
-	userId, ok := claims["user_id"].(int)
+	// TODO: Should get int
+	userIDFloat, ok := claims["user_id"].(float64)
 	if !ok {
+		log.Debug("Here 2")
 		return nil, errors.New("token problem")
 	}
+	userID := int(math.RoundToEven(userIDFloat))
 
 	err = aU.sessionRepo.DeleteAuth(refreshUuid)
 	if err != nil  {
 		return nil, errors.New("unauthorized")
 	}
 
-	ts, err := aU.tokenManager.CreateToken(int(userId))
+	ts, err := aU.tokenManager.CreateToken(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = aU.sessionRepo.SaveTokens(int(userId), ts)
+	err = aU.sessionRepo.SaveTokens(userID, ts)
 	if err != nil {
 		return nil, err
 	}
