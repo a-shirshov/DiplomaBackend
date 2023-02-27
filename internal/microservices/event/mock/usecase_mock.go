@@ -63,6 +63,21 @@ func (mr *MockUsecaseMockRecorder) CheckKudaGoMeeting(userID, eventID interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckKudaGoMeeting", reflect.TypeOf((*MockUsecase)(nil).CheckKudaGoMeeting), userID, eventID)
 }
 
+// GetFavouriteKudagoEventsIDs mocks base method.
+func (m *MockUsecase) GetFavouriteKudagoEventsIDs(userID int) ([]int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavouriteKudagoEventsIDs", userID)
+	ret0, _ := ret[0].([]int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavouriteKudagoEventsIDs indicates an expected call of GetFavouriteKudagoEventsIDs.
+func (mr *MockUsecaseMockRecorder) GetFavouriteKudagoEventsIDs(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavouriteKudagoEventsIDs", reflect.TypeOf((*MockUsecase)(nil).GetFavouriteKudagoEventsIDs), userID)
+}
+
 // GetPeopleCountWithEventCreatedIfNecessary mocks base method.
 func (m *MockUsecase) GetPeopleCountWithEventCreatedIfNecessary(eventID int) (int, error) {
 	m.ctrl.T.Helper()

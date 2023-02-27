@@ -77,6 +77,21 @@ func (mr *MockRepositoryMockRecorder) CreateKudaGoEvent(placeID interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKudaGoEvent", reflect.TypeOf((*MockRepository)(nil).CreateKudaGoEvent), placeID)
 }
 
+// GetFavouriteKudagoEventsIDs mocks base method.
+func (m *MockRepository) GetFavouriteKudagoEventsIDs(userID int) ([]int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavouriteKudagoEventsIDs", userID)
+	ret0, _ := ret[0].([]int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavouriteKudagoEventsIDs indicates an expected call of GetFavouriteKudagoEventsIDs.
+func (mr *MockRepositoryMockRecorder) GetFavouriteKudagoEventsIDs(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavouriteKudagoEventsIDs", reflect.TypeOf((*MockRepository)(nil).GetFavouriteKudagoEventsIDs), userID)
+}
+
 // GetPeopleCount mocks base method.
 func (m *MockRepository) GetPeopleCount(placeID int) (int, error) {
 	m.ctrl.T.Helper()

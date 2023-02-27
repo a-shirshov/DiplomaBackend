@@ -504,7 +504,7 @@ func TestCreateAndSavePasswordRedeemCode(t *testing.T) {
 			}
 
 			actualRedeemCode, actualErr := testAuthUsecase.CreateAndSavePasswordRedeemCode(test.inputEmail)
-			assert.True(t, (actualRedeemCode >= 100000) && (actualRedeemCode < 1000000))
+			assert.True(t, (actualRedeemCode >= 100000) && (actualRedeemCode < 1000000), "actualRedeemCode is", actualRedeemCode)
 			assert.Equal(t, test.ExpectedErr, actualErr)
 		})
 

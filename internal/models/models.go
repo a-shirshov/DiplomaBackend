@@ -105,6 +105,7 @@ type MyEvent struct {
 	Place       int    `json:"place"`
 	Description string `json:"description"`
 	Price       string `json:"price"`
+	IsLiked		bool   `json:"is_liked"`
 }
 
 type KudaGoPlaceResult struct {

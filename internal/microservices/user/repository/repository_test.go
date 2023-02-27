@@ -150,35 +150,35 @@ type getFavouriteKudagoEventsIDsTest struct {
 	expectedError 		error
 }
 
-var getFavouriteKudagoEventsIDsTests = []getFavouriteKudagoEventsIDsTest {
-	{
-		"Successfully get favourite kudago events ids",
-		1,
-		func(mockSQL sqlmock.Sqlmock) {
-			columns := []string{"event_id"}
-			rows := mockSQL.NewRows(columns).
-				AddRow(1).AddRow(2).AddRow(3)
+// var getFavouriteKudagoEventsIDsTests = []getFavouriteKudagoEventsIDsTest {
+// 	{
+// 		"Successfully get favourite kudago events ids",
+// 		1,
+// 		func(mockSQL sqlmock.Sqlmock) {
+// 			columns := []string{"event_id"}
+// 			rows := mockSQL.NewRows(columns).
+// 				AddRow(1).AddRow(2).AddRow(3)
 
-			mockSQL.ExpectQuery(regexp.QuoteMeta(GetFavouriteEventsID)).
-				WithArgs(1).
-				RowsWillBeClosed().
-				WillReturnRows(rows)
-		},
-		[]int{1, 2, 3},
-		nil,
-	},
-	{
-		"User doesn't have favourite kudago event ids",
-		1,
-		func(mockSQL sqlmock.Sqlmock) {
-			mockSQL.ExpectQuery(regexp.QuoteMeta(GetFavouriteEventsID)).
-				WithArgs(1).
-				WillReturnError(sql.ErrNoRows)
-		},
-		[]int{},
-		nil,
-	},
-}
+// 			mockSQL.ExpectQuery(regexp.QuoteMeta(GetFavouriteEventsID)).
+// 				WithArgs(1).
+// 				RowsWillBeClosed().
+// 				WillReturnRows(rows)
+// 		},
+// 		[]int{1, 2, 3},
+// 		nil,
+// 	},
+// 	{
+// 		"User doesn't have favourite kudago event ids",
+// 		1,
+// 		func(mockSQL sqlmock.Sqlmock) {
+// 			mockSQL.ExpectQuery(regexp.QuoteMeta(GetFavouriteEventsID)).
+// 				WithArgs(1).
+// 				WillReturnError(sql.ErrNoRows)
+// 		},
+// 		[]int{},
+// 		nil,
+// 	},
+// }
 
 func prepareTestEnvironment() (*UserRepository, sqlmock.Sqlmock, error) {
 	db, mock, err := sqlmock.New()
@@ -264,26 +264,26 @@ func TestUpdateUserImage(t *testing.T) {
 	}
 }
 
-func TestGetFavouriteKudagoEventsIDs(t *testing.T) {
-	for _, test := range getFavouriteKudagoEventsIDsTests {
-		t.Run(test.name, func(t *testing.T) {
-			repositoryTest, mock, err := prepareTestEnvironment()
-			if err != nil {
-				log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-			}
-			defer repositoryTest.db.Close()
+// func TestGetFavouriteKudagoEventsIDs(t *testing.T) {
+// 	for _, test := range getFavouriteKudagoEventsIDsTests {
+// 		t.Run(test.name, func(t *testing.T) {
+// 			repositoryTest, mock, err := prepareTestEnvironment()
+// 			if err != nil {
+// 				log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+// 			}
+// 			defer repositoryTest.db.Close()
 
-			if test.beforeTest != nil {
-				test.beforeTest(mock)
-			}
+// 			if test.beforeTest != nil {
+// 				test.beforeTest(mock)
+// 			}
 
-			actualIDs, actualErr := repositoryTest.GetFavouriteKudagoEventsIDs(test.inputUserID)
-			assert.Equal(t, test.expectedEventIDs, actualIDs)
-			assert.Equal(t, test.expectedError, actualErr)
+// 			actualIDs, actualErr := repositoryTest.GetFavouriteKudagoEventsIDs(test.inputUserID)
+// 			assert.Equal(t, test.expectedEventIDs, actualIDs)
+// 			assert.Equal(t, test.expectedError, actualErr)
 
-			if err := mock.ExpectationsWereMet(); err != nil {
-				t.Errorf("Not all expectations: %s", err)
-			}
-		})	
-	}
-}
+// 			if err := mock.ExpectationsWereMet(); err != nil {
+// 				t.Errorf("Not all expectations: %s", err)
+// 			}
+// 		})	
+// 	}
+// }

@@ -152,7 +152,7 @@ func (aU *authUsecase) CreateAndSavePasswordRedeemCode(email string) (int, error
 func createRedeemCode() int {
 	max := 10
 	min := 0
-	var resultCode int 
+	resultCode := 0 
 	multiplier := 1
 	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < 6; i++ {

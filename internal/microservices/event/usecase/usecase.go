@@ -65,3 +65,7 @@ func (eU *EventUsecase) SwitchEventFavourite(userID int, eventID int) (error) {
 // func (eU *EventUsecase) CreateUserEvent(userID int, userEvent *models.MyEvent) (error) {
 // 	return eU.eventRepo.CreateUserEvent(userID, userEvent)
 // }
+
+func (eU *EventUsecase) GetFavouriteKudagoEventsIDs(userID int) ([]int, error) {
+	return eU.eventRepo.GetFavouriteKudagoEventsIDs(userID)
+}

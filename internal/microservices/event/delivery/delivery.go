@@ -6,6 +6,7 @@ import (
 	"Diploma/internal/models"
 	"Diploma/pkg/kudagoUrl"
 	"Diploma/utils"
+	"fmt"
 	"net/http"
 	"strconv"
 	"sync"
@@ -31,7 +32,16 @@ func (eD *EventDelivery) GetExternalEvents(c *gin.Context) {
 
 	kudaGoEvents := &models.KudaGoEvents{}
 	eventErr := make(chan error, 1)
-	kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
+	go kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
+
+	var userID int
+	au, err := utils.GetAUFromContext(c)
+	if err != nil {
+		userID = 0
+	} else {
+		userID = au.UserId
+	}
+
 	if <-eventErr != nil {
 		utils.SendMessage(c, http.StatusMisdirectedRequest, "kudago error")
 		return
@@ -39,7 +49,10 @@ func (eD *EventDelivery) GetExternalEvents(c *gin.Context) {
 
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
-		events.Events = append(events.Events, utils.ToMyEvent(&result))
+		myEventResult := utils.ToMyEvent(&result)
+		IsLiked, _ := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
+		myEventResult.IsLiked = IsLiked
+		events.Events = append(events.Events, myEventResult)
 	}
 	c.JSON(http.StatusOK, events)
 }
@@ -59,7 +72,16 @@ func (eD *EventDelivery) GetCloseExternalEvents(c *gin.Context) {
 
 	kudaGoEvents := &models.KudaGoEvents{}
 	eventErr := make(chan error, 1)
-	kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
+	go kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
+
+	var userID int
+	au, err := utils.GetAUFromContext(c)
+	if err != nil {
+		userID = 0
+	} else {
+		userID = au.UserId
+	}
+
 	if <-eventErr != nil {
 		utils.SendMessage(c, http.StatusMisdirectedRequest, "kudago error")
 		return
@@ -67,7 +89,10 @@ func (eD *EventDelivery) GetCloseExternalEvents(c *gin.Context) {
 
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
-		events.Events = append(events.Events, utils.ToMyEvent(&result))
+		myEventResult := utils.ToMyEvent(&result)
+		IsLiked, _ := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
+		myEventResult.IsLiked = IsLiked
+		events.Events = append(events.Events, myEventResult)
 	}
 	c.JSON(http.StatusOK, events)
 }
@@ -91,7 +116,16 @@ func (eD *EventDelivery) GetTodayEvents(c *gin.Context) {
 
 	kudaGoEvents := &models.KudaGoEvents{}
 	eventErr := make(chan error, 1)
-	kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
+	go kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
+	
+	var userID int
+	au, err := utils.GetAUFromContext(c)
+	if err != nil {
+		userID = 0
+	} else {
+		userID = au.UserId
+	}
+
 	if <-eventErr != nil {
 		utils.SendMessage(c, http.StatusMisdirectedRequest, "kudago error")
 		return
@@ -99,7 +133,10 @@ func (eD *EventDelivery) GetTodayEvents(c *gin.Context) {
 
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
-		events.Events = append(events.Events, utils.ToMyEvent(&result))
+		myEventResult := utils.ToMyEvent(&result)
+		IsLiked, _ := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
+		myEventResult.IsLiked = IsLiked
+		events.Events = append(events.Events, myEventResult)
 	}
 	c.JSON(http.StatusOK, events)
 }
@@ -255,3 +292,43 @@ func (eD *EventDelivery) SwitchEventFavourite(c *gin.Context) {
 
 // 	utils.SendMessage(c, http.StatusOK, "OK")
 // }
+
+func (uD *EventDelivery) GetFavourites(c *gin.Context) {
+	userIDString := c.Param("user_id")
+	userID, err := strconv.Atoi(userIDString)
+	if err != nil {
+		utils.SendMessage(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	favouriteEvents := models.MyEvents{}
+	favouriteEvents.Events = []models.MyEvent{}
+
+	favouriteEventIDs, err := uD.eventUsecase.GetFavouriteKudagoEventsIDs(userID)
+	if err != nil {
+		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	httpClient :=  &http.Client{Timeout: 10 * time.Second}
+	var wg sync.WaitGroup
+	for _, id := range favouriteEventIDs {
+		eventID := id
+		wg.Add(1)
+		go func() {	
+			defer wg.Done()
+			kudagoEvent := &models.KudaGoResult{}
+			eventErr := make(chan error, 1)
+			kudaGoURL := kudagoUrl.NewKudaGoUrl(kudagoUrl.KudaGoEventURL, httpClient)
+			kudaGoURL.AddEventId(fmt.Sprintf("%d", eventID))
+			kudaGoURL.AddEventFields()
+			kudaGoURL.SendKudagoRequestAndParseToStruct(kudagoEvent, eventErr)
+			if <-eventErr != nil {
+				return
+			}
+			favouriteEvents.Events = append(favouriteEvents.Events, utils.ToMyEvent(kudagoEvent))
+		}()
+	}
+	wg.Wait()
+	c.JSON(http.StatusOK, favouriteEvents)
+}

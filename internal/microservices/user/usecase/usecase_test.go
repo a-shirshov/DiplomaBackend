@@ -192,30 +192,30 @@ var updateUserImageTests = []updateUserImageTest{
 	},
 }
 
-type GetFavouriteKudagoEventsIDsTest struct {
-	name 				string
-	inputUserID			int
-	beforeTest 			func(userRepo *mock.MockRepository)
-	ExpectedEventIDs 	[]int
-	ExpectedErr 		error
-}
+// type GetFavouriteKudagoEventsIDsTest struct {
+// 	name 				string
+// 	inputUserID			int
+// 	beforeTest 			func(userRepo *mock.MockRepository)
+// 	ExpectedEventIDs 	[]int
+// 	ExpectedErr 		error
+// }
 
-var GetFavouriteKudagoEventsIDsTests = []GetFavouriteKudagoEventsIDsTest{
-	{
-		"Successfully return favourite event ids",
-		1,
-		func(userRepo *mock.MockRepository) {
-			userRepo.EXPECT().
-				GetFavouriteKudagoEventsIDs(1).
-				Return(
-					[]int{1, 2, 3},
-					nil,
-				)
-		},
-		[]int{1, 2, 3},
-		nil,
-	},
-}
+// var GetFavouriteKudagoEventsIDsTests = []GetFavouriteKudagoEventsIDsTest{
+// 	{
+// 		"Successfully return favourite event ids",
+// 		1,
+// 		func(userRepo *mock.MockRepository) {
+// 			userRepo.EXPECT().
+// 				GetFavouriteKudagoEventsIDs(1).
+// 				Return(
+// 					[]int{1, 2, 3},
+// 					nil,
+// 				)
+// 		},
+// 		[]int{1, 2, 3},
+// 		nil,
+// 	},
+// }
 
 func TestGetUserUsecase(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -277,22 +277,22 @@ func TestUpdateUserImageUsecase(t *testing.T) {
 	}
 }
 
-func TestGetFavouriteKudagoEventsIDs(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+// func TestGetFavouriteKudagoEventsIDs(t *testing.T) {
+// 	ctrl := gomock.NewController(t)
+// 	defer ctrl.Finish()
 
-	for _, test := range GetFavouriteKudagoEventsIDsTests {
-		t.Run(test.name, func(t *testing.T){
-			mockUserRepo := mock.NewMockRepository(ctrl)
-			testUserRepository := NewUserUsecase(mockUserRepo)
+// 	for _, test := range GetFavouriteKudagoEventsIDsTests {
+// 		t.Run(test.name, func(t *testing.T){
+// 			mockUserRepo := mock.NewMockRepository(ctrl)
+// 			testUserRepository := NewUserUsecase(mockUserRepo)
 
-			if test.beforeTest != nil {
-				test.beforeTest(mockUserRepo)
-			}
+// 			if test.beforeTest != nil {
+// 				test.beforeTest(mockUserRepo)
+// 			}
 
-			actualEventIDs, actualErr := testUserRepository.GetFavouriteKudagoEventsIDs(test.inputUserID)
-			assert.Equal(t, test.ExpectedEventIDs, actualEventIDs)
-			assert.Equal(t, test.ExpectedErr, actualErr)
-		})
-	}
-}
+// 			actualEventIDs, actualErr := testUserRepository.GetFavouriteKudagoEventsIDs(test.inputUserID)
+// 			assert.Equal(t, test.ExpectedEventIDs, actualEventIDs)
+// 			assert.Equal(t, test.ExpectedErr, actualErr)
+// 		})
+// 	}
+// }

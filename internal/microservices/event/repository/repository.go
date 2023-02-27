@@ -24,6 +24,8 @@ const (
 	AddEventToFavourite = `insert into "kudago_favourite" (user_id, event_id) values ($1, $2);`
 	DeleteEventFromFavoutire = `delete from "kudago_favourite" where id = $1;`
 
+	GetFavouriteEventsID = `select event_id from "kudago_favourite" where user_id = $1;`
+
 	CreateUserEvent = `insert into `
 )
 
@@ -125,3 +127,15 @@ func (eR *EventRepository) CheckKudaGoFavourite(userID int, eventID int) (bool, 
 // func (eR *EventRepository) CeateUserEvent(userID int, userEvent *models.MyEvent) (error) {
 // 	err := eR.db.Get
 // }
+
+func (eR *EventRepository) GetFavouriteKudagoEventsIDs(userID int) ([]int, error) {
+	favouritesEventIDs := []int{}
+	err := eR.db.Select(&favouritesEventIDs, GetFavouriteEventsID, &userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return []int{}, nil
+		}
+		return []int{}, customErrors.ErrPostgres
+	}
+	return favouritesEventIDs, nil
+}

@@ -23,16 +23,16 @@ func AuthEndpoints(r *gin.RouterGroup, mws middleware.Middleware, aD auth.Delive
 func UserEndpoints(r *gin.RouterGroup, mws middleware.Middleware, uD user.Delivery) {
 	r.POST("/:user_id", mws.TokenAuthMiddleware(), mws.MiddlewareValidateUser(), uD.UpdateUser)
 	r.GET("/:user_id", uD.GetUser)
-	r.GET("/:user_id/favourites", uD.GetFavourites)
 	r.POST("/:user_id/image", uD.UpdateUserImage)
 }
 
 func EventEndpoints(r *gin.RouterGroup, mws middleware.Middleware, eD *event.EventDelivery) {
-	r.GET("/external", eD.GetExternalEvents)
-	r.GET("/external/close", eD.GetCloseExternalEvents)
-	r.GET("/external/today", eD.GetTodayEvents)
+	r.GET("/external", mws.TokenAuthMiddleware(), eD.GetExternalEvents)
+	r.GET("/external/close", mws.TokenAuthMiddleware(), eD.GetCloseExternalEvents)
+	r.GET("/external/today", mws.TokenAuthMiddleware(), eD.GetTodayEvents)
 	r.GET("/external/:place_id/:event_id", mws.TokenAuthMiddleware(), eD.GetExternalEvent)
 	r.POST("/external/:event_id/go", mws.TokenAuthMiddleware(), eD.SwitchEventMeeting)
 	r.POST("/external/:event_id/favourite", mws.TokenAuthMiddleware(), eD.SwitchEventFavourite)
+	r.GET("/external/likes/:user_id", mws.TokenAuthMiddleware(), eD.GetFavourites)
 	//r.POST("", mws.TokenAuthMiddleware(), mws.MiddlewareValidateUserEvent(), eD.CreateUserEvent)
 }

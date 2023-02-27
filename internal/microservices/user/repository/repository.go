@@ -12,7 +12,6 @@ const (
 	GetUserQuery = `select id, name, surname, about, img_url from "user" where id = $1;`
 	UpdateUserQuery = `update "user" set name = $1, surname = $2, about = $3 where id = $4 returning id, name, surname, about, img_url;`
 	UpdateUserImageQuery = `update "user" set img_url = $1 where id = $2 returning id, name, surname, about, img_url;`
-	GetFavouriteEventsID = `select event_id from "kudago_favourite" where user_id = $1;`
 )
 
 type UserRepository struct {
@@ -53,16 +52,4 @@ func (uR *UserRepository) UpdateUserImage(userID int, imgUUID string) (*models.U
 		return &outputUser, customErrors.ErrPostgres
 	}
 	return &outputUser, nil
-}
-
-func (uR *UserRepository) GetFavouriteKudagoEventsIDs(userID int) ([]int, error) {
-	favouritesEventIDs := []int{}
-	err := uR.db.Select(&favouritesEventIDs, GetFavouriteEventsID, &userID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return []int{}, nil
-		}
-		return []int{}, customErrors.ErrPostgres
-	}
-	return favouritesEventIDs, nil
 }

@@ -44,7 +44,3 @@ func (uU *userUsecase) UpdateUserImage(userID int, imgUUID string) (*models.User
 	resultUser.ImgUrl = utils.TryBuildImgUrl(resultUser.ImgUrl)
 	return resultUser, nil
 }
-
-func (uU *userUsecase) GetFavouriteKudagoEventsIDs(userID int) ([]int, error) {
-	return uU.userRepo.GetFavouriteKudagoEventsIDs(userID)
-}

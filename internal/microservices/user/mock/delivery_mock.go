@@ -34,18 +34,6 @@ func (m *MockDelivery) EXPECT() *MockDeliveryMockRecorder {
 	return m.recorder
 }
 
-// GetFavourites mocks base method.
-func (m *MockDelivery) GetFavourites(c *gin.Context) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GetFavourites", c)
-}
-
-// GetFavourites indicates an expected call of GetFavourites.
-func (mr *MockDeliveryMockRecorder) GetFavourites(c interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavourites", reflect.TypeOf((*MockDelivery)(nil).GetFavourites), c)
-}
-
 // GetUser mocks base method.
 func (m *MockDelivery) GetUser(c *gin.Context) {
 	m.ctrl.T.Helper()

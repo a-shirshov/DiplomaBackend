@@ -7,4 +7,5 @@ type Repository interface {
 	CheckKudaGoMeeting(userID, eventID int) (bool, error)
 	SwitchEventFavourite(userID int, eventID int) error
 	CheckKudaGoFavourite(userID int, eventID int) (bool, error)
+	GetFavouriteKudagoEventsIDs(userID int) ([]int, error)
 }

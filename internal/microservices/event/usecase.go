@@ -6,4 +6,5 @@ type Usecase interface {
 	CheckKudaGoFavourite(userID, eventID int) (bool, error)
 	SwitchEventMeeting(userID int, eventID int) (error)
 	SwitchEventFavourite(userID int, eventID int) error
+	GetFavouriteKudagoEventsIDs(userID int) ([]int, error)
 }
