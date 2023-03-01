@@ -32,7 +32,9 @@ func EventEndpoints(r *gin.RouterGroup, mws middleware.Middleware, eD *event.Eve
 	r.GET("/external/today", mws.TokenAuthMiddleware(), eD.GetTodayEvents)
 	r.GET("/external/:place_id/:event_id", mws.TokenAuthMiddleware(), eD.GetExternalEvent)
 	r.POST("/external/:event_id/go", mws.TokenAuthMiddleware(), eD.SwitchEventMeeting)
-	r.POST("/external/:event_id/favourite", mws.TokenAuthMiddleware(), eD.SwitchEventFavourite)
+	r.POST("/external/:event_id/like", mws.TokenAuthMiddleware(), eD.SwitchEventFavourite)
 	r.GET("/external/likes/:user_id", mws.TokenAuthMiddleware(), eD.GetFavourites)
+	r.GET("/external/search", mws.TokenAuthMiddleware(), eD.SearchKudaGoEvent)
+	r.POST("/external/:event_id/dislike", mws.TokenAuthMiddleware(), eD.SwitchEventFavourite)
 	//r.POST("", mws.TokenAuthMiddleware(), mws.MiddlewareValidateUserEvent(), eD.CreateUserEvent)
 }

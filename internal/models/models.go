@@ -62,6 +62,7 @@ type AccessDetails struct {
 	UserId     int
 }
 
+//////
 type KudaGoEvents struct {
 	Results []KudaGoResult `json:"results"`
 }
@@ -89,6 +90,7 @@ type KudaGoDate struct {
 type KudaGoImage struct {
 	Image string `json:"image"`
 }
+////
 
 type MyEvents struct {
 	Events []MyEvent `json:"events"`
@@ -126,6 +128,7 @@ type KudaGoPlaceAndEvent struct {
 	IsGoing     bool              `json:"is_going"`
 	IsFavourite bool              `json:"is_favourite"`
 }
+////
 
 type Message struct {
 	Message string `json:"message,omitempty"`

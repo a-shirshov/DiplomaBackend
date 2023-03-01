@@ -13,6 +13,8 @@ const KudaGoEventURL = `https://kudago.com/public-api/v1.4/events/`
 
 const KudaGoPlaceUrl = `https://kudago.com/public-api/v1.4/places/`
 
+const KudaGoSearchURL = `https://kudago.com/public-api/v1.4/search/`
+
 const twentyKilometers = 20000
 
 type KudaGoUrl struct {
@@ -69,6 +71,10 @@ func (kgUrl *KudaGoUrl) AddEventId(eventId string) {
 
 func (kgUrl *KudaGoUrl) AddPlaceId(placeId string) {
 	kgUrl.url = fmt.Sprintf("%s%s/", kgUrl.url, placeId)
+}
+
+func (kgUrl *KudaGoUrl) AddSearchField(searchQuery string) {
+	kgUrl.url = fmt.Sprintf("%s?q=%s&ctype=events", kgUrl.url, searchQuery)
 }
 
 func (kgUrl *KudaGoUrl) SendKudagoRequestAndParseToStruct(jsonUnmarshalStruct interface{}, errChan chan<- error) {

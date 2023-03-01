@@ -293,7 +293,7 @@ func (eD *EventDelivery) SwitchEventFavourite(c *gin.Context) {
 // 	utils.SendMessage(c, http.StatusOK, "OK")
 // }
 
-func (uD *EventDelivery) GetFavourites(c *gin.Context) {
+func (eD *EventDelivery) GetFavourites(c *gin.Context) {
 	userIDString := c.Param("user_id")
 	userID, err := strconv.Atoi(userIDString)
 	if err != nil {
@@ -304,7 +304,7 @@ func (uD *EventDelivery) GetFavourites(c *gin.Context) {
 	favouriteEvents := models.MyEvents{}
 	favouriteEvents.Events = []models.MyEvent{}
 
-	favouriteEventIDs, err := uD.eventUsecase.GetFavouriteKudagoEventsIDs(userID)
+	favouriteEventIDs, err := eD.eventUsecase.GetFavouriteKudagoEventsIDs(userID)
 	if err != nil {
 		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		return
@@ -331,4 +331,35 @@ func (uD *EventDelivery) GetFavourites(c *gin.Context) {
 	}
 	wg.Wait()
 	c.JSON(http.StatusOK, favouriteEvents)
+}
+
+func (eD *EventDelivery) SearchKudaGoEvent(c *gin.Context) {
+	searchingEvent := c.Query("q")
+	httpClient :=  &http.Client{Timeout: 10 * time.Second}
+	kudaGoURL := kudagoUrl.NewKudaGoUrl(kudagoUrl.KudaGoEventURL, httpClient)
+	kudaGoURL.AddSearchField(searchingEvent)
+	kudaGoEvents := &models.KudaGoEvents{}
+	eventErr := make(chan error, 1)
+	go kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
+	if <-eventErr != nil {
+		utils.SendMessage(c, http.StatusMisdirectedRequest, "kudago error")
+		return
+	}
+
+	var userID int
+	au, err := utils.GetAUFromContext(c)
+	if err != nil {
+		userID = 0
+	} else {
+		userID = au.UserId
+	}
+	
+	events := &models.MyEvents{}
+	for _, result := range kudaGoEvents.Results {
+		myEventResult := utils.ToMyEvent(&result)
+		IsLiked, _ := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
+		myEventResult.IsLiked = IsLiked
+		events.Events = append(events.Events, myEventResult)
+	}
+	c.JSON(http.StatusOK, events)
 }

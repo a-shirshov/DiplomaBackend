@@ -362,7 +362,7 @@ var refreshTests = []refreshTest{
 			passwordHasher *mock.MockPasswordHasher, tokenManager *mock.MockTokenManager) {
 				claims := jwt.MapClaims{}
 				claims["refresh_uuid"] = "refresh_uuid"
-				claims["user_id"] = 1
+				claims["user_id"] = 1.0
 				tokenManager.EXPECT().CheckTokenAndGetClaims("refresh_token").Return(claims, nil)
 				sessionRepo.EXPECT().DeleteAuth("refresh_uuid").Return(nil)
 

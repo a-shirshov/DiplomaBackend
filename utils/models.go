@@ -15,3 +15,5 @@ func ToMyEvent(result *models.KudaGoResult) models.MyEvent {
 	event.Price = result.Price
 	return event
 }
+
+//func ToMyEventSearch(result *models.KudaGoSearchResult)
