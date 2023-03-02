@@ -17,6 +17,8 @@ const KudaGoSearchURL = `https://kudago.com/public-api/v1.4/search/`
 
 const twentyKilometers = 20000
 
+const pageSize = 10
+
 type KudaGoUrl struct {
 	url string
 	httpClient *http.Client
@@ -74,7 +76,11 @@ func (kgUrl *KudaGoUrl) AddPlaceId(placeId string) {
 }
 
 func (kgUrl *KudaGoUrl) AddSearchField(searchQuery string) {
-	kgUrl.url = fmt.Sprintf("%s?q=%s&ctype=events", kgUrl.url, searchQuery)
+	kgUrl.url = fmt.Sprintf("%s?q=%s&ctype=event", kgUrl.url, searchQuery)
+}
+
+func (kgUrl *KudaGoUrl) AddPageSize() {
+	kgUrl.url = fmt.Sprintf("%s&%s=%d",kgUrl.url,"page_size", pageSize)
 }
 
 func (kgUrl *KudaGoUrl) SendKudagoRequestAndParseToStruct(jsonUnmarshalStruct interface{}, errChan chan<- error) {

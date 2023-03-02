@@ -16,4 +16,14 @@ func ToMyEvent(result *models.KudaGoResult) models.MyEvent {
 	return event
 }
 
-//func ToMyEventSearch(result *models.KudaGoSearchResult)
+func ToMyEventSearch(result *models.KudaGoSearchResult) models.MyEvent {
+	event := models.MyEvent{}
+	event.KudaGoID = result.ID
+	event.Title = result.Title
+	event.Start = result.Daterange.Start
+	event.End = result.Daterange.End
+	event.Image = result.FirstImage.Image
+	event.Place = result.Place.ID
+	event.Description = result.Description
+	return event
+}

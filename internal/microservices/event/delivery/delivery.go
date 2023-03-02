@@ -7,6 +7,7 @@ import (
 	"Diploma/pkg/kudagoUrl"
 	"Diploma/utils"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"sync"
@@ -335,10 +336,16 @@ func (eD *EventDelivery) GetFavourites(c *gin.Context) {
 
 func (eD *EventDelivery) SearchKudaGoEvent(c *gin.Context) {
 	searchingEvent := c.Query("q")
+	page := utils.GetPageQueryParamFromRequest(c)
+
 	httpClient :=  &http.Client{Timeout: 10 * time.Second}
-	kudaGoURL := kudagoUrl.NewKudaGoUrl(kudagoUrl.KudaGoEventURL, httpClient)
+	kudaGoURL := kudagoUrl.NewKudaGoUrl(kudagoUrl.KudaGoSearchURL, httpClient)
 	kudaGoURL.AddSearchField(searchingEvent)
-	kudaGoEvents := &models.KudaGoEvents{}
+	kudaGoURL.AddPage(page)
+	kudaGoURL.AddPageSize()
+	log.Println(kudaGoURL.GetUrl())
+
+	kudaGoEvents := &models.KudaGoSearchResults{}
 	eventErr := make(chan error, 1)
 	go kudaGoURL.SendKudagoRequestAndParseToStruct(kudaGoEvents, eventErr)
 	if <-eventErr != nil {
@@ -356,7 +363,7 @@ func (eD *EventDelivery) SearchKudaGoEvent(c *gin.Context) {
 	
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
-		myEventResult := utils.ToMyEvent(&result)
+		myEventResult := utils.ToMyEventSearch(&result)
 		IsLiked, _ := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
 		myEventResult.IsLiked = IsLiked
 		events.Events = append(events.Events, myEventResult)
