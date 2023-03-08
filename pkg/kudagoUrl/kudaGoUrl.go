@@ -7,13 +7,13 @@ import (
 	"github.com/goccy/go-json"
 )
 
-const MainKudaGoEventURL = `https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location,place&order_by=-id&page_size=10`
+const MainKudaGoEventURL = `https://kudago.com/public-api/v1.4/events/?expand=place&fields=id,dates,title,images,location,place&order_by=-id&page_size=10`
 
 const KudaGoEventURL = `https://kudago.com/public-api/v1.4/events/`
 
 const KudaGoPlaceUrl = `https://kudago.com/public-api/v1.4/places/`
 
-const KudaGoSearchURL = `https://kudago.com/public-api/v1.4/search/`
+const KudaGoSearchURL = `https://kudago.com/public-api/v1.4/search/?expand=place`
 
 const twentyKilometers = 20000
 
@@ -76,7 +76,7 @@ func (kgUrl *KudaGoUrl) AddPlaceId(placeId string) {
 }
 
 func (kgUrl *KudaGoUrl) AddSearchField(searchQuery string) {
-	kgUrl.url = fmt.Sprintf("%s?q=%s&ctype=event", kgUrl.url, searchQuery)
+	kgUrl.url = fmt.Sprintf("%s&q=%s&ctype=event", kgUrl.url, searchQuery)
 }
 
 func (kgUrl *KudaGoUrl) AddPageSize() {

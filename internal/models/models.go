@@ -77,6 +77,7 @@ type KudaGoResult struct {
 	} `json:"location"`
 	Place struct {
 		ID int `json:"id"`
+		IsStub bool `json:"is_stub"`
 	} `json:"place"`
 	Description string `json:"description,omitempty"`
 	Price       string `json:"price,omitempty"`
@@ -184,6 +185,7 @@ type KudaGoSearchResult struct {
 	Description     string `json:"description"`
 	Place           struct {
 		ID int `json:"id"`
+		IsStub bool `json:"is_stub"`
 	} `json:"place"`
 	Daterange struct {
 		Start            int           `json:"start"`

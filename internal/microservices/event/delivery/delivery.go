@@ -6,6 +6,7 @@ import (
 	"Diploma/internal/models"
 	"Diploma/pkg/kudagoUrl"
 	"Diploma/utils"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -50,10 +51,12 @@ func (eD *EventDelivery) GetExternalEvents(c *gin.Context) {
 
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
-		myEventResult := utils.ToMyEvent(&result)
-		IsLiked, _ := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
-		myEventResult.IsLiked = IsLiked
-		events.Events = append(events.Events, myEventResult)
+		myEventResult, err := eD.convertResultToReadyToBeGivenEvent(userID, &result)
+		if err != nil {
+			log.Println(err.Error())
+			continue
+		}
+		events.Events = append(events.Events, *myEventResult)
 	}
 	c.JSON(http.StatusOK, events)
 }
@@ -90,10 +93,12 @@ func (eD *EventDelivery) GetCloseExternalEvents(c *gin.Context) {
 
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
-		myEventResult := utils.ToMyEvent(&result)
-		IsLiked, _ := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
-		myEventResult.IsLiked = IsLiked
-		events.Events = append(events.Events, myEventResult)
+		myEventResult, err := eD.convertResultToReadyToBeGivenEvent(userID, &result)
+		if err != nil {
+			log.Println(err.Error())
+			continue
+		}
+		events.Events = append(events.Events, *myEventResult)
 	}
 	c.JSON(http.StatusOK, events)
 }
@@ -134,12 +139,24 @@ func (eD *EventDelivery) GetTodayEvents(c *gin.Context) {
 
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
-		myEventResult := utils.ToMyEvent(&result)
-		IsLiked, _ := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
-		myEventResult.IsLiked = IsLiked
-		events.Events = append(events.Events, myEventResult)
+		myEventResult, err := eD.convertResultToReadyToBeGivenEvent(userID, &result)
+		if err != nil {
+			log.Println(err.Error())
+			continue
+		}
+		events.Events = append(events.Events, *myEventResult)
 	}
 	c.JSON(http.StatusOK, events)
+}
+
+func (eD *EventDelivery) convertResultToReadyToBeGivenEvent(userID int, result *models.KudaGoResult) (*models.MyEvent, error) {
+	if result.Place.IsStub {
+		return nil, errors.New("stub event")
+	}
+	myEventResult := utils.ToMyEvent(result)
+	IsLiked, _ := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
+	myEventResult.IsLiked = IsLiked
+	return &myEventResult, nil
 }
 
 func (eD *EventDelivery) GetExternalEvent(c *gin.Context) {
@@ -366,10 +383,22 @@ func (eD *EventDelivery) SearchKudaGoEvent(c *gin.Context) {
 	
 	events := &models.MyEvents{}
 	for _, result := range kudaGoEvents.Results {
-		myEventResult := utils.ToMyEventSearch(&result)
-		IsLiked, _ := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
-		myEventResult.IsLiked = IsLiked
-		events.Events = append(events.Events, myEventResult)
+		myEventResult, err := eD.convertSearchResultToReadyToBeGivenEvent(userID, &result)
+		if err != nil {
+			log.Println(err.Error())
+			continue
+		}
+		events.Events = append(events.Events, *myEventResult)
 	}
 	c.JSON(http.StatusOK, events)
+}
+
+func (eD *EventDelivery) convertSearchResultToReadyToBeGivenEvent(userID int, result *models.KudaGoSearchResult) (*models.MyEvent, error) {
+	if result.Place.IsStub {
+		return nil, errors.New("stub event")
+	}
+	myEventResult := utils.ToMyEventSearch(result)
+	IsLiked, _ := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
+	myEventResult.IsLiked = IsLiked
+	return &myEventResult, nil
 }
