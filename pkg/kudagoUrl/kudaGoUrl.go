@@ -2,6 +2,7 @@ package kudagoUrl
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -94,10 +95,16 @@ func (kgUrl *KudaGoUrl) SendKudagoRequestAndParseToStruct(jsonUnmarshalStruct in
 		return
 	}
 	defer resp.Body.Close()
-	log.Println("Kudage send body", resp.Body)
-	err = json.NewDecoder(resp.Body).Decode(jsonUnmarshalStruct)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Kudage send 2", err)
+		errChan <- err
+		return
+	}
+	log.Println("Kudage send body", string(body))
+	err = json.NewDecoder(resp.Body).Decode(jsonUnmarshalStruct)
+	if err != nil {
+		log.Println("Kudage send 3", err)
 		errChan <- err
 		return
 	}
