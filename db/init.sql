@@ -42,6 +42,12 @@ create table if not exists "kudago_favourite" (
     event_id int not null
 );
 
+CREATE TABLE if not exists "recomendation_events" (
+    id serial not null UNIQUE,
+    kudago_id int not null,
+    vector FLOAT[]
+);
+
 create or replace function update_kudago_event_people_count_up() returns trigger as $update_kudago_event_people_count_up$
 begin
     update kudago_event set people_count = (people_count + 1) where event_id = new.event_id;

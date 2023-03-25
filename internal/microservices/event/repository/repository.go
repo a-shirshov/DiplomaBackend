@@ -2,6 +2,7 @@ package repository
 
 import (
 	"Diploma/internal/customErrors"
+	"log"
 	//"Diploma/internal/models"
 	"database/sql"
 
@@ -93,6 +94,7 @@ func (eR *EventRepository) SwitchEventFavourite(userID int, eventID int) error {
 	var favouriteID int
 	err := eR.db.Get(&favouriteID, CheckEventFavourite, &userID, &eventID)
 	if err != nil {
+		log.Println(err.Error())
 		if err != sql.ErrNoRows {
 			return err
 		}

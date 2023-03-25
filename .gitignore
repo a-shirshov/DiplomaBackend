@@ -5,3 +5,4 @@ postgres-data
 images
 cover*
 migration.sql
+venv

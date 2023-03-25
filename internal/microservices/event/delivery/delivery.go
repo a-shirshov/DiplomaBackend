@@ -154,7 +154,10 @@ func (eD *EventDelivery) convertResultToReadyToBeGivenEvent(userID int, result *
 		return nil, errors.New("stub event")
 	}
 	myEventResult := utils.ToMyEvent(result)
-	IsLiked, _ := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
+	IsLiked, err := eD.eventUsecase.CheckKudaGoFavourite(userID, myEventResult.KudaGoID)
+	if err != nil {
+		log.Println("Liked error:", err.Error())
+	}
 	myEventResult.IsLiked = IsLiked
 	return &myEventResult, nil
 }
