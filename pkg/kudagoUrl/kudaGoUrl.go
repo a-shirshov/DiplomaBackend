@@ -3,6 +3,7 @@ package kudagoUrl
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -93,7 +94,7 @@ func (kgUrl *KudaGoUrl) SendKudagoRequestAndParseToStruct(jsonUnmarshalStruct in
 		return
 	}
 	defer resp.Body.Close()
-
+	log.Println(resp.Header.Get("Content-Type"))
 	if(resp.Header.Get("Content-Type") != "application/json"){
 		errChan<-errors.New("not json")
 		return
