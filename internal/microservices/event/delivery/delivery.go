@@ -283,12 +283,33 @@ func (eD *EventDelivery) SwitchEventFavourite(c *gin.Context) {
 		return
 	}
 
+	KudaGoEventUrl := kudagoUrl.NewKudaGoUrl(kudagoUrl.KudaGoEventURL, &http.Client{Timeout: 10 * time.Second})
+	KudaGoEventUrl.AddEventId(eventIDStr)
+	KudaGoEventUrl.AddEventFields()
+
+	KudaGoEvent := &models.KudaGoResult{}
+	eventErr := make(chan error, 1)
+	
+	go KudaGoEventUrl.SendKudagoRequestAndParseToStruct(KudaGoEvent, eventErr)
+
 	err = eD.eventUsecase.SwitchEventFavourite(au.UserId, eventID)
 	if err != nil {
 		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	utils.SendMessage(c, http.StatusOK, "OK")
+
+	if <-eventErr != nil {
+		utils.SendMessage(c, http.StatusMisdirectedRequest, "kudago error")
+		return
+	}
+
+	resultEvent, err := eD.convertResultToReadyToBeGivenEvent(au.UserId, KudaGoEvent)
+	if err != nil {
+		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, resultEvent)
 }
 
 func (eD *EventDelivery) GetFavourites(c *gin.Context) {
