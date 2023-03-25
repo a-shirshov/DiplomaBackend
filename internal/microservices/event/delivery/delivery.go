@@ -322,7 +322,6 @@ func (eD *EventDelivery) GetFavourites(c *gin.Context) {
 			kudaGoURL.AddEventFields()
 			kudaGoURL.SendKudagoRequestAndParseToStruct(kudagoEvent, eventErr)
 			if <-eventErr != nil {
-				log.Println(err.Error())
 				return
 			}
 			myEvent := utils.ToMyEvent(kudagoEvent)
