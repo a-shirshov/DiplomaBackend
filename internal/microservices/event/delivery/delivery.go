@@ -313,6 +313,15 @@ func (eD *EventDelivery) SwitchEventFavourite(c *gin.Context) {
 }
 
 func (eD *EventDelivery) GetFavourites(c *gin.Context) {
+	var requestUserID int
+	au, err := utils.GetAUFromContext(c)
+	if err != nil {
+		requestUserID = 0
+	} else {
+		requestUserID = au.UserId
+	}
+
+
 	userIDString := c.Param("user_id")
 	userID, err := strconv.Atoi(userIDString)
 	if err != nil {
@@ -345,9 +354,12 @@ func (eD *EventDelivery) GetFavourites(c *gin.Context) {
 			if <-eventErr != nil {
 				return
 			}
-			myEvent := utils.ToMyEvent(kudagoEvent)
-			myEvent.IsLiked = true
-			favouriteEvents.Events = append(favouriteEvents.Events, myEvent)
+			myEvent, err := eD.convertResultToReadyToBeGivenEvent(requestUserID, kudagoEvent)
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
+			favouriteEvents.Events = append(favouriteEvents.Events, *myEvent)
 		}()
 	}
 	wg.Wait()
