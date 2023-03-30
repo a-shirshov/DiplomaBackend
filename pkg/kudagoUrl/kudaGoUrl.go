@@ -2,9 +2,9 @@ package kudagoUrl
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
-
 	"github.com/goccy/go-json"
 )
 
@@ -88,6 +88,7 @@ func (kgUrl *KudaGoUrl) SendKudagoRequestAndParseToStruct(jsonUnmarshalStruct in
 	resp, err := kgUrl.httpClient.Get(kgUrl.url)
 	defer close(errChan)
 	if err != nil {
+		log.Println("Here 1", err)
 		errChan <- err
 		return
 	}
@@ -95,6 +96,9 @@ func (kgUrl *KudaGoUrl) SendKudagoRequestAndParseToStruct(jsonUnmarshalStruct in
 
 	err = json.NewDecoder(resp.Body).Decode(jsonUnmarshalStruct)
 	if err != nil {
+		log.Println(kgUrl.url)
+		log.Println(resp.Header.Get("Content-Type"))
+		log.Println("Here 2", err)
 		errChan <- err
 		return
 	}

@@ -333,17 +333,17 @@ func (eD *EventDelivery) GetFavourites(c *gin.Context) {
 	favouriteEvents.Events = []models.MyEvent{}
 
 	favouriteEventIDs, err := eD.eventUsecase.GetFavouriteKudagoEventsIDs(userID)
+	log.Println(favouriteEventIDs)
 	if err != nil {
 		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	httpClient :=  &http.Client{Timeout: 10 * time.Second}
 	var wg sync.WaitGroup
-	for _, id := range favouriteEventIDs {
-		eventID := id
+	httpClient :=  &http.Client{Timeout: 10 * time.Second}
+	for index, eventID := range favouriteEventIDs {
 		wg.Add(1)
-		go func() {	
+		go func(index int, eventID int) {	
 			defer wg.Done()
 			kudagoEvent := &models.KudaGoResult{}
 			eventErr := make(chan error, 1)
@@ -360,7 +360,7 @@ func (eD *EventDelivery) GetFavourites(c *gin.Context) {
 				return
 			}
 			favouriteEvents.Events = append(favouriteEvents.Events, *myEvent)
-		}()
+		}(index, eventID)
 	}
 	wg.Wait()
 	c.JSON(http.StatusOK, favouriteEvents)
