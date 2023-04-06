@@ -12,9 +12,9 @@ import (
 	userRepo "Diploma/internal/microservices/user/repository"
 	userUsecase "Diploma/internal/microservices/user/usecase"
 
-	eventDelivery "Diploma/internal/microservices/event/delivery"
-	eventRepo "Diploma/internal/microservices/event/repository"
-	eventUsecase "Diploma/internal/microservices/event/usecase"
+	eventV2Delivery "Diploma/internal/microservices/event_v2/delivery"
+	eventV2Repo "Diploma/internal/microservices/event_v2/repository"
+	eventV2Usecase "Diploma/internal/microservices/event_v2/usecase"
 
 	authDelivery "Diploma/internal/microservices/auth/delivery"
 	authRepo "Diploma/internal/microservices/auth/repository"
@@ -34,6 +34,9 @@ import (
 	"golang.org/x/net/context"
 
 	_ "Diploma/docs"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // @title           Diploma API
@@ -88,21 +91,30 @@ func main() {
 		os.Exit(1)	
 	}
 
+	conn, err := grpc.Dial("recomendation:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Error("did not connect: %v", err)
+		os.Exit(1)
+	}
+	defer conn.Close()
+
 	passwordHasher := passwordHasher.NewPasswordHasher()
 	tokenManager := tokenManager.NewTokenManager()
 
 	userR := userRepo.NewUserRepository(postgresDB)
 	sessionR := authRepo.NewSessionRepository(redisDB)
-	eventR := eventRepo.NewEventRepository(postgresDB)
+	eventV2R := eventV2Repo.NewEventRepositoryV2(postgresDB)
 	authR := authRepo.NewAuthRepository(postgresDB)
 
 	userU := userUsecase.NewUserUsecase(userR)
-	eventU := eventUsecase.NewEventUsecase(eventR)
+	eventV2U := eventV2Usecase.NewEventUsecaseV2(eventV2R, conn)
 	authU := authUsecase.NewAuthUsecase(authR, sessionR, passwordHasher, tokenManager)
 
 	userD := userDelivery.NewUserDelivery(userU)
-	eventD := eventDelivery.NewEventDelivery(eventU)
+	eventV2D := eventV2Delivery.NewEventDeliveryV2(eventV2U)
 	authD := authDelivery.NewAuthDelivery(authU)
+
+	
 
 	mws := middleware.NewMiddleware(sessionR, tokenManager)
 
@@ -121,8 +133,8 @@ func main() {
 	userRouter := routerAPI.Group("/users")
 	router.UserEndpoints(userRouter, mws, userD)
 
-	eventRouter := routerAPI.Group("/events")
-	router.EventEndpoints(eventRouter, mws, eventD)
+	eventV2Router := routerAPI.Group ("/events")
+	router.EventV2Endpoints(eventV2Router, mws, eventV2D)
 
 	port := viper.GetString("server.port")
 	

@@ -3,7 +3,9 @@ services:
   server:
     container_name: server
     image: server
-    build: "./"
+    build: 
+      context: "."
+      dockerfile: Dockerfile
     restart: unless-stopped
     command: "./server"
     ports:
@@ -13,9 +15,27 @@ services:
     depends_on:
       - redis
       - postgres
+      - recomendation
+
+  recomendation:
+    container_name: recomendation_module
+    image: recomendation_module
+    build:
+      context: "./internal/recomendationModule"
+      dockerfile: Dockerfile
+    restart: "unless-stopped"
+    command: "python server.py"
+    ports:
+      - "50051:50051"
+    depends_on:
+      - postgres
   
   postgres:
-    image: postgres:10.5
+    image: postgres_with_pg_similarity
+    build: 
+      context: "."
+      dockerfile: pg_Dockerfile
+    container_name: psql_pg_sim
     restart: always
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

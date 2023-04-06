@@ -15,6 +15,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/kolesa-team/go-webp v1.0.2
+	github.com/lib/pq v1.10.2
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.27.1 // indirect
 	github.com/satori/go.uuid v1.2.0
@@ -26,6 +27,8 @@ require (
 	github.com/swaggo/swag v1.8.10
 	golang.org/x/crypto v0.6.0
 	golang.org/x/net v0.7.0
+	google.golang.org/grpc v1.52.0
+	google.golang.org/protobuf v1.28.1
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/mail.v2 v2.3.1
 )

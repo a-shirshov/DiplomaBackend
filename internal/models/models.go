@@ -98,17 +98,39 @@ type MyEvents struct {
 }
 
 type MyEvent struct {
-	ID          int    `json:"id"`
-	KudaGoID    int    `json:"kudago_id"`
-	Title       string `json:"title"`
-	Start       int    `json:"start"`
-	End         int    `json:"end"`
-	Location    string `json:"location"`
-	Image       string `json:"image"`
-	Place       int    `json:"place"`
-	Description string `json:"description"`
-	Price       string `json:"price"`
-	IsLiked		bool   `json:"is_liked"`
+	ID          int    `json:"id" db:"id"`
+	KudaGoID    int    `json:"kudago_id" db:"kudago_id"`
+	Title       string `json:"title" db:"title"`
+	Start       int    `json:"start" db:"start_time"`
+	End         int    `json:"end" db:"end_time"`
+	Location    string `json:"location" db:"location"`
+	Image       string `json:"image" db:"image"`
+	Place       int    `json:"place" db:"place_id"`
+	Description string `json:"description" db:"description"`
+	Price       string `json:"price" db:"price"`
+	Vector	    []float64 `json:"-" db:"vector"`
+	VectorTitle []float64 `json:"-" db:"vector_title"`
+	IsLiked		bool   `json:"is_liked" db:"is_liked"`
+}
+
+type MyPlace struct {
+	ID          int   `json:"id" db:"id"`
+	KudaGoID    int   `json:"kudago_id" db:"kudago_id"`
+	Title      string `json:"title" db:"title"`
+	Address    string `json:"address" db:"address"`
+	SiteURL    string `json:"site_url" db:"site_url"`
+	ForeignURL string `json:"foreign_url" db:"foreign_url"`
+	Phone	   string `json:"phone" db:"phone"`
+	Timetable  string `json:"timetable" db:"timetable"`
+	Coords     struct {
+		Lat float64 `json:"lat" db:"lat"`
+		Lon float64 `json:"lon" db:"lon"`
+	} `json:"coords"`
+}
+
+type MyFullEvent struct {
+	Event MyEvent `json:"event"`
+	Place MyPlace `json:"place"`
 }
 
 type KudaGoPlaceResult struct {

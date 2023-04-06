@@ -1,0 +1,9 @@
+FROM postgres:10-alpine
+
+RUN apk add --update --no-cache git build-base \
+ && git clone https://github.com/eulerto/pg_similarity.git \
+ && cd pg_similarity \
+ && USE_PGXS=1 make \
+ && USE_PGXS=1 make install \
+ && apk del git build-base \
+ && rm -rf /var/cache/apk/*

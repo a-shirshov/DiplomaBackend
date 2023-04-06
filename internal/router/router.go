@@ -2,10 +2,11 @@ package router
 
 import (
 	auth "Diploma/internal/microservices/auth"
-	event "Diploma/internal/microservices/event/delivery"
+	eventV2 "Diploma/internal/microservices/event_v2"
 	user "Diploma/internal/microservices/user"
 
 	"Diploma/internal/middleware"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,15 +27,16 @@ func UserEndpoints(r *gin.RouterGroup, mws middleware.Middleware, uD user.Delive
 	r.POST("/:user_id/image", uD.UpdateUserImage)
 }
 
-func EventEndpoints(r *gin.RouterGroup, mws middleware.Middleware, eD *event.EventDelivery) {
+func EventV2Endpoints(r *gin.RouterGroup, mws middleware.Middleware, eD eventV2.Delivery) {
 	r.GET("/external", mws.TokenAuthMiddleware(), eD.GetExternalEvents)
-	r.GET("/external/close", mws.TokenAuthMiddleware(), eD.GetCloseExternalEvents)
 	r.GET("/external/today", mws.TokenAuthMiddleware(), eD.GetTodayEvents)
+	r.GET("/external/close", mws.TokenAuthMiddleware(), eD.GetCloseEvents)
 	r.GET("/external/:place_id/:event_id", mws.TokenAuthMiddleware(), eD.GetExternalEvent)
-	r.POST("/external/:event_id/go", mws.TokenAuthMiddleware(), eD.SwitchEventMeeting)
-	r.POST("/external/:event_id/like", mws.TokenAuthMiddleware(), eD.SwitchEventFavourite)
+	r.GET("/external/similar/:event_id", mws.TokenAuthMiddleware(), eD.GetSimilar)
+	r.GET("/external/alike/:event_id", mws.TokenAuthMiddleware(), eD.GetSimilarToEvent)
+	r.GET("/external/alike_title/:event_id", mws.TokenAuthMiddleware(), eD.GetSimilarToEventByTitle)
+	r.POST("/external/:event_id/like", mws.TokenAuthMiddleware(), eD.SwitchLikeEvent)
+	r.POST("/external/:event_id/dislike", mws.TokenAuthMiddleware(), eD.SwitchLikeEvent)
 	r.GET("/external/likes/:user_id", mws.TokenAuthMiddleware(), eD.GetFavourites)
-	r.GET("/external/search", mws.TokenAuthMiddleware(), eD.SearchKudaGoEvent)
-	r.POST("/external/:event_id/dislike", mws.TokenAuthMiddleware(), eD.SwitchEventFavourite)
-	//r.POST("", mws.TokenAuthMiddleware(), mws.MiddlewareValidateUserEvent(), eD.CreateUserEvent)
+	r.GET("/external/search", mws.TokenAuthMiddleware(), eD.SearchEvents)
 }

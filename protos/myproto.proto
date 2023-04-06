@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "./myproto";
+
+package myproto;
+
+service MyProto {
+    rpc ReturnVector (StringRequest) returns (VectorReply) {}
+}
+
+message StringRequest {
+    string description = 1;
+}
+
+message VectorReply {
+    repeated double vector = 1 [packed=true];
+}

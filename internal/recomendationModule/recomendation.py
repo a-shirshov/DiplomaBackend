@@ -9,10 +9,10 @@ import spacy
 import numpy as np
 import psycopg2
 
-CREATE_TABLE_EVENT='''CREATE TABLE if not exists recomendation_events (
-    id serial not null UNIQUE,
+CREATE_TABLE_EVENT='''CREATE TABLE if not exists kudago_event (
+    id serial PRIMARY KEY not null UNIQUE,
     kudago_id int not null UNIQUE,
-    place_id int references recomendation_places(kudago_id) on delete cascade not null,
+    place_id int references kudago_place(kudago_id) on delete cascade not null,
     title text,
     start_time bigint,
     end_time bigint,
@@ -20,11 +20,13 @@ CREATE_TABLE_EVENT='''CREATE TABLE if not exists recomendation_events (
     image text,
     description text,
     price text,
-    vector FLOAT[]
+    vector FLOAT[],
+    vector_title FLOAT[],
+    created_at timestamp default now() not null
 );'''
 
-CREATE_TABLE_PLACE='''CREATE TABLE if not exists recomendation_places (
-    id serial not null UNIQUE,
+CREATE_TABLE_PLACE='''CREATE TABLE if not exists kudago_place (
+    id serial PRIMARY KEY not null UNIQUE,
     kudago_id int not null UNIQUE,
     title text,
     address text,
@@ -33,7 +35,8 @@ CREATE_TABLE_PLACE='''CREATE TABLE if not exists recomendation_places (
     timetable text,
     phone text,
     site_url text,
-    foreign_url text
+    foreign_url text,
+    created_at timestamp default now() not null
 );'''
 
 PLACE_URL = '''https://kudago.com/public-api/v1.4/places/'''
@@ -50,17 +53,21 @@ class Event:
         self.description = data_event['description']
         self.price = data_event['price']
         self.vector = []
+        self.vector_title = []
     
     def set_vector(self, vector):
         self.vector = vector
+
+    def set_vector_title(self, vector_title):
+        self.vector_title = vector_title
 
 class Place:
     def __init__(self, data_place):
         self.kudago_id = data_place['id']
         self.title = data_place['title']
         self.address = data_place['address']
-        self.lat = data_place['coords']['lat']
-        self.lon = data_place['coords']['lon']
+        self.lat = round(data_place['coords']['lat'], 6)
+        self.lon = round(data_place['coords']['lon'], 6)
         self.timetable = data_place['timetable']
         self.phone = data_place['phone']
         self.site_url = data_place['site_url']
@@ -73,6 +80,15 @@ def process_events(events):
     for event in events:
         doc = nlp(event.description)
         event.set_vector(doc.vector.tolist())
+        event_list.append(event)
+    return event_list
+
+def process_events_titles(events):
+    nlp = spacy.load('ru_core_news_md')
+    event_list=[]
+    for event in events:
+        doc = nlp(event.title)
+        event.set_vector_title(doc.vector.tolist())
         event_list.append(event)
     return event_list
 
@@ -89,7 +105,7 @@ def get_future_events():
     # отправляем GET-запрос и получаем ответ в формате JSON
     response = requests.get(event_url)
     json_data_events = json.loads(response.text)
-
+    i = 0
     while True:
         for data_event in json_data_events['results']:
             #print(data_event)
@@ -122,7 +138,10 @@ def get_future_events():
         event_url = json_data_events["next"]
         response = requests.get(event_url)
         json_data_events = json.loads(response.text)
+        i=i+1
         print("Page_done")
+        if i == 2:
+            break
 
     print(len(event_list)) 
     print(len(place_list))
@@ -151,7 +170,7 @@ def fill_places_to_db(places_list):
         for place in places_list:
             try:
                 cur.execute("""\
-                INSERT INTO recomendation_places (kudago_id, title, address, lat, lon, timetable, phone, site_url, foreign_url)
+                INSERT INTO kudago_place (kudago_id, title, address, lat, lon, timetable, phone, site_url, foreign_url)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (kudago_id) DO NOTHING;""",
                 (place.kudago_id, place.title, place.address, place.lat, place.lon,
@@ -173,11 +192,11 @@ def save_vectorized_events_to_db(event_list):
         for event in event_list:
             try:
                 cur.execute("""\
-                INSERT INTO recomendation_events (kudago_id, place_id, title, start_time, end_time, location, image, description, price, vector) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+                INSERT INTO kudago_event (kudago_id, place_id, title, start_time, end_time, location, image, description, price, vector, vector_title) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
                 ON CONFLICT (kudago_id) DO NOTHING;""", 
                 (event.kudago_id, event.place_id, event.title, event.start, event.end,
-                event.location, event.image, event.description, event.price, event.vector))
+                event.location, event.image, event.description, event.price, event.vector, event.vector_title))
             except Exception:
                 print(event.kudago_id)
                 pass
@@ -191,7 +210,7 @@ def drop_last_events():
     conn = connect_to_db()
     try:
         cur = conn.cursor()
-        cur.execute("DROP TABLE if exists recomendation_events;")
+        cur.execute("DROP TABLE if exists kudago_event;")
     
         conn.commit()
     finally:
@@ -202,7 +221,7 @@ def drop_last_places():
     conn = connect_to_db()
     try:
         cur = conn.cursor()
-        cur.execute("DROP TABLE if exists recomendation_places;")
+        cur.execute("DROP TABLE if exists kudago_place;")
     
         conn.commit()
     finally:
@@ -215,6 +234,7 @@ def main():
     jsonFutureEvents, places = get_future_events()
     fill_places_to_db(places)
     processed_events = process_events(jsonFutureEvents)
+    processed_events = process_events_titles(processed_events)
     print("Done NLP")
     save_vectorized_events_to_db(processed_events)
     print("Done")
