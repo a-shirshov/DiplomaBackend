@@ -21,12 +21,22 @@ services:
     container_name: recomendation_module
     image: recomendation_module
     build:
-      context: "./internal/recomendationModule"
+      context: "./recomendationModule"
       dockerfile: Dockerfile
     restart: "unless-stopped"
     command: "python server.py"
     ports:
       - "50051:50051"
+    depends_on:
+      - postgres
+
+  updater:
+    image: updater
+    build:
+      context: "./recomendationModule"
+      dockerfile: update_events_Dockerfile
+    restart: "unless-stopped"
+    command: "cron -f"
     depends_on:
       - postgres
   
