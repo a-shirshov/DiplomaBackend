@@ -321,7 +321,9 @@ func(eD *EventDeliveryV2) SwitchLikeEvent(c *gin.Context) {
 
 	event, err := eD.eventUsecaseV2.SwitchLikeEvent(au.UserId, eventID)
 	if err != nil {
+		log.Println(err.Error())
 		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 	c.JSON(http.StatusOK, event)
 }

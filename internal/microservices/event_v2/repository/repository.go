@@ -71,8 +71,8 @@ const (
 	GetVectorTitle = `select vector_title from kudago_event where kudago_id = $1;`
 
 	LikeEvent = `insert into kudago_favourite (user_id, event_id) values ($1, $2);`
-	DislikeEvent = `delete from kudago_favourite where user_id = $1 and event_id = $1;`
-	CheckLike = `select id from kudago_favourite where user_id = $1 and event_id = $1;`
+	DislikeEvent = `delete from kudago_favourite where user_id = $1 and event_id = $2;`
+	CheckLike = `select id from kudago_favourite where user_id = $1 and event_id = $2;`
 
 	GetFavourites = `select liked_by_another_user.kudago_id, liked_by_another_user.place_id, liked_by_another_user.title, liked_by_another_user.start_time, 
     liked_by_another_user.end_time, liked_by_another_user.location, liked_by_another_user.image, liked_by_another_user.description, liked_by_another_user.price, 
