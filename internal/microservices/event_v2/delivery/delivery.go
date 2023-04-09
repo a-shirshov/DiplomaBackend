@@ -151,20 +151,9 @@ func(eD *EventDeliveryV2) GetSimilar(c *gin.Context) {
 		userID = au.UserId
 	}
 
-	eventIDStr := c.Param("event_id")
-	eventID, err := strconv.Atoi(eventIDStr)
-	if err != nil {
-		utils.SendMessage(c, http.StatusBadRequest, err.Error())
-		return
-	}
+	searchingEvent := c.Query("q")
 
-	costyleEvent, err := eD.eventUsecaseV2.GetExternalEvent(userID, eventID)
-	if err != nil {
-		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	eventVector, err := eD.eventUsecaseV2.GetNLPVector(costyleEvent.Event.Description)
+	eventVector, err := eD.eventUsecaseV2.GetNLPVector(searchingEvent)
 	if err != nil {
 		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
 		return
@@ -180,13 +169,9 @@ func(eD *EventDeliveryV2) GetSimilar(c *gin.Context) {
 	resultEvents := []models.MyEvent{}
 	count := 0
 	for _, event := range *events {
-		cosineSimilarity, err := utils.Cosine(eventVector, event.Vector)
+		cosineSimilarity, err := utils.Cosine(eventVector, event.VectorTitle)
 		if err != nil {
 			log.Println("Cosine: ", err)
-			continue
-		}
-
-		if event.KudaGoID == eventID{
 			continue
 		}
 		
@@ -314,6 +299,7 @@ func(eD *EventDeliveryV2) GetSimilarToEventByTitle(c *gin.Context) {
 			break
 		}
 	}
+	
 	c.JSON(http.StatusOK, &models.MyEvents{
 		Events: resultEvents,
 	})

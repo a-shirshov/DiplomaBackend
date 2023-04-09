@@ -3,7 +3,6 @@ import time
 import requests
 import datetime
 import os
-import yaml
 from dotenv import load_dotenv
 import spacy
 import numpy as np
@@ -46,8 +45,8 @@ class Event:
         self.kudago_id = data_event['id']
         self.place_id = data_event['place']['id'] 
         self.title = data_event['title']
-        self.start = data_event['dates'][0]['start']
-        self.end = data_event['dates'][0]['end']
+        self.start = data_event['dates'][len(data_event['dates'])-1]['start']
+        self.end = data_event['dates'][len(data_event['dates'])-1]['end']
         self.location = data_event['location']['slug']
         self.image = data_event['images'][0]['image']
         self.description = data_event['description']
@@ -101,11 +100,10 @@ def get_future_events():
     place_list = []
     print(unix_timestamp_tomorrow_start)
     # создаем URL с параметром actual_since
-    event_url = f'https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location,place,description,price&actual_since={unix_timestamp_tomorrow_start}&page_size=250'
+    event_url = f'https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location,place,description,price&actual_since={unix_timestamp_tomorrow_start}&page_size=10'
     # отправляем GET-запрос и получаем ответ в формате JSON
     response = requests.get(event_url)
     json_data_events = json.loads(response.text)
-    i = 0
     while True:
         for data_event in json_data_events['results']:
             #print(data_event)
@@ -138,28 +136,23 @@ def get_future_events():
         event_url = json_data_events["next"]
         response = requests.get(event_url)
         json_data_events = json.loads(response.text)
-        i=i+1
         print("Page_done")
-        if i == 2:
-            break
 
     print(len(event_list)) 
     print(len(place_list))
     return event_list, place_list
 
 def connect_to_db():
-    load_dotenv(".env")
+    env_path = os.path.join(os.path.dirname(__file__), '../.env')
+    load_dotenv(env_path)
 
     db_name = os.environ['POSTGRES_DB']
     db_user = os.environ['POSTGRES_USER']
     db_password = os.environ['POSTGRES_PASSWORD']
+    db_host = os.environ['POSTGRES_HOST']
+    db_port = os.environ['POSTGRES_PORT']
 
-    with open("./config/config.yml", "r") as f:
-        config = yaml.safe_load(f)
-
-    db_host = config['postgres']['host']
-    db_port = config['postgres']['port']
-    conn = psycopg2.connect(dbname=db_name, user=db_user, password=db_password, host="localhost", port=5439)
+    conn = psycopg2.connect(dbname=db_name, user=db_user, password=db_password, host=db_host, port=db_port)
     return conn
 
 def fill_places_to_db(places_list):
@@ -206,11 +199,15 @@ def save_vectorized_events_to_db(event_list):
         cur.close()
         conn.close()
 
-def drop_last_events():
+def delete_last_events():
+    now = datetime.datetime.now()
+    week_ago = now - datetime.timedelta(weeks=1)
+    unix_week_ago = int(week_ago.timestamp())
+
     conn = connect_to_db()
     try:
         cur = conn.cursor()
-        cur.execute("DROP TABLE if exists kudago_event;")
+        cur.execute(f"DELETE from kudago_event where end_time < {unix_week_ago};")
     
         conn.commit()
     finally:
@@ -229,8 +226,7 @@ def drop_last_places():
         conn.close()
 
 def main():
-    drop_last_events()
-    drop_last_places()
+    delete_last_events()
     jsonFutureEvents, places = get_future_events()
     fill_places_to_db(places)
     processed_events = process_events(jsonFutureEvents)

@@ -1,0 +1,24 @@
+# Используем официальный образ Python
+FROM python:3.9-slim-bullseye
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Устанавливаем часовой пояс Москвы
+ENV TZ=Europe/Moscow
+
+# Копируем файлы в контейнер
+COPY . .
+
+# Устанавливаем зависимости
+RUN pip install -r requirements.txt
+
+# Настройка cronjob
+RUN apt-get update && apt-get install -y cron
+
+# Запускаем скрипт каждый день в 3 часа ночи
+RUN echo "0 3 * * * /usr/local/bin/python /app/updater.py" > /app/cronjob
+RUN crontab /app/cronjob
+
+# Запускаем команду по умолчанию
+CMD ["cron", "-f"]

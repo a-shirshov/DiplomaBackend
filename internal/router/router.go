@@ -32,7 +32,7 @@ func EventV2Endpoints(r *gin.RouterGroup, mws middleware.Middleware, eD eventV2.
 	r.GET("/external/today", mws.TokenAuthMiddleware(), eD.GetTodayEvents)
 	r.GET("/external/close", mws.TokenAuthMiddleware(), eD.GetCloseEvents)
 	r.GET("/external/:place_id/:event_id", mws.TokenAuthMiddleware(), eD.GetExternalEvent)
-	r.GET("/external/similar/:event_id", mws.TokenAuthMiddleware(), eD.GetSimilar)
+	r.GET("/external/similar", mws.TokenAuthMiddleware(), eD.GetSimilar)
 	r.GET("/external/alike/:event_id", mws.TokenAuthMiddleware(), eD.GetSimilarToEvent)
 	r.GET("/external/alike_title/:event_id", mws.TokenAuthMiddleware(), eD.GetSimilarToEventByTitle)
 	r.POST("/external/:event_id/like", mws.TokenAuthMiddleware(), eD.SwitchLikeEvent)

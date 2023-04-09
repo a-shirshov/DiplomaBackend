@@ -65,9 +65,7 @@ const (
 	kudago_event.start_time, kudago_event.end_time, kudago_event.location, kudago_event.image,
 	kudago_event.description, kudago_event.price, kudago_event.vector, kudago_event.vector_title, CASE WHEN kudago_favourite.event_id IS NULL THEN FALSE ELSE TRUE END AS is_liked
 	from kudago_event
-	left join kudago_favourite on kudago_event.kudago_id = kudago_favourite.event_id and kudago_favourite.user_id = $1
-	order by RANDOM()
-	LIMIT 250;`
+	left join kudago_favourite on kudago_event.kudago_id = kudago_favourite.event_id and kudago_favourite.user_id = $1;`
 
 	GetVector = `select vector from kudago_event where kudago_id = $1;`
 	GetVectorTitle = `select vector_title from kudago_event where kudago_id = $1;`
@@ -124,7 +122,7 @@ func NewEventRepositoryV2(db *sqlx.DB) *EventRepositoryV2 {
 }
 
 func (eR *EventRepositoryV2) GetExternalEvents(userID int, page int) (*[]models.MyEvent, error) {
-	var events []models.MyEvent
+	events := []models.MyEvent{}
 
 	err := eR.db.Select(&events, GetExternalEvents, userID, elementsPerPage, page)
 	if err != nil {
@@ -135,7 +133,7 @@ func (eR *EventRepositoryV2) GetExternalEvents(userID int, page int) (*[]models.
 }
 
 func (eR *EventRepositoryV2) GetTodayEvents(startTime int64, endTime int64, userID int, page int) (*[]models.MyEvent, error) {
-	var events []models.MyEvent
+	events := []models.MyEvent{}
 
 	err := eR.db.Select(&events, GetTodayEvents, startTime, endTime, userID, elementsPerPage, page)
 	if err != nil {
@@ -146,7 +144,7 @@ func (eR *EventRepositoryV2) GetTodayEvents(startTime int64, endTime int64, user
 }
 
 func (eR *EventRepositoryV2) GetCloseEvents(lat string, lon string, userID int, page int) (*[]models.MyEvent, error) {
-	var events []models.MyEvent
+	events := []models.MyEvent{}
 
 	err := eR.db.Select(&events, GetCloseEvents, lat, lon, userID, radiusInKilometers, elementsPerPage, page)
 	if err != nil {
@@ -186,7 +184,7 @@ func (eR *EventRepositoryV2) GetEvent(userID int, eventID int) (*models.MyEvent,
 }
 
 func (eU *EventRepositoryV2) GetRandomEvents(userID int) (*[]models.MyEvent, error) {
-	var events []models.MyEvent
+	events := []models.MyEvent{}
 	
 	rows, err := eU.db.Queryx(GetRandomEvents, userID)
 	if err != nil {
@@ -260,7 +258,7 @@ func (eU *EventRepositoryV2) SwitchLikeEvent(userID, eventID int) (error) {
 }
 
 func (eU *EventRepositoryV2) GetFavourites(userID, checkedUserID, page int) (*[]models.MyEvent, error) {
-	var events []models.MyEvent
+	events := []models.MyEvent{}
 
 	err := eU.db.Select(&events, GetFavourites, checkedUserID, userID, elementsPerPage, page)
 	if err != nil {
@@ -271,8 +269,7 @@ func (eU *EventRepositoryV2) GetFavourites(userID, checkedUserID, page int) (*[]
 }
 
 func (eU *EventRepositoryV2) SearchEvents(userID int, searchingEvent string, page int) (*[]models.MyEvent, error) {
-	var events []models.MyEvent
-	log.Print(searchingEvent)
+	events := []models.MyEvent{}
 	err := eU.db.Select(&events, SearchEvents, userID, searchingEvent, elementsPerPage, page)
 	if err != nil {
 		log.Println(err.Error())

@@ -6,3 +6,4 @@ images
 cover*
 migration.sql
 venv
+__pycache__
