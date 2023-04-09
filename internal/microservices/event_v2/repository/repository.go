@@ -175,7 +175,7 @@ func (eR *EventRepositoryV2) GetExternalEvent(userID int, eventID int) (*models.
 func (eR *EventRepositoryV2) GetEvent(userID int, eventID int) (*models.MyEvent, error) {
 	var event *models.MyEvent
 
-	err := eR.db.Get(&event, GetEvent)
+	err := eR.db.Get(&event, GetEvent, userID, eventID)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, customErrors.ErrPostgres
