@@ -13,7 +13,7 @@ import (
 func AuthEndpoints(r *gin.RouterGroup, mws middleware.Middleware, aD auth.Delivery) {
 	r.POST("/signup", mws.MiddlewareValidateUserFormData(), aD.SignUp)
 	r.POST("/login", mws.MiddlewareValidateLoginUser(), aD.SignIn)
-	r.GET("/logout", mws.TokenAuthMiddleware(), aD.Logout)
+	r.POST("/logout", mws.TokenAuthMiddleware(), aD.Logout)
 	r.POST("/refresh", aD.Refresh)
 	r.POST("/redeem", mws.MiddlewareValidateRedeemCode(), aD.SendEmail)
 	r.POST("/codecheck", mws.MiddlewareValidateRedeemCode(), aD.CheckRedeemCode)
