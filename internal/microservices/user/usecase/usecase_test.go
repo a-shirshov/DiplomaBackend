@@ -224,8 +224,9 @@ func TestGetUserUsecase(t *testing.T) {
 	for _, test := range getUserTests {
 		t.Run(test.name, func(t *testing.T){
 			mockUserRepo := mock.NewMockRepository(ctrl)
-			testUserRepository := NewUserUsecase(mockUserRepo)
-
+			mockPasswordHasher := mock.NewMockPasswordHasher(ctrl)
+			
+			testUserRepository := NewUserUsecase(mockUserRepo, mockPasswordHasher)
 			if test.beforeTest != nil {
 				test.beforeTest(mockUserRepo)
 			}
@@ -244,7 +245,9 @@ func TestUpdateUserUsecase(t *testing.T) {
 	for _, test := range updateUserTests {
 		t.Run(test.name, func(t *testing.T){
 			mockUserRepo := mock.NewMockRepository(ctrl)
-			testUserRepository := NewUserUsecase(mockUserRepo)
+			mockPasswordHasher := mock.NewMockPasswordHasher(ctrl)
+			
+			testUserRepository := NewUserUsecase(mockUserRepo, mockPasswordHasher)
 
 			if test.beforeTest != nil {
 				test.beforeTest(mockUserRepo)
@@ -264,7 +267,9 @@ func TestUpdateUserImageUsecase(t *testing.T) {
 	for _, test := range updateUserImageTests {
 		t.Run(test.name, func(t *testing.T){
 			mockUserRepo := mock.NewMockRepository(ctrl)
-			testUserRepository := NewUserUsecase(mockUserRepo)
+			mockPasswordHasher := mock.NewMockPasswordHasher(ctrl)
+			
+			testUserRepository := NewUserUsecase(mockUserRepo, mockPasswordHasher)
 
 			if test.beforeTest != nil {
 				test.beforeTest(mockUserRepo)

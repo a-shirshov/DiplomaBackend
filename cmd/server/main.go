@@ -106,7 +106,7 @@ func main() {
 	eventV2R := eventV2Repo.NewEventRepositoryV2(postgresDB)
 	authR := authRepo.NewAuthRepository(postgresDB)
 
-	userU := userUsecase.NewUserUsecase(userR)
+	userU := userUsecase.NewUserUsecase(userR, passwordHasher)
 	eventV2U := eventV2Usecase.NewEventUsecaseV2(eventV2R, conn)
 	authU := authUsecase.NewAuthUsecase(authR, sessionR, passwordHasher, tokenManager)
 

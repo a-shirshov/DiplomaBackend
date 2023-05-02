@@ -34,6 +34,18 @@ func (m *MockDelivery) EXPECT() *MockDeliveryMockRecorder {
 	return m.recorder
 }
 
+// ChangePassword mocks base method.
+func (m *MockDelivery) ChangePassword(c *gin.Context) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "ChangePassword", c)
+}
+
+// ChangePassword indicates an expected call of ChangePassword.
+func (mr *MockDeliveryMockRecorder) ChangePassword(c interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePassword", reflect.TypeOf((*MockDelivery)(nil).ChangePassword), c)
+}
+
 // GetUser mocks base method.
 func (m *MockDelivery) GetUser(c *gin.Context) {
 	m.ctrl.T.Helper()
