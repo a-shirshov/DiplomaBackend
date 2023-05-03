@@ -101,7 +101,7 @@ def get_future_events():
     place_list = []
     print(unix_timestamp_tomorrow_start)
     # создаем URL с параметром actual_since
-    event_url = f'https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location,place,description,price&actual_since={unix_timestamp_tomorrow_start}&page_size=10'
+    event_url = f'https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location,place,description,price&actual_since={unix_timestamp_tomorrow_start}&page_size=50'
     # отправляем GET-запрос и получаем ответ в формате JSON
     response = requests.get(event_url)
     json_data_events = json.loads(response.text)
@@ -238,7 +238,7 @@ def main():
     print("Done NLP")
     save_vectorized_events_to_db(processed_events)
     logging.info("Done")
-    
+
     f = open("/app/myfile.txt", "w")
     f.write(str(now)+"Done")
     f.close()
