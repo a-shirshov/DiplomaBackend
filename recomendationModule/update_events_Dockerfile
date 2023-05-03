@@ -8,7 +8,9 @@ WORKDIR /app
 ENV TZ=Europe/Moscow
 
 # Копируем файлы в контейнер
-COPY . .
+COPY requirements.txt .
+COPY updater.py .
+COPY .env .
 
 # Устанавливаем зависимости
 RUN pip install -r requirements.txt

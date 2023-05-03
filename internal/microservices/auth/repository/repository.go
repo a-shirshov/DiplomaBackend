@@ -34,7 +34,6 @@ func (aR *AuthRepository) CreateUser(inputUser *models.User) (*models.User, erro
 	message := logMessage + "CreateUser:"
 	log.Debug(message + "started")
 	user := models.User{}
-
 	err := aR.db.QueryRowx(CreateUserQuery, 
 		&inputUser.Name, 
 		&inputUser.Surname, 

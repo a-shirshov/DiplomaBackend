@@ -14,4 +14,6 @@ type Repository interface {
 	SwitchLikeEvent(userID, eventID int) (error)
 	GetFavourites(userID, checkedUserID, page int) (*[]models.MyEvent, error)
 	SearchEvents(userID int, searchingEvent string, page int) (*[]models.MyEvent, error)
+	GetExternalEventsWithCity(userID int, city string, page int) (*[]models.MyEvent, error)
+	GetTodayEventsWithCity(startTime int64, endTime int64, city string, userID int, page int) (*[]models.MyEvent, error)
 }

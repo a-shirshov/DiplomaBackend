@@ -5,8 +5,8 @@ import (
 )
 
 type Usecase interface {
-	GetExternalEvents(userID int, page int) (*[]models.MyEvent, error)
-	GetTodayEvents(userID int, page int) (*[]models.MyEvent, error)
+	GetExternalEvents(userID int, city string, page int) (*[]models.MyEvent, error)
+	GetTodayEvents(userID int, city string, page int) (*[]models.MyEvent, error)
 	GetCloseEvents(lat string, lon string, userID int, page int) (*[]models.MyEvent, error)
 	GetExternalEvent(userID int, eventID int) (*models.MyFullEvent, error)
 	GetNLPVector(description string) ([]float64, error)

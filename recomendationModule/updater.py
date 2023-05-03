@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import spacy
 import numpy as np
 import psycopg2
+import logging
 
 CREATE_TABLE_EVENT='''CREATE TABLE if not exists kudago_event (
     id serial PRIMARY KEY not null UNIQUE,
@@ -136,14 +137,14 @@ def get_future_events():
         event_url = json_data_events["next"]
         response = requests.get(event_url)
         json_data_events = json.loads(response.text)
-        print("Page_done")
+        logging.info("Page_done")
 
-    print(len(event_list)) 
-    print(len(place_list))
+    logging.info(len(event_list)) 
+    logging.info(len(place_list))
     return event_list, place_list
 
 def connect_to_db():
-    env_path = os.path.join(os.path.dirname(__file__), '../.env')
+    env_path = os.path.join(os.path.dirname(__file__), '.env')
     load_dotenv(env_path)
 
     db_name = os.environ['POSTGRES_DB']
@@ -169,7 +170,6 @@ def fill_places_to_db(places_list):
                 (place.kudago_id, place.title, place.address, place.lat, place.lon,
                 place.timetable, place.phone, place.site_url, place.foreign_url))
             except Exception:
-                print(place.kudago_id)
                 pass
         conn.commit()
 
@@ -191,7 +191,6 @@ def save_vectorized_events_to_db(event_list):
                 (event.kudago_id, event.place_id, event.title, event.start, event.end,
                 event.location, event.image, event.description, event.price, event.vector, event.vector_title))
             except Exception:
-                print(event.kudago_id)
                 pass
         conn.commit()
         
@@ -226,6 +225,11 @@ def drop_last_places():
         conn.close()
 
 def main():
+    f = open("/app/myfile.txt", "w")
+    now = datetime.datetime.now()
+    f.write(str(now))
+    f.close()
+
     delete_last_events()
     jsonFutureEvents, places = get_future_events()
     fill_places_to_db(places)
@@ -233,7 +237,11 @@ def main():
     processed_events = process_events_titles(processed_events)
     print("Done NLP")
     save_vectorized_events_to_db(processed_events)
-    print("Done")
+    logging.info("Done")
+    
+    f = open("/app/myfile.txt", "w")
+    f.write(str(now)+"Done")
+    f.close()
 
 if __name__ == "__main__":
     main()
