@@ -211,30 +211,7 @@ def delete_last_events():
     conn = connect_to_db()
     try:
         cur = conn.cursor()
-        cur.execute(CREATE_TABLE_EVENT)
         cur.execute(f"DELETE from kudago_event where end_time < {unix_week_ago};")
-        conn.commit()
-    finally:
-        cur.close()
-        conn.close()
-
-def drop_last_places():
-    conn = connect_to_db()
-    try:
-        cur = conn.cursor()
-        cur.execute("DROP TABLE if exists kudago_place;")
-    
-        conn.commit()
-    finally:
-        cur.close()
-        conn.close()
-
-def drop_last_events():
-    conn = connect_to_db()
-    try:
-        cur = conn.cursor()
-        cur.execute("DROP TABLE if exists kudago_event;")
-    
         conn.commit()
     finally:
         cur.close()
@@ -246,8 +223,6 @@ def main():
     f.write(str(now))
     f.close()
 
-    drop_last_events()
-    drop_last_places()
     delete_last_events()
     jsonFutureEvents, places = get_future_events()
     fill_places_to_db(places)
