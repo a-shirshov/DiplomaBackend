@@ -100,11 +100,10 @@ def get_future_events():
     place_list = []
     print(unix_timestamp_tomorrow_start)
     # создаем URL с параметром actual_since
-    event_url = f'https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location,place,description,price&actual_since={unix_timestamp_tomorrow_start}&page_size=25'
+    event_url = f'https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location,place,description,price&actual_since={unix_timestamp_tomorrow_start}&page_size=250'
     # отправляем GET-запрос и получаем ответ в формате JSON
     response = requests.get(event_url)
     json_data_events = json.loads(response.text)
-    i=0
     while True:
         for data_event in json_data_events['results']:
             #print(data_event)
@@ -131,9 +130,6 @@ def get_future_events():
             except Exception as e:
                 print(e)
                 pass
-        if i > 2:
-            break
-        i=i+1
         if json_data_events["next"] == None:
             break
 
