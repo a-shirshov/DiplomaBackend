@@ -232,7 +232,7 @@ def drop_last_events():
     conn = connect_to_db()
     try:
         cur = conn.cursor()
-        cur.execute("DROP TABLE if exists kudago_place;")
+        cur.execute("DROP TABLE if exists kudago_event;")
     
         conn.commit()
     finally:
@@ -244,7 +244,7 @@ def main():
     now = datetime.datetime.now()
     f.write(str(now))
     f.close()
-    
+
     drop_last_events()
     drop_last_places()
     delete_last_events()
