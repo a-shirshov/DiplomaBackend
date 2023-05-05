@@ -211,6 +211,7 @@ def delete_last_events():
     conn = connect_to_db()
     try:
         cur = conn.cursor()
+        cur.execute(CREATE_TABLE_EVENT)
         cur.execute(f"DELETE from kudago_event where end_time < {unix_week_ago};")
         conn.commit()
     finally:
