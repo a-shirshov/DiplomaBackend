@@ -110,7 +110,7 @@ def get_future_events():
             #print(data_event)
             if data_event['place'] == None:
                 continue
-            if data_event['dates'][0]['start'] < 0:
+            if data_event['dates'][len(data_event['dates'])-1]['start'] < 0:
                 continue
             
             place_id = data_event['place']['id']
@@ -228,12 +228,25 @@ def drop_last_places():
         cur.close()
         conn.close()
 
+def drop_last_events():
+    conn = connect_to_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("DROP TABLE if exists kudago_place;")
+    
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+
 def main():
     f = open("/app/myfile.txt", "w")
     now = datetime.datetime.now()
     f.write(str(now))
     f.close()
-
+    
+    drop_last_events()
+    drop_last_places()
     delete_last_events()
     jsonFutureEvents, places = get_future_events()
     fill_places_to_db(places)
