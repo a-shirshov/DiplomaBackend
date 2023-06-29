@@ -24,14 +24,20 @@ func NewEventUsecaseV2 (eventV2R eventV2.Repository, grpcConn grpc.ClientConnInt
 	}
 }
 
-func(eU *eventUsecaseV2) GetExternalEvents(userID int, page int) (*[]models.MyEvent, error) {
-	return eU.eventRepositoryV2.GetExternalEvents(userID, page)
+func(eU *eventUsecaseV2) GetExternalEvents(userID int, city string, page int) (*[]models.MyEvent, error) {
+	if (city == "") {
+		return eU.eventRepositoryV2.GetExternalEvents(userID, page)
+	}
+	return eU.eventRepositoryV2.GetExternalEventsWithCity(userID, city, page)
 }
 
-func(eU *eventUsecaseV2) GetTodayEvents(userID int, page int) (*[]models.MyEvent, error) {
+func(eU *eventUsecaseV2) GetTodayEvents(userID int, city string, page int) (*[]models.MyEvent, error) {
 	startTime := time.Now().Unix()
 	endTime := time.Now().Add(24 * time.Hour).Unix()
-	return eU.eventRepositoryV2.GetTodayEvents(startTime, endTime, userID, page)
+	if (city == "") {
+		return eU.eventRepositoryV2.GetTodayEvents(startTime, endTime, userID, page)
+	}
+	return eU.eventRepositoryV2.GetTodayEventsWithCity(startTime, endTime, city, userID, page)
 }
 
 func(eU *eventUsecaseV2) GetCloseEvents(lat string, lon string, userID int, page int) (*[]models.MyEvent, error) {

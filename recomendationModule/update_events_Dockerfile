@@ -8,13 +8,15 @@ WORKDIR /app
 ENV TZ=Europe/Moscow
 
 # Копируем файлы в контейнер
-COPY . .
+COPY requirements.txt .
+COPY updater.py .
+COPY .env .
 
 # Устанавливаем зависимости
 RUN pip install -r requirements.txt
 
 # Настройка cronjob
-RUN apt-get update && apt-get install -y cron
+RUN apt-get update && apt-get install -y cron && apt-get install -y nano
 
 # Запускаем скрипт каждый день в 3 часа ночи
 RUN echo "0 3 * * * /usr/local/bin/python /app/updater.py" > /app/cronjob

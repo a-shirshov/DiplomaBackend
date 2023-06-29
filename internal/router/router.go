@@ -25,6 +25,7 @@ func UserEndpoints(r *gin.RouterGroup, mws middleware.Middleware, uD user.Delive
 	r.POST("/:user_id", mws.TokenAuthMiddleware(), mws.MiddlewareValidateUser(), uD.UpdateUser)
 	r.GET("/:user_id", uD.GetUser)
 	r.POST("/:user_id/image", uD.UpdateUserImage)
+	r.POST("/password", mws.TokenAuthMiddleware(), mws.MiddlewareValidateRedeemCode(), uD.ChangePassword)
 }
 
 func EventV2Endpoints(r *gin.RouterGroup, mws middleware.Middleware, eD eventV2.Delivery) {

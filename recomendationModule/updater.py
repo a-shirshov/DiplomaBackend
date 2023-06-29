@@ -100,7 +100,7 @@ def get_future_events():
     place_list = []
     print(unix_timestamp_tomorrow_start)
     # создаем URL с параметром actual_since
-    event_url = f'https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location,place,description,price&actual_since={unix_timestamp_tomorrow_start}&page_size=10'
+    event_url = f'https://kudago.com/public-api/v1.4/events/?fields=id,dates,title,images,location,place,description,price&actual_since={unix_timestamp_tomorrow_start}&page_size=250'
     # отправляем GET-запрос и получаем ответ в формате JSON
     response = requests.get(event_url)
     json_data_events = json.loads(response.text)
@@ -109,7 +109,7 @@ def get_future_events():
             #print(data_event)
             if data_event['place'] == None:
                 continue
-            if data_event['dates'][0]['start'] < 0:
+            if data_event['dates'][len(data_event['dates'])-1]['start'] < 0:
                 continue
             
             place_id = data_event['place']['id']
@@ -127,9 +127,9 @@ def get_future_events():
                 event_list.append(event)
                 place = Place(data_place)
                 place_list.append(place)
-            except Exception:
+            except Exception as e:
+                print(e)
                 pass
-
         if json_data_events["next"] == None:
             break
 
@@ -143,7 +143,7 @@ def get_future_events():
     return event_list, place_list
 
 def connect_to_db():
-    env_path = os.path.join(os.path.dirname(__file__), '../.env')
+    env_path = os.path.join(os.path.dirname(__file__), '.env')
     load_dotenv(env_path)
 
     db_name = os.environ['POSTGRES_DB']
@@ -168,8 +168,8 @@ def fill_places_to_db(places_list):
                 ON CONFLICT (kudago_id) DO NOTHING;""",
                 (place.kudago_id, place.title, place.address, place.lat, place.lon,
                 place.timetable, place.phone, place.site_url, place.foreign_url))
-            except Exception:
-                print(place.kudago_id)
+            except Exception as e:
+                print(e)
                 pass
         conn.commit()
 
@@ -190,8 +190,8 @@ def save_vectorized_events_to_db(event_list):
                 ON CONFLICT (kudago_id) DO NOTHING;""", 
                 (event.kudago_id, event.place_id, event.title, event.start, event.end,
                 event.location, event.image, event.description, event.price, event.vector, event.vector_title))
-            except Exception:
-                print(event.kudago_id)
+            except Exception as e:
+                print(e)
                 pass
         conn.commit()
         
@@ -208,24 +208,17 @@ def delete_last_events():
     try:
         cur = conn.cursor()
         cur.execute(f"DELETE from kudago_event where end_time < {unix_week_ago};")
-    
-        conn.commit()
-    finally:
-        cur.close()
-        conn.close()
-
-def drop_last_places():
-    conn = connect_to_db()
-    try:
-        cur = conn.cursor()
-        cur.execute("DROP TABLE if exists kudago_place;")
-    
         conn.commit()
     finally:
         cur.close()
         conn.close()
 
 def main():
+    f = open("/app/myfile.txt", "w")
+    now = datetime.datetime.now()
+    f.write(str(now))
+    f.close()
+
     delete_last_events()
     jsonFutureEvents, places = get_future_events()
     fill_places_to_db(places)
@@ -234,6 +227,10 @@ def main():
     print("Done NLP")
     save_vectorized_events_to_db(processed_events)
     print("Done")
+
+    f = open("/app/myfile.txt", "w")
+    f.write(str(now)+ "Done" + "\n")
+    f.close()
 
 if __name__ == "__main__":
     main()

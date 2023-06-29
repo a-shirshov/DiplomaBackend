@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS partypoint_user  (
     surname text not null,
     email text not null UNIQUE,
     password text not null,
-    city text not null default 'msk',
+    city text default 'msk',
     date_of_birth date not null default '2000-01-01',
     about text not null default '',
     img_url text not null default '',

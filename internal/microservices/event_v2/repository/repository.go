@@ -109,6 +109,21 @@ const (
 		) as search_result
 	  ) as search_result_paged
 	where RowNum Between 1 + $3 * ($4 - 1) and $3 * $4;`
+
+	GetExternalEventsWithCity = `SELECT kudago_events_paged.kudago_id, kudago_events_paged.place_id, kudago_events_paged.title, kudago_events_paged.start_time,
+    kudago_events_paged.end_time, kudago_events_paged.location, kudago_events_paged.image, kudago_events_paged.description,
+    kudago_events_paged.price, CASE WHEN kudago_favourite.event_id IS NULL THEN FALSE ELSE TRUE END AS is_liked
+	FROM (select ROW_NUMBER() OVER() as RowNum, * from kudago_event where location = $1) as kudago_events_paged
+    LEFT JOIN kudago_favourite ON kudago_events_paged.kudago_id = kudago_favourite.event_id AND kudago_favourite.user_id = $2
+		where RowNum Between 1 + $3 * ($4 - 1) and $3 * $4;`
+
+	GetTodayEventsWithCity = `SELECT kudago_events_paged.kudago_id, kudago_events_paged.place_id, kudago_events_paged.title, kudago_events_paged.start_time,
+    kudago_events_paged.end_time, kudago_events_paged.location, kudago_events_paged.image, kudago_events_paged.description,
+    kudago_events_paged.price, CASE WHEN kudago_favourite.event_id IS NULL THEN FALSE ELSE TRUE END AS is_liked
+	FROM (select ROW_NUMBER() OVER() as RowNum, * from kudago_event where kudago_event.start_time > $1 and kudago_event.end_time < $2 and location = $3) 
+	as kudago_events_paged
+    LEFT JOIN kudago_favourite ON kudago_events_paged.kudago_id = kudago_favourite.event_id AND kudago_favourite.user_id = $4
+		where RowNum Between 1 + $5 * ($6 - 1) and $5 * $6;`
 )
 
 type EventRepositoryV2 struct {
@@ -132,10 +147,32 @@ func (eR *EventRepositoryV2) GetExternalEvents(userID int, page int) (*[]models.
 	return &events, nil
 }
 
+func (eR *EventRepositoryV2) GetExternalEventsWithCity(userID int, city string, page int) (*[]models.MyEvent, error) {
+	events := []models.MyEvent{}
+
+	err := eR.db.Select(&events, GetExternalEventsWithCity, city, userID, elementsPerPage, page)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, customErrors.ErrPostgres
+	}
+	return &events, nil
+}
+
 func (eR *EventRepositoryV2) GetTodayEvents(startTime int64, endTime int64, userID int, page int) (*[]models.MyEvent, error) {
 	events := []models.MyEvent{}
 
 	err := eR.db.Select(&events, GetTodayEvents, startTime, endTime, userID, elementsPerPage, page)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, customErrors.ErrPostgres
+	}
+	return &events, nil
+}
+
+func (eR *EventRepositoryV2) GetTodayEventsWithCity(startTime int64, endTime int64, city string, userID int, page int) (*[]models.MyEvent, error) {
+	events := []models.MyEvent{}
+
+	err := eR.db.Select(&events, GetTodayEventsWithCity, startTime, endTime, city, userID, elementsPerPage, page)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, customErrors.ErrPostgres

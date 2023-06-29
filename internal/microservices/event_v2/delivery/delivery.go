@@ -37,7 +37,9 @@ func (eD *EventDeliveryV2) GetExternalEvents(c *gin.Context) {
 		return
 	}
 
-	events, err := eD.eventUsecaseV2.GetExternalEvents(userID, page)
+	city := c.DefaultQuery("city", "")
+
+	events, err := eD.eventUsecaseV2.GetExternalEvents(userID, city, page)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
@@ -65,7 +67,9 @@ func (eD *EventDeliveryV2) GetTodayEvents(c *gin.Context) {
 		return
 	}
 
-	events, err := eD.eventUsecaseV2.GetTodayEvents(userID, page)
+	city := c.DefaultQuery("city", "")
+
+	events, err := eD.eventUsecaseV2.GetTodayEvents(userID, city, page)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendMessage(c, http.StatusInternalServerError, err.Error())

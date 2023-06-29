@@ -127,3 +127,26 @@ func (uD *UserDelivery) UpdateUserImage(c *gin.Context) {
 
 	c.JSON(http.StatusOK, user)
 }
+
+func (uD *UserDelivery) ChangePassword(c *gin.Context) {
+	au, err := utils.GetAUFromContext(c)
+	if err != nil {
+		utils.SendMessage(c, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	redeemStructCtxValue, ok := c.Get("redeem_struct")
+	if !ok {
+		utils.SendMessage(c, http.StatusUnprocessableEntity, customErrors.ErrWrongJson.Error())
+		return
+	}
+	redeemCodeStruct := redeemStructCtxValue.(models.RedeemCodeStruct)
+
+	err = uD.userUsecase.ChangePassword(au.UserId, redeemCodeStruct.Password)
+	if err != nil {
+		utils.SendMessage(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.SendMessage(c, http.StatusOK, "OK")
+}

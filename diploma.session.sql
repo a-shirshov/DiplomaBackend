@@ -1,1 +1,0 @@
-select * from kudago_event where end_time < 1680856686;
